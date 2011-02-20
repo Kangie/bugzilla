@@ -843,15 +843,15 @@ my $search = new Bugzilla::Search('fields' => \@selectcolumns,
 my $query = $search->getSQL();
 $vars->{'search_description'} = $search->search_description;
 
-if (defined $cgi->param('limit')) {
-    my $limit = $cgi->param('limit');
-    if (detaint_natural($limit)) {
-        $query .= " " . $dbh->sql_limit($limit);
-    }
-}
-elsif ($fulltext) {
+if ($fulltext) {
     if ($cgi->param('order') && $cgi->param('order') =~ /^relevance/) {
         $vars->{'message'} = 'buglist_sorted_by_relevance';
+    }
+}
+else {
+    my $limit = ($cgi->param('limit') && $cgi->param('limit') <= 5000) ? $cgi->param('limit') : 5000;
+    if (detaint_natural($limit)) {
+        $query .= " " . $dbh->sql_limit($limit);
     }
 }
 
