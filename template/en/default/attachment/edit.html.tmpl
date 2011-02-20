@@ -181,7 +181,7 @@
               [% END %]
             </a>
           </div>
-        [% ELSIF !Param("allow_attachment_display") %]
+        [% ELSIF !Param("allow_attachment_display") && !attachment.contenttype.match('^text\/plain$') %]
           <div id="view_disabled">
             <p><b>
               The attachment is not viewable in your browser due to security
