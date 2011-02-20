@@ -1,0 +1,26 @@
+#!/bin/sh
+cd /var/www/bugs.gentoo.org/htdocs
+outpath="/var/www/bugs.gentoo.org/htdocs/data/cached"
+./collectstats.pl
+dofile() {
+  url="$1"
+  outfile="$2"
+  tmp="${outfile}.$$"
+  #echo $url
+  wget -q "$url" -O "${tmp}" --header 'Host: bugs.gentoo.org'
+  if [ $? -eq 0 ]; then
+      gzip -9 <"${tmp}" >"${tmp}.gz"
+      mv -f "${tmp}" "${outfile}"
+      mv -f "${tmp}.gz" "${outfile}gz"
+  else
+      rm -f "${tmp}" "${tmp}.gz" "${outfile}" "${outfile}gz"
+  fi
+}
+for status in RESOLVED VERIFIED CLOSED ; do
+  for reso in FIXED INVALID WONTFIX LATER REMIND WORKSFORME CANTFIX NEEDINFO TEST-REQUEST UPSTREAM ; do
+   dofile "http://localhost/custom_buglist.cgi?reso=${reso}&status=${status}" ${outpath}/buglist-${status}-${reso}.html
+ done
+done
+for status in UNCONFIRMED NEW ASSIGNED REOPENED ; do
+   dofile "http://localhost/custom_buglist.cgi?status=${status}" ${outpath}/buglist-${status}.html
+done
