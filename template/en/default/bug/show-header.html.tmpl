@@ -33,7 +33,7 @@
 [% filtered_timestamp = bug.delta_ts FILTER time %]
 [% title = "$terms.Bug $bug.bug_id &ndash; $filtered_desc" %]
 [% header = "$terms.Bug&nbsp;$bug.bug_id" %]
-[% header_addl_info = "Last modified: $filtered_timestamp" %]
+[% header_addl_info = "Last modified: $filtered_timestamp node ${constants.GENTOO_NODE}" %]
 [% yui = ['autocomplete', 'calendar'] %]
 [% javascript_urls = [ "js/util.js", "js/field.js" ] %]
 [% style_urls = [ "skins/standard/show_bug.css" ] %]
