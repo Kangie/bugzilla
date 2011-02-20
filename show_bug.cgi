@@ -75,10 +75,12 @@ if ($single) {
         }
     }
 } else {
+    my $count = 0;
     foreach my $id ($cgi->param('id')) {
         # Be kind enough and accept URLs of the form: id=1,2,3.
         my @ids = split(/,/, $id);
         foreach (@ids) {
+            last if $count == 100;
             my $bug = new Bugzilla::Bug($_);
             # This is basically a backwards-compatibility hack from when
             # Bugzilla::Bug->new used to set 'NotPermitted' if you couldn't
@@ -87,6 +89,7 @@ if ($single) {
                 $bug->{error} = 'NotPermitted';
             }
             push(@bugs, $bug);
+            $count++;
         }
     }
 }
