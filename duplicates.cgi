@@ -43,7 +43,8 @@ use constant DEFAULTS => {
     # reporting fixed bugs when they get newer versions of the software,
     # but if the bug is determined to be erroneous, people will still
     # keep reporting it, so we do need to show it here.
-    fully_exclude_status  => ['CLOSED'],
+	# gentoo bug 166593
+	#fully_exclude_status  => ['CLOSED'],
     partly_exclude_status => ['VERIFIED'],
     except_resolution => ['INVALID', 'WONTFIX'],
     changedsince => 7,
