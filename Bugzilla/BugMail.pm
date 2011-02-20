@@ -257,8 +257,14 @@ sub Send {
                 $lastbug = $depbug;
                 $thisdiff =
                   "\nBug $id depends on bug $depbug, which changed state.\n\n" .
-                  "Bug $depbug Summary: $summary\n" .
-                  correct_urlbase() . "show_bug.cgi?id=$depbug\n\n";
+                  "Bug $depbug Summary: $summary\n";
+                if(Bugzilla->params->{"urlbase"} && Bugzilla->params->{"sslbase"} && Bugzilla->params->{"ssl_redirect"} == 0) {
+                    $thisdiff .= sprintf("Clear-Text: %sshow_bug.cgi?id=%i\n", Bugzilla->params->{"urlbase"}, $depbug);
+                    $thisdiff .= sprintf("Secure: %sshow_bug.cgi?id=%i\n\n", Bugzilla->params->{"sslbase"}, $depbug);
+                }
+                else {
+                    $thisdiff .= correct_urlbase() . "show_bug.cgi?id=$depbug\n\n";
+                }
                 $thisdiff .= three_columns("What    ", "Old Value", "New Value");
                 $thisdiff .= ('-' x 76) . "\n";
                 $interestingchange = 0;

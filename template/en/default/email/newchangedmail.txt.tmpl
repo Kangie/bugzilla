@@ -43,7 +43,12 @@ X-Bugzilla-Target-Milestone: [% bug.target_milestone %]
 X-Bugzilla-Changed-Fields: [% changedfields.join(" ") %]
 [%+ threadingmarker %]
 
+[% IF ( httpbase && sslbase ) && ssl_redirect == 0 %]
+Clear-Text: [%+ httpbase %]show_bug.cgi?id=[% bug.id %]
+Secure: [%+ sslbase %]show_bug.cgi?id=[% bug.id %]
+[% ELSE %]
 [%+ urlbase %]show_bug.cgi?id=[% bug.id %]
+[% END %]
 [%- IF diffs %]
 
 [%+ diffs %]

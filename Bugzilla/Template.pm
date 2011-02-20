@@ -869,6 +869,9 @@ sub create {
 
             # Allow templates to access the "corect" URLBase value
             'urlbase' => sub { return Bugzilla::Util::correct_urlbase(); },
+			'httpbase' => sub { return Bugzilla->params->{'urlbase'}; },
+			'sslbase' => sub { return Bugzilla->params->{'sslbase'}; },
+			'ssl_redirect' => sub { return Bugzilla->params->{'ssl_redirect'}; },
 
             # Allow templates to access docs url with users' preferred language
             'docs_urlbase' => sub { 
