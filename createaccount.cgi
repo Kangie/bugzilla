@@ -68,6 +68,7 @@ if (defined($login)) {
     if ($login !~ /$createexp/) {
         ThrowUserError("account_creation_restricted");
     }
+    ThrowUserError('restricted_email_address', {addr => $login}) if $login =~ m/.+\@gentoo\.org$/;
 
     # Create and send a token for this new account.
     Bugzilla::Token::issue_new_user_account_token($login);

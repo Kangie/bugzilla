@@ -1,0 +1,5 @@
+[% IF error == "restricted_email_address" %]
+    [% title = "Using @gentoo.org email addresses have been restricted" %]
+	If you're a Gentoo developer, either contact your recruiter, [%
+	Param("maintainer") %] or join us in #gentoo-infra and ask us to change your mail address.
+[% END %]
