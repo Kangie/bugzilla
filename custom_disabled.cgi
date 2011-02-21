@@ -8,8 +8,8 @@ use Bugzilla::Constants;
 
 my $cgi       = Bugzilla->cgi;
 my $vars      = {};
-my $dbh       = Bugzilla->switch_to_shadow_db();
 my $user = Bugzilla->login(LOGIN_REQUIRED);
+my $dbh       = Bugzilla->switch_to_shadow_db();
 
 print $cgi->header(-type=>'text/html');
 

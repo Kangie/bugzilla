@@ -9,8 +9,8 @@ use Bugzilla::Error;
 use Bugzilla::Util;
 
 my $cgi       = Bugzilla->cgi;
-my $dbh       = Bugzilla->switch_to_shadow_db();
 my $user = Bugzilla->login(LOGIN_REQUIRED);
+my $dbh       = Bugzilla->switch_to_shadow_db();
 
 my @bindValues;
 

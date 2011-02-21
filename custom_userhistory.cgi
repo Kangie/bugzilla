@@ -10,8 +10,8 @@ use Bugzilla::Util;
 
 my $cgi       = Bugzilla->cgi;
 my $vars      = {};
-my $dbh       = Bugzilla->switch_to_shadow_db();
 my $myuser = Bugzilla->login(LOGIN_REQUIRED);
+my $dbh       = Bugzilla->switch_to_shadow_db();
 my @bindValues;
 my $query;
 
