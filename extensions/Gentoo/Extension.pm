@@ -17,7 +17,7 @@ sub template_before_create {
 		'hummingbird' => 'bugs-web2'
 	);
 
-	$constants->{GENTOO_NODE} = $nodemap{(POSIX::uname())[1]};
+	$constants->{GENTOO_NODE} = $nodemap{(POSIX::uname())[1]} ? $nodemap{(POSIX::uname())[1]} : "unknown";
 	$constants->{GENTOO_APPEND_VERSION} = "-gentoo-r1";
 }
 
