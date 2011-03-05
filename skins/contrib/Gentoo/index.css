@@ -1,0 +1,33 @@
+/*
+ * Custom rules for index.css.
+ * The rules you put here override rules in that stylesheet.
+ */
+    
+    div#page-index .outro 
+    {
+        clear:both;
+    }
+
+    #page-index {
+      max-width: 60%;
+      margin-left: 2em;
+      width: 95%;
+    }
+    
+    #page-index table {
+      margin: 0;
+      width: 95%;
+    }
+    
+    .intro, .outro {
+      width: auto;
+    }
+    
+    .intro {
+      text-align: left;
+    }
+    
+    .bz_common_actions_container {
+      width: 490px;
+      margin: auto;
+    }
