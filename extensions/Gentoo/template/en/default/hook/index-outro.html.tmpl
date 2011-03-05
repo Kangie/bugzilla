@@ -1,0 +1,10 @@
+<hr width="100%" />
+[% USE date %]
+[% dn = date.now %]
+[% d24ago = dn - 3600*24 %]
+[% d12ago = dn - 3600*12 %]
+[% tn = date.format(dn, '%Y-%m-%d+%H:%M') %]
+[% t24ago = date.format(d24ago, '%Y-%m-%d+%H:%M') %]
+[% t12ago = date.format(d12ago, '%Y-%m-%d+%H:%M') %]
+<p><a href="/buglist.cgi?query_format=advanced&chfieldfrom=[% t24ago %]&chfieldto=Now&chfield=%5BBug+creation%5D&order=bugs.bug_id">View Bugs Reported in the last 24 hours</a> |
+<a href="/buglist.cgi?query_format=advanced&chfieldfrom=[% t12ago %]&chfieldto=Now&chfield=%5BBug+creation%5D&order=bugs.bug_id">View Bugs Reported in the last 12 hours</a></p>
