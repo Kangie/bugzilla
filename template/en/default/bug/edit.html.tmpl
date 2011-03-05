@@ -829,6 +829,7 @@
                   multiple => 5
                 %]
             </div>
+            [% Hook.process("after_cc_field", 'bug/edit.html.tmpl') %]
           [% END %]
           [% IF bug.cc %]
             <select id="cc" name="cc" multiple="multiple" size="5">

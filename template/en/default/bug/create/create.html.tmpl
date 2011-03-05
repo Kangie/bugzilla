@@ -438,6 +438,8 @@ TUI_hide_default('expert_fields');
        %]
     </td>
   </tr>
+  
+  [% Hook.process("after_cc_field") %]
 
   <tr>
     <th>Default [% field_descs.cc FILTER html %]:</th>
