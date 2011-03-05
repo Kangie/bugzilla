@@ -24,7 +24,7 @@
 <tr>
   <th><label for="data">File</label>:</th>
   <td>
-    <em>Enter the path to the file on your computer.</em><br>
+    <em>Enter the path to the file on your computer ([%+ Param('maxattachmentsize') %] KB limit).</em><br>
     <input type="file" id="data" name="data" size="50"
       [% IF Param("allow_attach_url") %]
         onchange="DataFieldHandler()" 
