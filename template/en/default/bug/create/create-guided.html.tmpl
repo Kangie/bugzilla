@@ -34,18 +34,6 @@
    style = "#somebugs { width: 100%; height: 500px }"
  %]
 
-<p>
-  <font color="red">
-    This is a template used on mozilla.org.  This template, and the
-    comment-guided.txt.tmpl template that formats the data submitted via 
-    the form in this template, are included as a demo of what it's
-    possible to do with custom templates in general, and custom [% terms.bug %]
-    entry templates in particular. As much of the text will not apply, 
-    you should alter it 
-    if you want to use this form on your [% terms.Bugzilla %] installation.
-  </font>
-</p>
-
 [% tablecolour = "#FFFFCC" %]
 
 [%# This script displays the descriptions for selected components. %]
@@ -66,6 +54,8 @@ function PutDescription() {
     }
 }
 </script>
+
+[% INCLUDE 'bug/create/user-message.html.tmpl' %]
 
 <h3 id="step1">Step 1 of 3 - has your [% terms.bug %] already been reported?</h3>
 
@@ -211,10 +201,6 @@ function PutDescription() {
     </td>
   </tr>
 
-  [%# We override rep_platform and op_sys for simplicity. The values chosen
-      are based on which are most common in the b.m.o database %]
-  [% rep_platform = [ "PC", "Macintosh", "All", "Other" ] %]
-
   <tr bgcolor="[% tablecolour %]">
     <td align="right" valign="top">
       <b>Hardware Platform</b>
@@ -223,9 +209,6 @@ function PutDescription() {
       [% PROCESS select sel = 'rep_platform' %]
     </td>
   </tr>
-
-  [% op_sys = [ "Windows 2000", "Windows XP", "Windows Vista", "Windows 7",
-                "Mac OS X", "Linux", "All", "Other" ] %]
 
   <tr>
     <td align="right" valign="top">
@@ -236,34 +219,7 @@ function PutDescription() {
     </td>
   </tr>
 
-  [% IF product.name.match("Firefox|Camino|Mozilla Application Suite") %]
-    [% matches = cgi.user_agent('Gecko/(\d+)') %]
-    [% buildid = cgi.user_agent() IF matches %]
-  [% END %]
-  
-  [%# Accept URL parameter build ID for non-browser products %]
-  [% IF cgi.param("buildid") %]
-    [% buildid = cgi.param("buildid") %]
-  [% END %]
-
   <tr bgcolor="[% tablecolour %]">
-    <td align="right" valign="top">
-      <b>Build Identifier</b>
-    </td>
-    <td valign="top">
-      <input type="text" size="80" name="buildid" value="[% buildid FILTER html %]">
-      <p>
-        This should identify the exact version of the product you were using.  
-        If the above field is blank or you know it is incorrect, copy the 
-        version text from the product's Help | 
-        About menu (for browsers this will begin with "Mozilla/5.0...").  
-        If the product won't start, instead paste the complete URL you downloaded 
-        it from.
-      </p>
-    </td>
-  </tr>
-
-  <tr>
     <td align="right" valign="top">
       <b>URL</b>
     </td>
@@ -271,14 +227,15 @@ function PutDescription() {
       <input type="text" size="80" name="bug_file_loc" value="http://">
       <p>
         URL that demonstrates the problem you are seeing (optional).<br>
-        <b>IMPORTANT</b>: if the problem is with a broken web page, you need
-        to report it
-        <a href="https://bugzilla.mozilla.org/page.cgi?id=broken-website.html">a different way</a>.
+		<span style="color: red">You should never use URL to point to pastebins
+		for error messages, logs, emerge --info output, screenshots or similar
+		information.<br>Instead, these should always be attached to the
+		bug.</span>
       </p>
    </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
+  <tr>
     <td align="right" valign="top">
       <b>Summary</b>
     </td>
@@ -288,6 +245,7 @@ function PutDescription() {
       <p>
         A sentence which summarises the problem.
         Please be descriptive and use lots of keywords.
+		Include the <b>full</b> package atom with the version!
       </p>
       <p>
         <tt>
@@ -296,15 +254,15 @@ function PutDescription() {
         <br>
         <tt>
           <font color="#009900">Good example</font>:
-          crash if I close the mail window while checking for new POP mail
+          mail-client/evolution-2.8.3-r2: crash if I close the mail window while checking for new POP mail
         </tt>
       </p>
     </td>
   </tr>
 
-  <tr>
+  <tr bgcolor="[% tablecolour %]">
     <td align="right" valign="top">
-      <b>Details</b>
+      <b>Description</b>
     </td>
     <td valign="top">
       [% INCLUDE global/textarea.html.tmpl
@@ -332,7 +290,7 @@ function PutDescription() {
     </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
+  <tr>
     <td align="right" valign="top">
       <b>Reproducibility</b>
     </td>
@@ -354,7 +312,7 @@ function PutDescription() {
     </td>
   </tr>
 
-  <tr>
+  <tr bgcolor="[% tablecolour %]">
     <td align="right" valign="top">
       <b>Steps to Reproduce</b>
     </td>
@@ -372,7 +330,7 @@ function PutDescription() {
     </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
+  <tr>
     <td valign="top" align="right">
       <b>Actual Results</b>
     </td>
@@ -388,7 +346,7 @@ function PutDescription() {
     </td>
   </tr>
 
-  <tr>
+  <tr bgcolor="[% tablecolour %]">
     <td valign="top" align="right">
       <b>Expected Results</b>
     </td>
@@ -404,7 +362,7 @@ function PutDescription() {
     </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
+  <tr>
     <td valign="top" align="right">
       <b>Additional Information</b>
     </td>
@@ -415,33 +373,25 @@ function PutDescription() {
         cols    = constants.COMMENT_COLS
       %]
       <p>
-        Add any additional information you feel may be
-        relevant to this [% terms.bug %], such as the <b>theme</b> you were
-        using (does the [% terms.bug %] still occur
-        with the default theme?), a 
-        <b><a href="http://kb.mozillazine.org/Quality_Feedback_Agent">Talkback crash ID</a></b>, or special
-        information about <b>your computer's configuration</b>. Any information
-        longer than a few lines, such as a <b>stack trace</b> or <b>HTML
-        testcase</b>, should be added
-        using the "Add an Attachment" link on the [% terms.bug %], after
-        it is filed. If you believe that it's relevant, please also include
-        your build configuration, obtained by typing <tt>about:buildconfig</tt>
-        into your URL bar.
-        <br>
-        <br>
-        If you are reporting a crash, note the module in
-        which the software crashed (e.g., <tt>Application Violation in
-        gkhtml.dll</tt>).
+       Add any additional information you feel may be relevant to this
+       [% terms.bug %], such as what other <b>programs you had running</b>, and/or
+       information about <b>your computer's configuration</b>. Any information longer
+       than a few lines, such as a <b>stack trace</b>, should be added using the
+       "Create a new Attachment" link on the bug, after it is filed.<br />
+       <b>Please paste all information from 'emerge --info' in this section!</b>
       </p>
     </td>
   </tr>
 
-  <tr>
+  <tr bgcolor="[% tablecolour %]">
     <td valign="top" align="right">
       <b>Severity</b>
     </td>
     <td valign="top">
       <select name="bug_severity">
+	  <option name="blocker" value="blocker">
+		  Blocker: Blocks development and/or testing work of Gentoo as a whole
+	  </option>
         <option name="critical" value="critical">
           Critical: The software crashes, hangs, or causes you to
           lose data.
@@ -460,7 +410,8 @@ function PutDescription() {
           misaligned text.
         </option>
         <option name="enhancement" value="enhancement">
-          Enhancement: Request for new feature or enhancement.
+          Enhancement: Request for new feature or enhancement, including ebuild
+		  submissions.
         </option>
       </select>
       <p>
