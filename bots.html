@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Policies and links for accessing Gentoo Bugzilla with an automated bot/spider/code</title>
+</head>
+<body>
+<h1>Policies and links for accessing Gentoo Bugzilla with an automated bot/spider/code</h1>
+<h2>Policies</h2>
+<h3>What URLs are bots and automated scripts allowed to hit?</h3>
+<p>Unless you have a listed exception, the URLs below are the ONLY ones you are allowed to hit with bots.</p>
+<p><tt>robots.txt</tt> is your friend. It reflects these rules in a more detailed manner.</p>
+<ul>
+<li>
+        Any direct bug page (more parameters eg for RSS/XML forms are fine):<br />
+        http://bugs.gentoo.org/&lt;BUGID&gt;<br />
+        http://bugs.gentoo.org/show_bug.cgi?id=&lt;BUGID&gt;
+</li>
+<li>
+        Any direct attachment:<br />
+        http://bugs.gentoo.org/attachment.cgi?id=&lt;ATTACHID&gt;
+</li>
+<li>
+        Duplicates report:<br />
+        http://bugs.gentoo.org/data/duplicates.rdf
+</li>
+<li>
+        Any URL in the "Bug listing links" section of this page.
+</li>
+</ul>
+
+<h3>Exceptions</h3>
+<p>We do have some exceptions to the above. If you would like to apply for one,
+please <a
+href="mailto:bugzilla@gentoo.org?subject=Bot%20Exception%20Request">contact
+us</a>, stating your case clearly.
+</p>
+<ul>
+<li>pybugz</li>
+<li>rbot-bugzilla</li>
+<li>supybot bugzilla plugin</li>
+<li>Eclipse Mylyn</li>
+</ul>
+
+
+<h2>Bug listing links</h2>
+<p>Each of the links below is updated every 2 hours. They expose EVERY public
+bug, generated as a static file list.</p><p>Beware, as some of them are very
+large. If you want to explicitly fetch compressed versions, use
+<tt>.htmlgz</tt> as the suffix instead of <tt>.html</tt>. Browsers with
+compression support will also be transparently redirected to the compressed
+version.</p>
+
+<ul>
+<li><a href='/data/cached/buglist-UNCONFIRMED.html'>All bugs with status UNCONFIRMED.</a></li>
+<li><a href='/data/cached/buglist-NEW.html'>All bugs with status NEW.</a></li>
+<li><a href='/data/cached/buglist-ASSIGNED.html'>All bugs with status ASSIGNED.</a></li>
+<li><a href='/data/cached/buglist-REOPENED.html'>All bugs with status REOPENED.</a></li>
+
+<li><a href='/data/cached/buglist-RESOLVED-CANTFIX.html'>All bugs with status RESOLVED and resolution CANTFIX.</a></li>
+<li><a href='/data/cached/buglist-RESOLVED-FIXED.html'>All bugs with status RESOLVED and resolution FIXED.</a></li>
+<li><a href='/data/cached/buglist-RESOLVED-INVALID.html'>All bugs with status RESOLVED and resolution INVALID.</a></li>
+<li><a href='/data/cached/buglist-RESOLVED-LATER.html'>All bugs with status RESOLVED and resolution LATER.</a></li>
+<li><a href='/data/cached/buglist-RESOLVED-NEEDINFO.html'>All bugs with status RESOLVED and resolution NEEDINFO.</a></li>
+<li><a href='/data/cached/buglist-RESOLVED-REMIND.html'>All bugs with status RESOLVED and resolution REMIND.</a></li>
+<li><a href='/data/cached/buglist-RESOLVED-TEST-REQUEST.html'>All bugs with status RESOLVED and resolution TEST-REQUEST.</a></li>
+<li><a href='/data/cached/buglist-RESOLVED-UPSTREAM.html'>All bugs with status RESOLVED and resolution UPSTREAM.</a></li>
+<li><a href='/data/cached/buglist-RESOLVED-WONTFIX.html'>All bugs with status RESOLVED and resolution WONTFIX.</a></li>
+<li><a href='/data/cached/buglist-RESOLVED-WORKSFORME.html'>All bugs with status RESOLVED and resolution WORKSFORME.</a></li>
+
+<li><a href='/data/cached/buglist-VERIFIED-CANTFIX.html'>All bugs with status VERIFIED and resolution CANTFIX.</a></li>
+<li><a href='/data/cached/buglist-VERIFIED-FIXED.html'>All bugs with status VERIFIED and resolution FIXED.</a></li>
+<li><a href='/data/cached/buglist-VERIFIED-INVALID.html'>All bugs with status VERIFIED and resolution INVALID.</a></li>
+<li><a href='/data/cached/buglist-VERIFIED-LATER.html'>All bugs with status VERIFIED and resolution LATER.</a></li>
+<li><a href='/data/cached/buglist-VERIFIED-NEEDINFO.html'>All bugs with status VERIFIED and resolution NEEDINFO.</a></li>
+<li><a href='/data/cached/buglist-VERIFIED-REMIND.html'>All bugs with status VERIFIED and resolution REMIND.</a></li>
+<li><a href='/data/cached/buglist-VERIFIED-TEST-REQUEST.html'>All bugs with status VERIFIED and resolution TEST-REQUEST.</a></li>
+<li><a href='/data/cached/buglist-VERIFIED-UPSTREAM.html'>All bugs with status VERIFIED and resolution UPSTREAM.</a></li>
+<li><a href='/data/cached/buglist-VERIFIED-WONTFIX.html'>All bugs with status VERIFIED and resolution WONTFIX.</a></li>
+<li><a href='/data/cached/buglist-VERIFIED-WORKSFORME.html'>All bugs with status VERIFIED and resolution WORKSFORME.</a></li>
+
+<li><a href='/data/cached/buglist-CLOSED-CANTFIX.html'>All bugs with status CLOSED and resolution CANTFIX.</a></li>
+<li><a href='/data/cached/buglist-CLOSED-FIXED.html'>All bugs with status CLOSED and resolution FIXED.</a></li>
+<li><a href='/data/cached/buglist-CLOSED-INVALID.html'>All bugs with status CLOSED and resolution INVALID.</a></li>
+<li><a href='/data/cached/buglist-CLOSED-LATER.html'>All bugs with status CLOSED and resolution LATER.</a></li>
+<li><a href='/data/cached/buglist-CLOSED-NEEDINFO.html'>All bugs with status CLOSED and resolution NEEDINFO.</a></li>
+<li><a href='/data/cached/buglist-CLOSED-REMIND.html'>All bugs with status CLOSED and resolution REMIND.</a></li>
+<li><a href='/data/cached/buglist-CLOSED-TEST-REQUEST.html'>All bugs with status CLOSED and resolution TEST-REQUEST.</a></li>
+<li><a href='/data/cached/buglist-CLOSED-UPSTREAM.html'>All bugs with status CLOSED and resolution UPSTREAM.</a></li>
+<li><a href='/data/cached/buglist-CLOSED-WONTFIX.html'>All bugs with status CLOSED and resolution WONTFIX.</a></li>
+<li><a href='/data/cached/buglist-CLOSED-WORKSFORME.html'>All bugs with status CLOSED and resolution WORKSFORME.</a></li>
+</ul>
+
+</body>
+</html>
