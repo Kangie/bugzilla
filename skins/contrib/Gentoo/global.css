@@ -351,4 +351,33 @@ tr.hilight td, tr.hilight th {
   padding-bottom: .5em;
 }
 
+/* marking restricted security bugs */
+body.bz_group_Security #bugzilla-body {
+  border: 1px solid #A40000;
+}
+
+body.bz_group_Security .bz_alias_short_desc_container:before {
+  content: "CONFIDENTIAL";
+  color: #A40000;
+}
+
+body.bz_group_Security table.edit_form:before {
+  content: "This bug is a confidential Security issue. Do NOT disclose any of the information. Do NOT commit any fixed ebuilds or distfiles to any repository until the embargo is lifted. Contact security@gentoo.org with any questions.";
+  color: #A40000;
+  font-weight: bold;
+}
+
+body.bz_product_Gentoo_Security #add_comment:after {
+  content: "Note: Please do not mark this bug as resolved after bumping or stabilizing. The Security Team will take care of that. Thanks.";
+  border: 1px solid #3465A4;
+  font-weight: bold;
+  padding: .25em;
+  background-color: white;
+  color: #3465A4;
+}
+
+body.bz_product_Gentoo_Security #add_comment {
+  margin-bottom: 2em;
+}
+
 /* vim: set expandtab ts=4:
