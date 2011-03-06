@@ -34,8 +34,12 @@ a img {
 /* page title */
 
 #titles {
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
     -moz-border-radius-topleft: 5px;
     -moz-border-radius-topright: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
     background-color: #54487A;
 }
 
@@ -45,8 +49,12 @@ a img {
 }
 
 #header {
-    -moz-border-radius-bottomleft: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    -webkit-border-bottom-left-radius: 5px;
     -moz-border-radius-bottomright: 5px;
+    -moz-border-radius-bottomleft: 5px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
     border: none;
 }
 
@@ -54,11 +62,19 @@ a img {
     border-bottom: 1px solid #67539B;
     border-left: 1px solid #67539B;
     border-right: 1px solid #67539B;
+    -webkit-border-bottom-right-radius: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -moz-border-radius-bottomright: 5px;
+    -moz-border-radius-bottomleft: 5px;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;    
 }
+
 #header a, #footer a {
     color: white;
     text-decoration: none;
 }
+
 #header a:hover, #footer a:hover {
     text-decoration: underline;
 }
@@ -71,7 +87,9 @@ a img {
     border: 1px solid #747e93;
     padding: 10px;
     font-size: 10pt;
+    -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
+    border-radius: 5px;
 }
 
 a {
@@ -184,7 +202,9 @@ hr {
 #footer {
     border: 1px solid #67539B;
     width: 100%;
+    -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
+    border-radius: 5px;
 }
 
 #footer #links-actions,
