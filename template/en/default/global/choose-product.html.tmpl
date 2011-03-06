@@ -42,6 +42,13 @@
 
 <h2>[% h2 FILTER html %]</h2>
 
+[% IF target == "enter_bug.cgi" %]
+<div class="important-message">
+  If you are uncertain, pick <b>Gentoo Linux</b> or read the
+  <a href="http://www.gentoo.org/doc/en/bugzilla-howto.xml#doc_chap6">Bug Reporting Guide</a>.
+</div>
+[% END %]
+
 <table>
 
 [% FOREACH c = classifications %]
@@ -53,7 +60,7 @@
   [% END %]
 
   [% FOREACH p = c.products %]
-    <tr>
+    <tr[% IF p.name == "Gentoo Linux" %] class="hilight"[% END %]>
       <th align="right" valign="top">
         <a href="[% target %]?product=[% p.name FILTER url_quote -%]
               [%- IF cloned_bug_id %]&amp;cloned_bug_id=[% cloned_bug_id FILTER url_quote %][% END -%] 
