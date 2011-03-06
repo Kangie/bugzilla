@@ -298,7 +298,7 @@ div#gentoo-bar div a:hover {
     color: #45347B;
 }
 
-div#gentoo-bar div a:link.active {
+div#gentoo-bar div a.active {
     background-color: white;
     font-weight: bold;
 }
