@@ -118,7 +118,10 @@
 
   or <a href="editusers.cgi?action=activity&amp;userid=[% otheruser.id %]"
         title="View Account History for '
-        [%- otheruser.login FILTER html %]'">View Account History</a>
+        [%- otheruser.login FILTER html %]'">View Account History</a> / <a
+		href="custom_userhistory.cgi?matchstr=[%- otheruser.login FILTER html %]"
+		title="Custom Account History for '[%- otheruser.login FILTER html
+		%]'">Custom Account History</a>
 </p>
 </form>
 <p>
