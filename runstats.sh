@@ -1,5 +1,6 @@
 #!/bin/sh
 cd /var/www/bugs.gentoo.org/htdocs
+[ ! -d "data/cached/" ] && mkdir -p data/cached/
 outpath="/var/www/bugs.gentoo.org/htdocs/data/cached"
 ./collectstats.pl
 dofile() {
@@ -7,7 +8,8 @@ dofile() {
   outfile="$2"
   tmp="${outfile}.$$"
   #echo $url
-  wget -q "$url" -O "${tmp}" --header 'Host: bugs.gentoo.org'
+#  wget -q "$url" -O "${tmp}" --header 'Host: bugs.gentoo.org'
+  curl -sS --resolve bugs.gentoo.org:443:127.0.0.1 "${url}" -o "${tmp}"
   if [ $? -eq 0 ]; then
       gzip -9 <"${tmp}" >"${tmp}.gz"
       mv -f "${tmp}" "${outfile}"
