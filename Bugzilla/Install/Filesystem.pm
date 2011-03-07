@@ -154,7 +154,7 @@ sub FILESYSTEM {
         'sanitycheck.pl'  => { perms => WS_EXECUTE },
         'checksetup.pl'   => { perms => OWNER_EXECUTE },
         'runtests.pl'     => { perms => OWNER_EXECUTE },
-        'jobqueue.pl'     => { perms => OWNER_EXECUTE },
+        'jobqueue.pl'     => { perms => WS_EXECUTE },
         'migrate.pl'      => { perms => OWNER_EXECUTE },
         'install-module.pl' => { perms => OWNER_EXECUTE },
 
