@@ -374,6 +374,7 @@ body.bz_product_Gentoo_Security #add_comment:after {
   padding: .25em;
   background-color: white;
   color: #3465A4;
+  display: block;
 }
 
 body.bz_product_Gentoo_Security #add_comment {
