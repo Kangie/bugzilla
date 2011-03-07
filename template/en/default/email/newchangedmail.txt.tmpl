@@ -43,6 +43,9 @@ X-Bugzilla-Target-Milestone: [% bug.target_milestone %]
 X-Bugzilla-Changed-Fields: [% changedfields.join(" ") %]
 [%+ threadingmarker %]
 
+DO NOT REPLY TO THIS EMAIL. Also, do not reply via email to the person
+whose email is mentioned below. To comment on this bug, please visit:
+
 [% IF ( httpbase && sslbase ) && ssl_redirect == 0 %]
 Clear-Text: [%+ httpbase %]show_bug.cgi?id=[% bug.id %]
 Secure: [%+ sslbase %]show_bug.cgi?id=[% bug.id %]
