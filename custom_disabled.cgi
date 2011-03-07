@@ -18,7 +18,7 @@ $user->in_group('admin')
   || $user->in_group('gentoo-dev')
   || ThrowUserError('auth_failure', {action => 'access', object => 'administrative_pages'});
 
-my $query = 'SELECT DISTINCT userid, login_name, realname, disabledtext ' .
+my $query = 'SELECT DISTINCT userid, login_name, realname, disabledtext, disable_mail ' .
 			'FROM profiles '.
 			'WHERE LENGTH(profiles.disabledtext) > 0';
 $vars->{'users'} = $dbh->selectall_arrayref($query, { Slice => {} });
@@ -36,5 +36,6 @@ foreach my $user (@{$vars->{'users'}}) {
 
 	printf("Login=<a href=\"/editusers.cgi?action=edit&userid=%i\">%s</a><br>", $user->{'userid'}, $user->{'login_name'});
 	printf("Real Name=%s<br>", $user->{'realname'});
+	printf("Bugmail Disabled: %s<br>", $user->{'disable_mail'} eq 1 ? "Yes" : "No");
 	printf("Disabled Text=%s<br><br>", $user->{'disabledtext'});
 }
