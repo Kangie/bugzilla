@@ -21,6 +21,11 @@
 [% PROCESS "global/variables.none.tmpl" %]
 [% PROCESS "global/reason-descs.none.tmpl" %]
 
+[% cc = [] %]
+[% FOREACH cc_user IN bug.cc_users %]
+[% cc.push(cc_user.login_name) %]
+[% END %]
+
 From: [% Param('mailfrom') %]
 To: [% to_user.email %]
 Reply-To: DO NOT REPLY <devnull@localhost.invalid>
@@ -43,6 +48,7 @@ X-Bugzilla-Assigned-To: [% bug.assigned_to.login %]
 X-Bugzilla-Target-Milestone: [% bug.target_milestone %]
 X-Bugzilla-Changed-Fields: [% changedfields.join(" ") %]
 X-Bugzilla-Reporter: [% bug.reporter.login_name %]
+X-Bugzilla-CC: [% cc.join(", ") %]
 [%+ threadingmarker %]
 
 DO NOT REPLY TO THIS EMAIL. Also, do not reply via email to the person
