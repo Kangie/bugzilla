@@ -181,6 +181,7 @@ sub FILESYSTEM {
         "bots.html" => { perms => CGI_READ },
         "favicon.ico" => { perms => CGI_READ },
         "runstats.sh" => { perms => OWNER_EXECUTE },
+		"recompile.sh" => { perms => OWNER_EXECUTE },
     );
 
     # Directories that we want to set the perms on, but not
