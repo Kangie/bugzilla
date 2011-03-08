@@ -334,6 +334,12 @@ EOT
                                           contents => HT_DEFAULT_DENY },
         "$datadir/.htaccess"         => { perms    => WS_SERVE,
                                           contents => HT_DEFAULT_DENY },
+        "$datadir/cached/.htaccess"  => { perms    => WS_SERVE,
+                                          contents => <<EOT
+# Allow access to the cached stuff
+Allow from all
+EOT
+                                        },
 
         "$graphsdir/.htaccess" => { perms => WS_SERVE, contents => <<EOT
 # Allow access to .png and .gif files.
