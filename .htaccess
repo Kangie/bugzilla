@@ -25,6 +25,6 @@
 </IfModule>
 
 <FilesMatch ^custom_buglist.cgi$>
-  allow from 127.0.0.1
+  allow from 127.0.0.1 94.100.119.160/28
   deny from all
 </FilesMatch>
