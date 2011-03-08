@@ -23,6 +23,7 @@
 
 From: [% Param('mailfrom') %]
 To: [% to_user.email %]
+Reply-To: DO NOT REPLY <devnull@localhost.invalid>
 Subject: [[% terms.Bug %] [%+ bug.id %]] [% 'New: ' IF isnew %][%+ bug.short_desc %]
 Date: [% bug.delta_ts FILTER time("%a, %d %b %Y %T %z", to_user.timezone) %]
 X-Bugzilla-Reason: [% reasonsheader %]
@@ -41,6 +42,7 @@ X-Bugzilla-Priority: [% bug.priority %]
 X-Bugzilla-Assigned-To: [% bug.assigned_to.login %]
 X-Bugzilla-Target-Milestone: [% bug.target_milestone %]
 X-Bugzilla-Changed-Fields: [% changedfields.join(" ") %]
+X-Bugzilla-Reporter: [% bug.reporter.login_name %]
 [%+ threadingmarker %]
 
 DO NOT REPLY TO THIS EMAIL. Also, do not reply via email to the person
