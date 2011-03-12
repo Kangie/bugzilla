@@ -846,7 +846,7 @@
             [% END %]
           [% END %]
         </div>
-        [% IF user.id || bug.cc.size %]
+        [% IF !user.id || bug.cc.size %]
           <script type="text/javascript">
             hideEditableField( 'cc_edit_area_showhide_container', 
                                'cc_edit_area', 
