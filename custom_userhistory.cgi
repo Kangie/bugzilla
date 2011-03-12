@@ -7,6 +7,7 @@ use Data::Dumper;
 use Bugzilla;
 use Bugzilla::Constants;
 use Bugzilla::Util;
+use Bugzilla::User;
 
 my $cgi       = Bugzilla->cgi;
 my $vars      = {};
@@ -28,27 +29,13 @@ trick_taint($matchstr) if defined($matchstr);
 trick_taint($userid) if defined($userid);
 trick_taint($limit);
 
-if($matchstr) {
-	$query = 'SELECT DISTINCT userid, login_name '.
-			'FROM profiles '.
-			'WHERE profiles.login_name = ?';
-}
-else {
-	$query = 'SELECT DISTINCT userid, login_name '.
-			'FROM profiles '.
-			'WHERE profiles.userid = ?';
-}
+$userid = $matchstr ? login_to_id($matchstr) : $userid;
+my $login_name = $matchstr ? $matchstr : user_id_to_login($userid);
 
-push(@bindValues, $matchstr ? $matchstr : $userid);
-$vars->{'users'} = $dbh->selectall_arrayref($query, {'Slice' => {}}, @bindValues);
-
-if(!defined($vars->{'users'}[0])) {
+if(!$userid || !$login_name) {
 	print "Bad user!<br>";
-	exit 0;
+	exit(0);
 }
-
-$userid = $vars->{'users'}[0]->{'userid'} ? $vars->{'users'}[0]->{'userid'} : $userid;
-my $login_name = $vars->{'users'}[0]->{'login_name'};
 
 my @bindValues2;
 $query = sprintf
