@@ -578,12 +578,16 @@ input.required, select.required, span.required_explanation {
 }
 
 /* Gentoo bar */
+body {
+	margin: 1em;
+}
+
 div#gentoo-bar {
-    background: url(../../extensions/Gentoo/web/gentoo-header-bar-bg.png) repeat-x;
+    0background: url(../../extensions/Gentoo/web/gentoo-header-bar-bg.png) repeat-x;
     margin-bottom: 2em;
-    margin-top: -1.5em;
-    margin-left: -1.5em;
-    margin-right: -1.5em;
+    margin-top: -1em;
+    margin-left: -1em;
+    margin-right: -1em;
 }
 
 div#gentoo-bar div {

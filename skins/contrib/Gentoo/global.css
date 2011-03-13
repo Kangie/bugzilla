@@ -287,6 +287,15 @@ select.arch-selector {
     vertical-align: top;
 }
 
+/* these settings are dusk/gentoo theme specific */
+div#gentoo-bar {
+    background: url(../../../extensions/Gentoo/web/gentoo-header-bar-bg.png) repeat-x;
+    margin-bottom: 2em;
+    margin-top: -1.5em;
+    margin-left: -1.5em;
+    margin-right: -1.5em;
+}
+
 .important-message {
     border: 2px solid #A40000;
     background-color: white;
