@@ -986,7 +986,10 @@
 [%############################################################################%]
 
 [% BLOCK section_timetracking %]
-  <table class="bz_time_tracking_table">
+  <div id="bz_time_tracking_showhide_container" class="bz_default_hidden">
+    (<a href="#" id="bz_time_tracking_showhide">[% IF user.id %]edit[% ELSE %]show[% END %] time tracking data</a>)
+  </div>
+  <table class="bz_time_tracking_table" id="bz_time_tracking_table">
     <tr>
       <th>
         <label for="estimated_time">Orig. Est.</label>
@@ -1054,6 +1057,13 @@
       </td>
     </tr>
   </table> 
+  <script type="text/javascript">
+    hideEditableField( 'bz_time_tracking_showhide_container', 
+                       'bz_time_tracking_table', 
+                       'bz_time_tracking_showhide_container', 
+                       '', 
+                       '');  
+  </script>
 [% END %]
 
 [%############################################################################%]
