@@ -1,7 +1,7 @@
 #!/bin/sh
 
 chmod 0600 zzz.txt
-sleep 10
+sleep 20
 git pull
 perl checksetup.pl
 #chmod 0640 zzz.txt
