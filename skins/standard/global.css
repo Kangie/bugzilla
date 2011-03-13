@@ -590,6 +590,10 @@ div#gentoo-bar {
     margin-right: -1em;
 }
 
+div#gentoo-bar img {
+    border: none !important;
+}
+
 div#gentoo-bar div {
     padding: .25em;
 }
