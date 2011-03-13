@@ -453,6 +453,10 @@ div.user_match {
         background-image: none;
         background-color: #fff;
     }
+
+    div#gentoo-bar {
+      display: none;
+    }
 }
 
 /**************/
@@ -571,4 +575,61 @@ input.required, select.required, span.required_explanation {
 
 #down_button {
     background-image: url(global/down.png);
+}
+
+/* Gentoo bar */
+div#gentoo-bar {
+    background: url(../../extensions/Gentoo/web/gentoo-header-bar-bg.png) repeat-x;
+    margin-bottom: 2em;
+    margin-top: -1.5em;
+    margin-left: -1.5em;
+    margin-right: -1.5em;
+}
+
+div#gentoo-bar div {
+    padding: .25em;
+}
+
+div#gentoo-bar a.home-link {
+    margin-right: .5em;
+    float: left;
+}
+
+div#gentoo-bar div a {
+    text-decoration: none;
+    padding: .25em;
+    padding-left: .5em;
+    padding-right: .5em;
+    color: #231A3F;
+}
+
+div#gentoo-bar div a:hover {
+    background-color: #A898DD;
+    color: #45347B;
+}
+
+div#gentoo-bar div a.active {
+    background-color: white;
+    font-weight: bold;
+}
+
+/* Marking Security bugs further */
+body.bz_group_Security table.edit_form:before {
+    content: "This bug is a confidential Security issue. Do NOT disclose any of the information. Do NOT commit any fixed ebuilds or distfiles to any repository until the embargo is lifted. Contact security@gentoo.org with any questions.";
+    color: #A40000;
+    font-weight: bold;
+}
+
+body.bz_product_Gentoo_Security #add_comment:after {
+    content: "Note: Please do not mark this bug as resolved after bumping or stabilizing. The Security Team will take care of that. Thanks.";
+    border: 1px solid #3465A4;
+    font-weight: bold;
+    padding: .25em;
+    background-color: white;
+    color: #3465A4;
+    display: block;
+}
+
+body.bz_product_Gentoo_Security #add_comment {
+    margin-bottom: 2em;
 }

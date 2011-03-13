@@ -280,105 +280,44 @@ hr {
         margin: 0;
         padding: 0;
     }
-    
-    div#gentoo-bar {
-      display: none;
-    }
-}
-
-/* Gentoo bar */
-div#gentoo-bar {
-    background: url(../../../extensions/Gentoo/web/gentoo-header-bar-bg.png) #45347B repeat-x;
-/*    height: 30px;*/
-    margin-bottom: 2em;
-    margin-top: -1.5em;
-    margin-left: -1.5em;
-    margin-right: -1.5em;
-}
-
-div#gentoo-bar div {
-    padding: .25em;
-}
-
-div#gentoo-bar a.home-link {
-    margin-right: .5em;
-    float: left;
-}
-
-div#gentoo-bar div a {
-    text-decoration: none;
-    padding: .25em;
-    padding-left: .5em;
-    padding-right: .5em;
-    color: #231A3F;
-}
-
-div#gentoo-bar div a:hover {
-    background-color: #A898DD;
-    color: #45347B;
-}
-
-div#gentoo-bar div a.active {
-    background-color: white;
-    font-weight: bold;
 }
 
 /* other custom stuff */
 select.arch-selector {
-  vertical-align: top;
+    vertical-align: top;
 }
 
 .important-message {
-  border: 2px solid #A40000;
-  background-color: white;
-  padding: .25em;
-  display: inline-block;
-  margin-bottom: 1em;
-  margin-top: 1em;
+    border: 2px solid #A40000;
+    background-color: white;
+    padding: .25em;
+    display: inline-block;
+    margin-bottom: 1em;
+    margin-top: 1em;
 }
 
 tr.hilight {
-  background-color: white;
+    background-color: white;
 }
 
 tr.hilight th {
-  border-left: 5px solid #54487A;
-  padding-left: 5px;
+    border-left: 5px solid #54487A;
+    padding-left: 5px;
 }
 
 tr.hilight td, tr.hilight th {
-  padding-top: .5em;
-  padding-bottom: .5em;
+    padding-top: .5em;
+    padding-bottom: .5em;
 }
 
 /* marking restricted security bugs */
 body.bz_group_Security #bugzilla-body {
-  border: 1px solid #A40000;
+    border: 1px solid #A40000;
 }
 
 body.bz_group_Security .bz_alias_short_desc_container:before {
-  content: "CONFIDENTIAL";
-  color: #A40000;
+    content: "CONFIDENTIAL";
+    color: #A40000;
 }
 
-body.bz_group_Security table.edit_form:before {
-  content: "This bug is a confidential Security issue. Do NOT disclose any of the information. Do NOT commit any fixed ebuilds or distfiles to any repository until the embargo is lifted. Contact security@gentoo.org with any questions.";
-  color: #A40000;
-  font-weight: bold;
-}
-
-body.bz_product_Gentoo_Security #add_comment:after {
-  content: "Note: Please do not mark this bug as resolved after bumping or stabilizing. The Security Team will take care of that. Thanks.";
-  border: 1px solid #3465A4;
-  font-weight: bold;
-  padding: .25em;
-  background-color: white;
-  color: #3465A4;
-  display: block;
-}
-
-body.bz_product_Gentoo_Security #add_comment {
-  margin-bottom: 2em;
-}
-
-/* vim: set expandtab ts=4:
+/* vim: set expandtab ts=4: */
