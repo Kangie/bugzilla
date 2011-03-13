@@ -131,7 +131,7 @@ sub SaveAccount {
               || ThrowUserError('illegal_email_address', {addr => $new_login_name});
             is_available_username($new_login_name)
               || ThrowUserError("account_exists", {email => $new_login_name});
-            if(!$user->in_group("admin") && !$user->in_group("editusers")) {
+            if(!$user->in_group("editusers")) {
                 ThrowUserError('restricted_email_address', {addr => $new_login_name}) if $new_login_name =~ m/[^\@]+\@gentoo\.org$/ or $old_login_name =~ m/[^\@]+\@gentoo\.org$/;
             }
 
