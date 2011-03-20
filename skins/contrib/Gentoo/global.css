@@ -96,7 +96,10 @@ a {
     color: #54487A;
 }
 a:hover {
-    color: #45347B;
+    color: #28203C;
+}
+a:visited {
+    color: #4f6ba3;
 }
 
 hr {
