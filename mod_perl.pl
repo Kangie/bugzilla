@@ -56,6 +56,9 @@ use Bugzilla::Mailer ();
 use Bugzilla::Template ();
 use Bugzilla::Util ();
 
+use Apache2::Log ();
+*CORE::GLOBAL::warn = \&Apache2::ServerRec::warn;
+
 use Apache2::SizeLimit;
 # This means that every httpd child will die after processing
 # a CGI if it is taking up more than 70MB of RAM all by itself.
