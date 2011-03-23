@@ -244,6 +244,8 @@ sub FILESYSTEM {
                                      dirs => DIR_WS_SERVE },
          "$extensionsdir/*/web" => { files => WS_SERVE,
                                      dirs => DIR_WS_SERVE },
+         "$datadir/cached"      => { files => WS_SERVE,
+                                     dirs => DIR_WS_SERVE },
 
          # Directories only for the owner, not for the webserver.
          '.bzr'                => { files => OWNER_WRITE,
