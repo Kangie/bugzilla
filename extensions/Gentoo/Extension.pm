@@ -26,7 +26,7 @@ sub install_filesystem {
 	$files->{"recompile.sh"}   = { perms => 0644 };
 
 	$recurse_dirs->{"$datadir/cached"} = {
-		files => 0640, dirs => 0750 },
+		files => 0640, dirs => 0750
 	};
 
 	$htaccess->{"$datadir/cached/.htaccess"} = {
