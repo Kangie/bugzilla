@@ -30,6 +30,7 @@ sub install_filesystem {
 # Allow access to the cached stuff
 Allow from all
 EOT
+		},
 	);
 }
 
