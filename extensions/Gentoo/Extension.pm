@@ -5,7 +5,7 @@ use base qw(Bugzilla::Extension);
 use Bugzilla::Install::Filesystem qw(CGI_READ OWNER_EXECUTE WS_SERVE DIR_WS_SERVE);
 use Bugzilla::Constants qw(bz_locations);
 
-use POSIX;
+use POSIX qw(uname);
 
 our $VERSION = '1.0';
 
@@ -44,7 +44,7 @@ sub template_before_create {
 		'hummingbird' => 'bugs-web2'
 	);
 
-	$constants->{GENTOO_NODE} = $nodemap{(POSIX::uname())[1]} ? $nodemap{(POSIX::uname())[1]} : "unknown";
+	$constants->{GENTOO_NODE} = $nodemap{(uname())[1]} ? $nodemap{(uname())[1]} : "unknown";
 	$constants->{GENTOO_APPEND_VERSION} = "-gentoo-r1";
 }
 
