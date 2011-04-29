@@ -10,28 +10,31 @@ use POSIX qw(uname);
 our $VERSION = '1.0';
 
 sub install_filesystem {
+	my ($self, $args) = @_;
+
+	my $files        = $args->{'files'};
+	my $recurse_dirs = $args->{'recurse_dirs'};
+	my $htaccess     = $args->{'htaccess'};
+
 	my $datadir = bz_locations()->{'datadir'};
 
-	my %files = (
-		"zzz.txt"        => { perms => 0644 },
-		"robots-ssl.txt" => { perms => 0644 },
-		"bots.html"      => { perms => 0644 },
-		"favicon.ico"    => { perms => 0644 },
-		"runstats.sh"    => { perms => 0700 },
-		"recompile.sh"   => { perms => 0700 },
-    );
+	$files->{"zzz.txt"}        = { perms => 0644 };
+	$files->{"robots-ssl.txt"} = { perms => 0644 };
+	$files->{"bots.html"}      = { perms => 0644 };
+	$files->{"favicon.ico"}    = { perms => 0644 };
+	$files->{"runstats.sh"}    = { perms => 0644 };
+	$files->{"recompile.sh"}   = { perms => 0644 };
 
-	my %recurse_dirs = (
-		"$datadir/cached" => { files => 0640, dirs => 0750 },
-	);
+	$recurse_dirs->{"$datadir/cached"} = {
+		files => 0640, dirs => 0750 },
+	};
 
-	my %htaccess = (
-		"$datadir/cached/.htaccess" => { perms => 0640, contents => <<EOT
+	$htaccess->{"$datadir/cached/.htaccess"} = {
+		perms => 0640, contents => <<EOT
 # Allow access to the cached stuff
 Allow from all
 EOT
-		},
-	);
+	};
 }
 
 sub template_before_create {
