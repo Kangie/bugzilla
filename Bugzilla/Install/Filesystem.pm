@@ -177,13 +177,6 @@ sub FILESYSTEM {
         "$datadir/old-params.txt"  => { perms => OWNER_WRITE },
         "$extensionsdir/create.pl" => { perms => OWNER_EXECUTE },
         "$extensionsdir/*/*.pl"    => { perms => WS_EXECUTE },
-        # Gentoo specific files
-        "zzz.txt" => { perms => CGI_READ },
-        "robots-ssl.txt" => { perms => CGI_READ },
-        "bots.html" => { perms => CGI_READ },
-        "favicon.ico" => { perms => CGI_READ },
-        "runstats.sh" => { perms => OWNER_EXECUTE },
-		"recompile.sh" => { perms => OWNER_EXECUTE },
     );
 
     # Directories that we want to set the perms on, but not
