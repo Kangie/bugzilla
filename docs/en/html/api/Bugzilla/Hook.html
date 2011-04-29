@@ -45,6 +45,7 @@ Bugzilla::Hook</title>
     <li class='indexItem indexItem2'><a href='#group_end_of_create'>group_end_of_create</a>
     <li class='indexItem indexItem2'><a href='#group_end_of_update'>group_end_of_update</a>
     <li class='indexItem indexItem2'><a href='#install_before_final_checks'>install_before_final_checks</a>
+    <li class='indexItem indexItem2'><a href='#install_filesystem'>install_filesystem</a>
     <li class='indexItem indexItem2'><a href='#install_update_db'>install_update_db</a>
     <li class='indexItem indexItem2'><a href='#db_schema_abstract_schema'>db_schema_abstract_schema</a>
     <li class='indexItem indexItem2'><a href='#mailer_before_send'>mailer_before_send</a>
@@ -60,6 +61,7 @@ Bugzilla::Hook</title>
     <li class='indexItem indexItem2'><a href='#object_update_columns'>object_update_columns</a>
     <li class='indexItem indexItem2'><a href='#object_validators'>object_validators</a>
     <li class='indexItem indexItem2'><a href='#page_before_template'>page_before_template</a>
+    <li class='indexItem indexItem2'><a href='#post_bug_after_creation'>post_bug_after_creation</a>
     <li class='indexItem indexItem2'><a href='#product_confirm_delete'>product_confirm_delete</a>
     <li class='indexItem indexItem2'><a href='#product_end_of_create'>product_end_of_create</a>
     <li class='indexItem indexItem2'><a href='#quicksearch_map'>quicksearch_map</a>
@@ -740,6 +742,97 @@ name="install_before_final_checks"
 </dl>
 
 <h2><a class='u' href='#___top' title='click to go to top of document'
+name="install_filesystem"
+>install_filesystem</a></h2>
+
+<p>Allows for additional files and directories to be added to the list of files and directories already managed by checksetup.pl. You will be able to also set the permissions for the files and directories using this hook. You are also able to set or change permissions for current files and directories using this hook. You are also able to create appropriate htaccess files for the any directories to secure its contents. For examples see <a href="../FILESYSTEM.html" class="podlinkpod"
+>FILESYSTEM</a> in <a href="../Bugzilla/Install/Filesystem.html" class="podlinkpod"
+>Bugzilla::Install::Filesystem</a>.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a name="files"
+><code  class="code">files</code></a></dt>
+
+<dd>
+<p>Hash reference of files that are already present when your extension was installed but need to have specific permissions set. Each file key points to another hash reference containing the following settings.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a name="perms_-_Permissions_to_be_set_on_the_file."
+><code  class="code">perms</code> - Permissions to be set on the file.</a></dt>
+</dl>
+
+<dt><a name="create_dirs"
+><code  class="code">create_dirs</code></a></dt>
+
+<dd>
+<p>Hash reference containing the name of each directory that will be created, pointing at its default permissions.</p>
+
+<dt><a name="non_recurse_dirs"
+><code  class="code">non_recurse_dirs</code></a></dt>
+
+<dd>
+<p>Hash reference containing directories that we want to set the perms on, but not recurse through. These are directories not created in checksetup.pl. Each directory key&#39;s value is the permissions to be set on the directory.</p>
+
+<dt><a name="recurse_dirs"
+><code  class="code">recurse_dirs</code></a></dt>
+
+<dd>
+<p>Hash reference of directories that will have permissions set for each item inside each of the directories, including the directory itself. Each directory key points to another hash reference containing the following settings.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a name="files_-_Permissions_to_be_set_on_any_files_beneath_the_directory."
+><code  class="code">files</code> - Permissions to be set on any files beneath the directory.</a></dt>
+
+<dd>
+<dt><a name="dirs_-_Permissions_to_be_set_on_the_directory_itself_and_any_directories_beneath_it."
+><code  class="code">dirs</code> - Permissions to be set on the directory itself and any directories beneath it.</a></dt>
+</dl>
+
+<dt><a name="create_files"
+><code  class="code">create_files</code></a></dt>
+
+<dd>
+<p>Hash reference of additional files to be created. Each file key points to another hash reference containing the following settings.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a name="perms_-_The_permissions_to_be_set_on_the_file_itself."
+><code  class="code">perms</code> - The permissions to be set on the file itself.</a></dt>
+
+<dd>
+<dt><a name="contents_-_The_contents_to_be_added_to_the_file_or_leave_blank_for_an_empty_file."
+><code  class="code">contents</code> - The contents to be added to the file or leave blank for an empty file.</a></dt>
+</dl>
+
+<dt><a name="htaccess"
+><code  class="code">htaccess</code></a></dt>
+
+<dd>
+<p>Hash reference containing htaccess files to be created. You can set the permissions for the htaccess as well as the contents of the file. Each file key points to another hash reference containing the following settings.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a name="perms_-_Permissions_to_be_set_on_the_htaccess_file."
+><code  class="code">perms</code> - Permissions to be set on the htaccess file.</a></dt>
+
+<dd>
+<dt><a 
+><code  class="code">contents</code> - Contents of the htaccess file. It can be set manually or use <a href="../HT_DEFAULT_DENY.html" class="podlinkpod"
+>HT_DEFAULT_DENY</a> defined in <a href="../Bugzilla/Install/Filesystem.html" class="podlinkpod"
+>Bugzilla::Install::Filesystem</a> to deny all by default.</a></dt>
+</dl>
+</dd>
+</dl>
+
+<h2><a class='u' href='#___top' title='click to go to top of document'
 name="install_update_db"
 >install_update_db</a></h2>
 
@@ -1094,6 +1187,22 @@ name="page_before_template"
 <dd>
 <p>This is a hashref--put variables into here if you want them passed to your template.</p>
 </dd>
+</dl>
+
+<h2><a class='u' href='#___top' title='click to go to top of document'
+name="post_bug_after_creation"
+>post_bug_after_creation</a></h2>
+
+<p><b>DEPRECATED</b> (Use <a href="#bug_end_of_create" class="podlinkpod"
+>&#34;bug_end_of_create&#34;</a> instead.)</p>
+
+<p>This happens after a bug is created and before bug mail is sent during <code  class="code">post_bug.cgi</code>. Note that this only happens during <code  class="code">post_bug.cgi</code>, it doesn&#39;t happen during any of the other methods of creating a bug.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a name="vars_-_The_template_vars_hashref."
+><code  class="code">vars</code> - The template vars hashref.</a></dt>
 </dl>
 
 <h2><a class='u' href='#___top' title='click to go to top of document'

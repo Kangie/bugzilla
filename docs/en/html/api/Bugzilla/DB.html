@@ -729,7 +729,11 @@ name="SQL_Generation"
 ><b>Description</b></a></dt>
 
 <dd>
-<p>Returns SQL syntax for performing a full text search for specified text on a given column.</p>
+<p>Returns one or two SQL expressions for performing a full text search for specified text on a given column.</p>
+
+<p>If one value is returned, it is a numeric expression that indicates a match with a positive value and a non-match with zero. In this case, the DB must support casting numeric expresions to booleans.</p>
+
+<p>If the DB does not support casting numeric expresions to booleans, then the first value is a boolean expression that indicates the presence of a match, and the second value is a numeric expression that can be used for ranking.</p>
 
 <p>There is a ANSI SQL version of this method implemented using LIKE operator, but it&#39;s not a real full text search. DB specific modules should override this, as this generic implementation will be always much slower. This generic implementation returns &#39;relevance&#39; as 0 for no match, or 1 for a match.</p>
 

@@ -1,9 +1,9 @@
 
-The Bugzilla Guide - 4.0 Release
+The Bugzilla Guide - 4.0.1 Release
 
 The Bugzilla Team
 
-   2011-02-15
+   2011-04-27
 
    This is the documentation for Bugzilla, a bug-tracking system from
    mozilla.org. Bugzilla is an enterprise-class piece of software that tracks
@@ -172,7 +172,7 @@ Chapter 1. About This Guide
 
 1.3. New Versions
 
-   This is the 4.0 version of The Bugzilla Guide. It is so named to match the
+   This is the 4.0.1 version of The Bugzilla Guide. It is so named to match the
    current version of Bugzilla.
 
    The latest version of this guide can always be found at
@@ -344,8 +344,8 @@ Chapter 2. Installing Bugzilla
    MySQL from source yourself, and set it as an option to configure.
 
    If you install from something other than a packaging/installation system,
-   such as .rpm (Redhat Package), .deb (Debian Package), .exe (Windows
-   Executable), or .msi (Microsoft Installer), make sure the MySQL server is
+   such as .rpm (RPM Package Manager), .deb (Debian Package), .exe (Windows
+   Executable), or .msi (Windows Installer), make sure the MySQL server is
    started when the machine boots.
      _________________________________________________________________
 
@@ -358,9 +358,9 @@ Chapter 2. Installing Bugzilla
    http://www.postgresql.org/. You need PostgreSQL version 8.00.0000 or higher.
 
    If you install from something other than a packaging/installation system,
-   such as .rpm (Redhat Package), .deb (Debian Package), .exe (Windows
-   Executable), or .msi (Microsoft Installer), make sure the PostgreSQL server
-   is started when the machine boots.
+   such as .rpm (RPM Package Manager), .deb (Debian Package), .exe (Windows
+   Executable), or .msi (Windows Installer), make sure the PostgreSQL server is
+   started when the machine boots.
      _________________________________________________________________
 
 2.1.2.3. Oracle
@@ -374,8 +374,8 @@ Chapter 2. Installing Bugzilla
    http://www.oracle.com/. You need Oracle version 10.02.0 or higher.
 
    If you install from something other than a packaging/installation system,
-   such as .rpm (Redhat Package), .deb (Debian Package), .exe (Windows
-   Executable), or .msi (Microsoft Installer), make sure the Oracle server is
+   such as .rpm (RPM Package Manager), .deb (Debian Package), .exe (Windows
+   Executable), or .msi (Windows Installer), make sure the Oracle server is
    started when the machine boots.
      _________________________________________________________________
 
@@ -1262,12 +1262,12 @@ ppm repository add theory58S http://theoryx5.uwinnipeg.ca/ppms/
    Apple does not include the GD library with Mac OS X. Bugzilla needs this for
    bug graphs.
 
-   You can use DarwinPorts (http://darwinports.com/) or Fink
+   You can use MacPorts (http://www.macports.org/) or Fink
    (http://sourceforge.net/projects/fink/), both of which are similar in nature
    to the CPAN installer, but install common unix programs.
 
-   Follow the instructions for setting up DarwinPorts or Fink. Once you have
-   one installed, you'll want to use it to install the gd2 package.
+   Follow the instructions for setting up MacPorts or Fink. Once you have one
+   installed, you'll want to use it to install the gd2 package.
 
    Fink will prompt you for a number of dependencies, type 'y' and hit enter to
    install all of the dependencies and then watch it work. You will then be
@@ -1282,7 +1282,7 @@ ppm repository add theory58S http://theoryx5.uwinnipeg.ca/ppms/
    Perl module config script asks where your libgd is, be sure to tell it
    /sw/lib.
 
-   Also available via DarwinPorts and Fink is expat. After installing the expat
+   Also available via MacPorts and Fink is expat. After installing the expat
    package, you will be able to install XML::Parser using CPAN. If you use
    fink, there is one caveat. Unlike recent versions of the GD module,
    XML::Parser doesn't prompt for the location of the required libraries. When
