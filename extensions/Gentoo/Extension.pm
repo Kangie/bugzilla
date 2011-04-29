@@ -22,8 +22,8 @@ sub install_filesystem {
 	$files->{"robots-ssl.txt"} = { perms => 0644 };
 	$files->{"bots.html"}      = { perms => 0644 };
 	$files->{"favicon.ico"}    = { perms => 0644 };
-	$files->{"runstats.sh"}    = { perms => 0644 };
-	$files->{"recompile.sh"}   = { perms => 0644 };
+	$files->{"runstats.sh"}    = { perms => 0700 };
+	$files->{"recompile.sh"}   = { perms => 0700 };
 
 	$recurse_dirs->{"$datadir/cached"} = {
 		files => 0640, dirs => 0750
