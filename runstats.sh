@@ -25,12 +25,12 @@ dofile() {
   fi
 }
 
-for status in RESOLVED VERIFIED CLOSED ; do
+for status in RESOLVED VERIFIED ; do
   for reso in FIXED INVALID WONTFIX LATER REMIND WORKSFORME CANTFIX NEEDINFO TEST-REQUEST UPSTREAM ; do
    dofile "$custom_buglist?reso=${reso}&status=${status}" ${outpath}/buglist-${status}-${reso}.html
  done
 done
 
-for status in UNCONFIRMED NEW ASSIGNED REOPENED ; do
+for status in UNCONFIRMED CONFIRMED IN_PROGRESS ; do
    dofile "$custom_buglist?status=${status}" ${outpath}/buglist-${status}.html
 done
