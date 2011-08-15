@@ -2117,13 +2117,7 @@ sub _set_global_validator {
 # other_bugs to set_all in order for it to behave properly.
 sub set_all {
     my $self = shift;
-    my ($input_params) = @_;
-
-    # Clone the data as we are going to alter it, and this would affect
-    # subsequent bugs when calling set_all() again, as some fields would
-    # be modified or no longer defined.
-    my $params = {};
-    %$params = %$input_params;
+    my ($params) = @_;
 
     # You cannot mark bugs as duplicate when changing several bugs at once
     # (because currently there is no way to check for duplicate loops in that
