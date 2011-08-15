@@ -87,6 +87,58 @@ name="METHODS"
 >METHODS</a></h1>
 
 <dl>
+<dt><a name="check_no_disclose"
+><code  class="code">check_no_disclose</code></a></dt>
+
+<dd>
+<dl>
+<dt><a name="Description"
+><b>Description</b></a></dt>
+
+<dd>
+<p>Throws an error if the user cannot add or remove this group to/from a given bug, but doesn&#39;t specify if this is because the group doesn&#39;t exist, or the user is not allowed to edit this group restriction.</p>
+
+<dt><a name="Params"
+><b>Params</b></a></dt>
+
+<dd>
+<p>This method takes a single hashref as argument, with the following keys:</p>
+
+<dl>
+<dt><a name="name"
+><code  class="code">name</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The name of the group to add or remove.</p>
+
+<dt><a name="bug_id"
+><code  class="code">bug_id</code></a></dt>
+
+<dd>
+<p><code  class="code">integer</code> The ID of the bug to which the group change applies.</p>
+
+<dt><a name="product"
+><code  class="code">product</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The name of the product the bug belongs to.</p>
+
+<dt><a name="action"
+><code  class="code">action</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> Must be either <code  class="code">add</code> or <code  class="code">remove</code>, depending on whether the group must be added or removed from the bug. Any other value will generate an error.</p>
+</dd>
+</dl>
+
+<dt><a name="Returns"
+><code  class="code">Returns</code></a></dt>
+
+<dd>
+<p>A <code  class="code">Bugzilla::Group</code> object on success, else an error is thrown.</p>
+</dd>
+</dl>
+
 <dt><a name="check_remove"
 ><code  class="code">check_remove</code></a></dt>
 

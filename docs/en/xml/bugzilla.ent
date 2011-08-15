@@ -17,9 +17,9 @@
 <!ENTITY min-template-plugin-gd-image-ver "any">
 <!ENTITY min-gd-text-ver "any">
 <!ENTITY min-gd-graph-ver "any">
-<!ENTITY min-xml-twig-ver "any">
 <!ENTITY min-mime-parser-ver "5.406">
 <!ENTITY min-lwp-useragent-ver "any">
+<!ENTITY min-xml-twig-ver "any">
 <!ENTITY min-patchreader-ver "0.9.4">
 <!ENTITY min-net-ldap-ver "any">
 <!ENTITY min-authen-sasl-ver "any">

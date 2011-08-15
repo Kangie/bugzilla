@@ -1601,7 +1601,7 @@ name="create"
 
 <dd>
 <dt><a 
-><code  class="code">groups</code> (array) - An array of group names to put this bug into. You can see valid group names on the Permissions tab of the Preferences screen, or, if you are an administrator, in the Groups control panel. Note that invalid group names or groups that the bug can&#39;t be restricted to are silently ignored. If you don&#39;t specify this argument, then a bug will be added into all the groups that are set as being &#34;Default&#34; for this product. (If you want to avoid that, you should specify <code  class="code">groups</code> as an empty array.)</a></dt>
+><code  class="code">groups</code> (array) - An array of group names to put this bug into. You can see valid group names on the Permissions tab of the Preferences screen, or, if you are an administrator, in the Groups control panel. If you don&#39;t specify this argument, then the bug will be added into all the groups that are set as being &#34;Default&#34; for this product. (If you want to avoid that, you should specify <code  class="code">groups</code> as an empty array.)</a></dt>
 
 <dd>
 <dt><a 
@@ -1671,6 +1671,12 @@ name="create"
 <dd>
 <p>You specified values in the <code  class="code">blocks</code> or <code  class="code">depends_on</code> fields that would cause a circular dependency between bugs.</p>
 
+<dt><a name="120_(Group_Restriction_Denied)"
+>120 (Group Restriction Denied)</a></dt>
+
+<dd>
+<p>You tried to restrict the bug to a group which does not exist, or which you cannot use with this product.</p>
+
 <dt><a name="504_(Invalid_User)"
 >504 (Invalid User)</a></dt>
 
@@ -1689,7 +1695,7 @@ name="create"
 
 <dd>
 <dt><a 
->The <code  class="code">groups</code> argument was added in Bugzilla <b>4.0</b>. Before Bugzilla 4.0, bugs were only added into Mandatory groups by this method.</a></dt>
+>The <code  class="code">groups</code> argument was added in Bugzilla <b>4.0</b>. Before Bugzilla 4.0, bugs were only added into Mandatory groups by this method. Since Bugzilla <b>4.0.2</b>, passing an illegal group name will throw an error. In Bugzilla 4.0 and 4.0.1, illegal group names were silently ignored.</a></dt>
 
 <dd>
 <dt><a 
