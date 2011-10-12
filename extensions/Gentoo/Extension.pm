@@ -12,11 +12,14 @@ our $VERSION = '1.0';
 sub install_filesystem {
 	my ($self, $args) = @_;
 
+	my $dirs         = $args->{'create_dirs'};
 	my $files        = $args->{'files'};
 	my $recurse_dirs = $args->{'recurse_dirs'};
 	my $htaccess     = $args->{'htaccess'};
 
 	my $datadir = bz_locations()->{'datadir'};
+
+	$dirs->{"${datadir}/cached"} = { perms => 0750 };
 
 	$files->{"zzz.txt"}        = { perms => 0644 };
 	$files->{"robots-ssl.txt"} = { perms => 0644 };
