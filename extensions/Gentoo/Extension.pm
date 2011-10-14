@@ -47,9 +47,8 @@ sub template_before_create {
 	my $constants = $config->{CONSTANTS};
 
 	my %nodemap = (
-		'hummingbird' => 'bugs-web2',
 		'yellowbishop' => 'bugs-web1',
-		'yellowleg' => 'bugs-web4'
+		'yellowleg' => 'bugs-web2'
 	);
 
 	$constants->{GENTOO_NODE} = $nodemap{(uname())[1]} ? $nodemap{(uname())[1]} : "unknown";
