@@ -52,7 +52,7 @@ sub template_before_create {
 	);
 
 	$constants->{GENTOO_NODE} = $nodemap{(uname())[1]} ? $nodemap{(uname())[1]} : "unknown";
-	$constants->{GENTOO_APPEND_VERSION} = "-gentoo-r1";
+	$constants->{GENTOO_APPEND_VERSION} = "+";
 }
 
 __PACKAGE__->NAME;
