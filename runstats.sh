@@ -26,7 +26,7 @@ dofile() {
 }
 
 for status in RESOLVED VERIFIED ; do
-  for reso in FIXED INVALID WONTFIX LATER REMIND WORKSFORME CANTFIX NEEDINFO TEST-REQUEST UPSTREAM ; do
+  for reso in FIXED INVALID WONTFIX LATER REMIND WORKSFORME CANTFIX NEEDINFO TEST-REQUEST UPSTREAM OBSOLETE; do
    dofile "$custom_buglist?reso=${reso}&status=${status}" ${outpath}/buglist-${status}-${reso}.html
  done
 done
