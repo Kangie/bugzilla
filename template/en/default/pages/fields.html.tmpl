@@ -176,6 +176,53 @@
         </dd>
 
         <dt>
+          [% display_value("resolution", "CANTFIX") FILTER html %]
+        </dt>
+        <dd>
+          The [% terms.bug %] might have been reproduced successfully, however
+          there is no viable fix for it. Either there is no fix at all, or
+          applying an existing fix would introduce new disadvantages that
+          outweigh its advantages. If a viable fix appears later, the
+          [% terms.bug %] can be reponened.
+        </dd>
+
+        <dt>
+          [% display_value("resolution", "NEEDINFO") FILTER html %]
+        </dt>
+        <dd>
+          The information contained in the [% terms.bug %] is not sufficient
+          to efficiently trace the origin of the problem. Usually, the person
+          closing the [% terms.bug %] with this resolution will also note what
+          further information is required. Once that information is provided,
+          the [% terms.bug %] can be reponened.
+        </dd>
+
+        <dt>
+          [% display_value("resolution", "TEST-REQUEST") FILTER html %]
+        </dt>
+        <dd>
+          A fix for the issue described in the [% terms.bug %] was provided.
+          The author requests users who were affected by the issue to test
+          the provided fix and report any success or failures.
+          When the problem is confirmedly fixed, the [% terms.bug %] becomes
+          [% display_value("resolution", "FIXED") FILTER html %], if the
+          problem still exists, it can be reopened.
+        </dd>
+
+        <dt>
+          [% display_value("resolution", "UPSTREAM") FILTER html %]
+        </dt>
+        <dd>
+          The [% terms.bug %] describes an issue that is should be fixed by
+          the upstream, or original author or provider of the subject of the
+          [% terms.bug %]. Addressing the issue on the level of the Gentoo
+          project ("downstream") is either not possible or merely a workaround
+          not worth implementing. Once the issue was resolved by upstream, the
+          [% terms.bug %] can become
+          [% display_value("resolution", "FIXED") FILTER html %].
+        </dd>
+
+        <dt>
           [% display_value("resolution", "OBSOLETE") FILTER html %]
         </dt>
         <dd>
