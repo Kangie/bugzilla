@@ -308,18 +308,14 @@ div#gentoo-bar {
     margin-top: 1em;
 }
 
-tr.hilight {
-    background-color: white;
-}
-
-tr.hilight th {
-    border-left: 5px solid #54487A;
-    padding-left: 5px;
-}
-
 tr.hilight td, tr.hilight th {
+    font-size: 12pt;
     padding-top: .5em;
     padding-bottom: .5em;
+}
+
+tr.vspace td {
+    padding-bottom: 2em;
 }
 
 /* marking restricted security bugs */
