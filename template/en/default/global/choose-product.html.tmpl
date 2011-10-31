@@ -65,7 +65,6 @@
     <tr class="vspace">
       <td>&nbsp;</td>
       <td>
-      [% IF format == "guided" %]
         <strong>Always attach the output of <tt>emerge --info</tt> to your bug report!</strong>
         <br /><br />
         Before reporting a bug, please make sure the issue you are about to file
@@ -78,7 +77,7 @@
         Examples for bugs in this product:
         <ul>
           <li>New package and version bump requests</li>
-          <li>Compile errors</li>
+          <li>Compile errors (please follow the instructions contained in the error message!)</li>
           <li>Application crashes (be sure to have a <a href="http://www.gentoo.org/proj/en/qa/backtraces.xml">backtrace</a> available)</li>
           <li>General issues regarding your Gentoo system</li>
         </ul>
@@ -87,13 +86,10 @@
         <ul>
           <li>Security updates (use <em>Gentoo Security</em> below)</li>
           <li>Documentation updates (use <em>Documentation</em> below)</li>
-          <li>Issues regarding our website and infrastructure (use <em>Bugzilla</em>, <em>Infrastructure</em> or <em>www.gentoo.org</em> below)</li>
+          <li>Issues regarding our website and infrastructure (use <em>Gentoo Infrastructure</em> or <em>Website www.gentoo.org</em> below)</li>
           <li>Issues about <em>OpenRC</em>, <em>genkernel</em>, or <em>catalyst</em> (use <em>Hosted projects</em> below)</li>
         </ul>
-
-      [% END %]
       </td></tr>
-
     <tr>
       <td colspan="2"><hr />Or, use one of the following products <strong>if you know that your choice is correct:</strong></td>
     </tr>
