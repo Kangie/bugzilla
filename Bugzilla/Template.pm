@@ -285,7 +285,7 @@ sub get_attachment_link {
         # Prevent code injection in the title.
         $title = html_quote(clean_text($title));
 
-        $link_text =~ s/ \[details\]$//;
+        $link_text =~ s/ \[details(?:, diff)?\]$//;
         my $linkval = "attachment.cgi?id=$attachid";
 
         # If the attachment is a patch, try to link to the diff rather
@@ -295,11 +295,20 @@ sub get_attachment_link {
             $patchlink = '&amp;action=diff';
         }
 
-        # Whitespace matters here because these links are in <pre> tags.
-        return qq|<span class="$className">|
-               . qq|<a href="${linkval}${patchlink}" name="attach_${attachid}" title="$title">$link_text</a>|
-               . qq| <a href="${linkval}&amp;action=edit" title="$title">[details]</a>|
-               . qq|</span>|;
+        if ($patchlink) {
+            # Whitespace matters here because these links are in <pre> tags.
+            return qq|<span class="$className">|
+                   . qq|<a href="${linkval}" name="attach_${attachid}" title="$title">$link_text</a>|
+                   . qq| [<a href="${linkval}&amp;action=edit" title="$title">details</a>, <a href="${linkval}${patchlink}" title="$title">diff</a>]|
+                   . qq|</span>|;
+        }
+        else {
+            # Whitespace matters here because these links are in <pre> tags.
+            return qq|<span class="$className">|
+                   . qq|<a href="${linkval}" name="attach_${attachid}" title="$title">$link_text</a>|
+                   . qq| [<a href="${linkval}&amp;action=edit" title="$title">details</a>]|
+                   . qq|</span>|;
+        }
     }
     else {
         return qq{$link_text};
