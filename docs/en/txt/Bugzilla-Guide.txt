@@ -1,9 +1,9 @@
 
-The Bugzilla Guide - 4.0.2 Release
+The Bugzilla Guide - 4.0.3 Release
 
 The Bugzilla Team
 
-   2011-08-04
+   2011-12-28
 
    This is the documentation for Bugzilla, a bug-tracking system from
    mozilla.org. Bugzilla is an enterprise-class piece of software that tracks
@@ -172,7 +172,7 @@ Chapter 1. About This Guide
 
 1.3. New Versions
 
-   This is the 4.0.2 version of The Bugzilla Guide. It is so named to match the
+   This is the 4.0.3 version of The Bugzilla Guide. It is so named to match the
    current version of Bugzilla.
 
    The latest version of this guide can always be found at
@@ -1035,7 +1035,7 @@ c:\perl\bin\perl.exe -xc:\bugzilla -wT "%s" %s
 
    This should bring up the crontab file in your editor. Add a cron entry like
    this to run collectstats.pl daily at 5 after midnight:
-   5 0 * * * cd <your-bugzilla-directory> ; ./collectstats.pl
+   5 0 * * * cd <your-bugzilla-directory> && ./collectstats.pl
 
    After two days have passed you'll be able to view bug graphs from the
    Reports page.
@@ -1056,7 +1056,7 @@ c:\perl\bin\perl.exe -xc:\bugzilla -wT "%s" %s
    This can be done by adding the following command as a daily crontab entry,
    in the same manner as explained above for bug graphs. This example runs it
    at 12.55am.
-   55 0 * * * cd <your-bugzilla-directory> ; ./whineatnews.pl
+   55 0 * * * cd <your-bugzilla-directory> && ./whineatnews.pl
 
    Note
 
@@ -1076,7 +1076,7 @@ c:\perl\bin\perl.exe -xc:\bugzilla -wT "%s" %s
    This can be done by adding the following command as a daily crontab entry,
    in the same manner as explained above for bug graphs. This example runs it
    every 15 minutes.
-   */15 * * * * cd <your-bugzilla-directory> ; ./whine.pl
+   */15 * * * * cd <your-bugzilla-directory> && ./whine.pl
 
    Note
 
@@ -2226,6 +2226,11 @@ Chapter 3. Administering Bugzilla
    This should only be used in Bugzilla installations with a small number of
    users. If users are selected via a text box, this page also contains
    parameters for how user names can be queried and matched when entered.
+
+   Another setting called 'ajax_user_autocompletion' enables certain user
+   fields to display a list of matched user names as a drop down after typing a
+   few characters. Note that it is recommended to use mod_perl when enabling
+   'ajax_user_autocompletion'.
      _________________________________________________________________
 
 3.2. User Administration
@@ -3103,6 +3108,9 @@ ReadOnly: ENTRY, NA/NA, CANEDIT
        explicit.
      * Type: The type of field to create. There are several types available:
 
+   Bug ID: A field where you can enter the ID of another bug from the same
+   Bugzilla installation. To point to a bug in a remote installation, use the
+   See Also field instead.
        Large Text Box: A multiple line box for entering free text.
        Free Text: A single line box for entering free text.
    Multiple-Selection Box: A list box where multiple options can be selected.
@@ -3116,6 +3124,10 @@ ReadOnly: ENTRY, NA/NA, CANEDIT
      * Sortkey: Integer that determines in which order Custom Fields are
        displayed in the User Interface, especially when viewing a bug. Fields
        with lower values are displayed first.
+     * Reverse Relationship Description: When the custom field is of type "Bug
+       ID", you can enter text here which will be used as label in the
+       referenced bug to list bugs which point to it. This gives you the
+       ability to have a mutual relationship between two bugs.
      * Can be set on bug creation: Boolean that determines whether this field
        can be set on bug creation. If not selected, then a bug must be created
        before this field can be set. See Section 5.6 for information about
@@ -3125,6 +3137,24 @@ ReadOnly: ENTRY, NA/NA, CANEDIT
        This attribute has no effect if the field cannot be set on bug creation.
      * Is obsolete: Boolean that determines whether this field should be
        displayed at all. Obsolete Custom Fields are hidden.
+     * Is mandatory: Boolean that determines whether this field must be set.
+       For single and multi-select fields, this means that a (non-default)
+       value must be selected, and for text and date fields, some text must be
+       entered.
+     * Field only appears when: A custom field can be made visible when some
+       criteria is met. For instance, when the bug belongs to a given product,
+       or when the bug is of some given severity. If left empty, then the
+       custom field will always be visible, in all bugs.
+     * Field that controls the values that appear in this field: When the
+       custom field is of type "Drop Down" or "Multiple-Selection Box", you can
+       restrict the availability of the values of the custom field based on the
+       value of another field. This criteria is independent of the criteria
+       used in the "Field only appears when" setting. For instance, you may
+       decide that some given value "valueY" is only available when the bug
+       status is RESOLVED while the value "valueX" should always be listed.
+       Once you have selected the field which should control the availability
+       of the values of this custom field, you can edit values of this custom
+       field to set the criteria, see Section 3.11.1.
      _________________________________________________________________
 
 3.10.2. Editing Custom Fields
@@ -3146,12 +3176,11 @@ ReadOnly: ENTRY, NA/NA, CANEDIT
 
 3.11. Legal Values
 
-   Since Bugzilla 2.20 RC1, legal values for Operating Systems, platforms, bug
-   priorities and severities can be edited from the User Interface directly.
-   This means that it is no longer required to manually edit localconfig.
-   Starting with Bugzilla 2.23.3, the list of valid resolutions can be
-   customized from the same interface. Since Bugzilla 3.1.1 the list of valid
-   bug statuses can be customized as well.
+   Legal values for the operating system, platform, bug priority and severity,
+   custom fields of type "Drop Down" and "Multiple-Selection Box" (see Section
+   3.10), as well as the list of valid bug statuses and resolutions can be
+   customized from the same interface. You can add, edit, disable and remove
+   values which can be used with these fields.
      _________________________________________________________________
 
 3.11.1. Viewing/Editing legal values
@@ -3164,6 +3193,10 @@ ReadOnly: ENTRY, NA/NA, CANEDIT
    There is no limit to how many values a field can have, but each value must
    be unique to that field. The sortkey is important to display these values in
    the desired order.
+
+   When the availability of the values of a custom field is controlled by
+   another field, you can select from here which value of the other field must
+   be set for the value of the custom field to appear.
      _________________________________________________________________
 
 3.11.2. Deleting legal values
@@ -5933,7 +5966,7 @@ M
           mail_delivery_method parameter.
 
    MySQL
-          MySQL is currently the required RDBMS for Bugzilla. MySQL can be
+          MySQL is one of the supported RDBMS for Bugzilla. MySQL can be
           downloaded from http://www.mysql.com. While you should familiarize
           yourself with all of the documentation, some high points are:
 

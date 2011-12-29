@@ -7,7 +7,7 @@
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
-TITLE="The Bugzilla Guide - 4.0.2 
+TITLE="The Bugzilla Guide - 4.0.3 
     Release"
 HREF="index.html"><LINK
 REL="UP"
@@ -38,7 +38,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
->The Bugzilla Guide - 4.0.2 
+>The Bugzilla Guide - 4.0.3 
     Release</TH
 ></TR
 ><TR
@@ -79,16 +79,21 @@ NAME="edit-values"
 >3.11. Legal Values</A
 ></H1
 ><P
->&#13;      Since Bugzilla 2.20 RC1, legal values for Operating Systems, platforms,
-      bug priorities and severities can be edited from the User Interface
-      directly. This means that it is no longer required to manually edit
-      <TT
-CLASS="filename"
->localconfig</TT
->. Starting with Bugzilla 2.23.3, 
-      the list of valid resolutions can be customized from the same interface.
-      Since Bugzilla 3.1.1 the list of valid bug statuses can be customized
-      as well.
+>&#13;      Legal values for the operating system, platform, bug priority and
+      severity, custom fields of type <SPAN
+CLASS="QUOTE"
+>"Drop Down"</SPAN
+> and
+      <SPAN
+CLASS="QUOTE"
+>"Multiple-Selection Box"</SPAN
+> (see <A
+HREF="custom-fields.html"
+>Section 3.10</A
+>),
+      as well as the list of valid bug statuses and resolutions can be
+      customized from the same interface. You can add, edit, disable and
+      remove values which can be used with these fields.
     </P
 ><DIV
 CLASS="section"
@@ -111,6 +116,11 @@ CLASS="QUOTE"
 >&#13;        There is no limit to how many values a field can have, but each value 
         must be unique to that field. The sortkey is important to display these
         values in the desired order.
+      </P
+><P
+>&#13;        When the availability of the values of a custom field is controlled
+        by another field, you can select from here which value of the other field
+        must be set for the value of the custom field to appear.
       </P
 ></DIV
 ><DIV
