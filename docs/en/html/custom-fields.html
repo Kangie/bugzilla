@@ -7,7 +7,7 @@
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
-TITLE="The Bugzilla Guide - 4.0.2 
+TITLE="The Bugzilla Guide - 4.0.4 
     Release"
 HREF="index.html"><LINK
 REL="UP"
@@ -38,7 +38,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
->The Bugzilla Guide - 4.0.2 
+>The Bugzilla Guide - 4.0.4 
     Release</TH
 ></TR
 ><TR
@@ -180,6 +180,13 @@ BORDER="0"
 ><TBODY
 ><TR
 ><TD
+>&#13;                   Bug ID: A field where you can enter the ID of another bug from
+                   the same Bugzilla installation. To point to a bug in a remote
+                   installation, use the See Also field instead.
+                 </TD
+></TR
+><TR
+><TD
 >&#13;                   Large Text Box: A multiple line box for entering free text.
                  </TD
 ></TR
@@ -238,6 +245,20 @@ HREF="edit-values.html#edit-values-list"
 ><LI
 ><P
 >&#13;              <EM
+>Reverse Relationship Description:</EM
+>
+              When the custom field is of type <SPAN
+CLASS="QUOTE"
+>"Bug ID"</SPAN
+>, you can
+              enter text here which will be used as label in the referenced
+              bug to list bugs which point to it. This gives you the ability
+              to have a mutual relationship between two bugs.
+            </P
+></LI
+><LI
+><P
+>&#13;              <EM
 >Can be set on bug creation:</EM
 >
               Boolean that determines whether this field can be set on
@@ -266,6 +287,66 @@ HREF="bugreports.html"
 >
               Boolean that determines whether this field should
               be displayed at all. Obsolete Custom Fields are hidden.
+            </P
+></LI
+><LI
+><P
+>&#13;              <EM
+>Is mandatory:</EM
+>
+              Boolean that determines whether this field must be set.
+              For single and multi-select fields, this means that a (non-default)
+              value must be selected, and for text and date fields, some text
+              must be entered.
+            </P
+></LI
+><LI
+><P
+>&#13;              <EM
+>Field only appears when:</EM
+>
+              A custom field can be made visible when some criteria is met.
+              For instance, when the bug belongs to a given product,
+              or when the bug is of some given severity. If left empty, then
+              the custom field will always be visible, in all bugs.
+            </P
+></LI
+><LI
+><P
+>&#13;              <EM
+>Field that controls the values that appear in this field:</EM
+>
+              When the custom field is of type <SPAN
+CLASS="QUOTE"
+>"Drop Down"</SPAN
+> or
+              <SPAN
+CLASS="QUOTE"
+>"Multiple-Selection Box"</SPAN
+>, you can restrict the
+              availability of the values of the custom field based on the
+              value of another field. This criteria is independent of the
+              criteria used in the <SPAN
+CLASS="QUOTE"
+>"Field only appears when"</SPAN
+>
+              setting. For instance, you may decide that some given value
+              <SPAN
+CLASS="QUOTE"
+>"valueY"</SPAN
+> is only available when the bug status
+              is RESOLVED while the value <SPAN
+CLASS="QUOTE"
+>"valueX"</SPAN
+> should
+              always be listed.
+              Once you have selected the field which should control the
+              availability of the values of this custom field, you can
+              edit values of this custom field to set the criteria, see
+              <A
+HREF="edit-values.html#edit-values-list"
+>Section 3.11.1</A
+>.
             </P
 ></LI
 ></UL

@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->The Bugzilla Guide - 4.0.2 
+>The Bugzilla Guide - 4.0.4 
     Release</TITLE
 ><META
 NAME="GENERATOR"
@@ -43,7 +43,7 @@ CLASS="TITLEPAGE"
 CLASS="title"
 ><A
 NAME="AEN2"
->The Bugzilla Guide - 4.0.2 
+>The Bugzilla Guide - 4.0.4 
     Release</A
 ></H1
 ><H3
@@ -51,7 +51,7 @@ CLASS="corpauthor"
 >The Bugzilla Team</H3
 ><P
 CLASS="pubdate"
->2011-08-04<BR></P
+>2012-01-31<BR></P
 ><DIV
 ><DIV
 CLASS="abstract"
@@ -614,7 +614,7 @@ NAME="copyright"
 >1.1. Copyright Information</A
 ></H2
 ><P
->This document is copyright (c) 2000-2011 by the various
+>This document is copyright (c) 2000-2012 by the various
     Bugzilla contributors who wrote it.</P
 ><A
 NAME="AEN26"
@@ -683,7 +683,7 @@ NAME="newversions"
 >1.3. New Versions</A
 ></H2
 ><P
->&#13;      This is the 4.0.2 version of The Bugzilla Guide. It is so named 
+>&#13;      This is the 4.0.4 version of The Bugzilla Guide. It is so named 
       to match the current version of Bugzilla. 
     </P
 ><P
@@ -1841,7 +1841,7 @@ TYPE="1"
 ></LI
 ><LI
 ><P
->&#13;            DBI (1.41)
+>&#13;            DBI (1.614)
           </P
 ></LI
 ><LI
@@ -1977,7 +1977,7 @@ TYPE="1"
 ><LI
 ><P
 >&#13;            HTML::Parser
-            (3.40) for More HTML in Product/Group Descriptions
+            (3.67) for More HTML in Product/Group Descriptions
           </P
 ></LI
 ><LI
@@ -3928,7 +3928,7 @@ WIDTH="100%"
 COLOR="#000000"
 ><PRE
 CLASS="programlisting"
->5 0 * * * cd &#60;your-bugzilla-directory&#62; ; ./collectstats.pl</PRE
+>5 0 * * * cd &#60;your-bugzilla-directory&#62; &#38;&#38; ./collectstats.pl</PRE
 ></FONT
 ></TD
 ></TR
@@ -4001,7 +4001,7 @@ WIDTH="100%"
 COLOR="#000000"
 ><PRE
 CLASS="programlisting"
->55 0 * * * cd &#60;your-bugzilla-directory&#62; ; ./whineatnews.pl</PRE
+>55 0 * * * cd &#60;your-bugzilla-directory&#62; &#38;&#38; ./whineatnews.pl</PRE
 ></FONT
 ></TD
 ></TR
@@ -4075,7 +4075,7 @@ WIDTH="100%"
 COLOR="#000000"
 ><PRE
 CLASS="programlisting"
->*/15 * * * * cd &#60;your-bugzilla-directory&#62; ; ./whine.pl</PRE
+>*/15 * * * * cd &#60;your-bugzilla-directory&#62; &#38;&#38; ./whine.pl</PRE
 ></FONT
 ></TD
 ></TR
@@ -7486,6 +7486,54 @@ CLASS="filename"
               </P
 ></DD
 ><DT
+>smtpserver</DT
+><DD
+><P
+>&#13;                This is the SMTP server address, if the <SPAN
+CLASS="QUOTE"
+>"mail_delivery_method"</SPAN
+>
+                parameter is set to SMTP.  Use "localhost" if you have a local MTA
+                running, otherwise use a remote SMTP server.  Append ":" and the port
+                number, if a non-default port is needed.
+              </P
+></DD
+><DT
+>smtp_username</DT
+><DD
+><P
+>&#13;                Username to use for SASL authentication to the SMTP server.  Leave
+                this parameter empty if your server does not require authentication.
+              </P
+></DD
+><DT
+>smtp_password</DT
+><DD
+><P
+>&#13;                Password to use for SASL authentication to the SMTP server. This
+                parameter will be ignored if the <SPAN
+CLASS="QUOTE"
+>"smtp_username"</SPAN
+>
+                parameter is left empty.
+              </P
+></DD
+><DT
+>smtp_ssl</DT
+><DD
+><P
+>&#13;                Enable SSL support for connection to the SMTP server.
+              </P
+></DD
+><DT
+>smtp_debug</DT
+><DD
+><P
+>&#13;                This parameter allows you to enable detailed debugging output.
+                Log messages are printed the web server's error log.
+              </P
+></DD
+><DT
 >whinedays</DT
 ><DD
 ><P
@@ -7617,6 +7665,12 @@ NAME="admin-usermatching"
             of users. If users are selected via a text box, this page also
             contains parameters for how user names can be queried and matched
             when entered.
+          </P
+><P
+>&#13;            Another setting called 'ajax_user_autocompletion' enables certain
+            user fields to display a list of matched user names as a drop down after typing 
+            a few characters. Note that it is recommended to use mod_perl when
+            enabling 'ajax_user_autocompletion'.
           </P
 ></DIV
 ></DIV
@@ -10083,6 +10137,13 @@ BORDER="0"
 ><TBODY
 ><TR
 ><TD
+>&#13;                   Bug ID: A field where you can enter the ID of another bug from
+                   the same Bugzilla installation. To point to a bug in a remote
+                   installation, use the See Also field instead.
+                 </TD
+></TR
+><TR
+><TD
 >&#13;                   Large Text Box: A multiple line box for entering free text.
                  </TD
 ></TR
@@ -10141,6 +10202,20 @@ HREF="#edit-values-list"
 ><LI
 ><P
 >&#13;              <EM
+>Reverse Relationship Description:</EM
+>
+              When the custom field is of type <SPAN
+CLASS="QUOTE"
+>"Bug ID"</SPAN
+>, you can
+              enter text here which will be used as label in the referenced
+              bug to list bugs which point to it. This gives you the ability
+              to have a mutual relationship between two bugs.
+            </P
+></LI
+><LI
+><P
+>&#13;              <EM
 >Can be set on bug creation:</EM
 >
               Boolean that determines whether this field can be set on
@@ -10169,6 +10244,66 @@ HREF="#bugreports"
 >
               Boolean that determines whether this field should
               be displayed at all. Obsolete Custom Fields are hidden.
+            </P
+></LI
+><LI
+><P
+>&#13;              <EM
+>Is mandatory:</EM
+>
+              Boolean that determines whether this field must be set.
+              For single and multi-select fields, this means that a (non-default)
+              value must be selected, and for text and date fields, some text
+              must be entered.
+            </P
+></LI
+><LI
+><P
+>&#13;              <EM
+>Field only appears when:</EM
+>
+              A custom field can be made visible when some criteria is met.
+              For instance, when the bug belongs to a given product,
+              or when the bug is of some given severity. If left empty, then
+              the custom field will always be visible, in all bugs.
+            </P
+></LI
+><LI
+><P
+>&#13;              <EM
+>Field that controls the values that appear in this field:</EM
+>
+              When the custom field is of type <SPAN
+CLASS="QUOTE"
+>"Drop Down"</SPAN
+> or
+              <SPAN
+CLASS="QUOTE"
+>"Multiple-Selection Box"</SPAN
+>, you can restrict the
+              availability of the values of the custom field based on the
+              value of another field. This criteria is independent of the
+              criteria used in the <SPAN
+CLASS="QUOTE"
+>"Field only appears when"</SPAN
+>
+              setting. For instance, you may decide that some given value
+              <SPAN
+CLASS="QUOTE"
+>"valueY"</SPAN
+> is only available when the bug status
+              is RESOLVED while the value <SPAN
+CLASS="QUOTE"
+>"valueX"</SPAN
+> should
+              always be listed.
+              Once you have selected the field which should control the
+              availability of the values of this custom field, you can
+              edit values of this custom field to set the criteria, see
+              <A
+HREF="#edit-values-list"
+>Section 3.11.1</A
+>.
             </P
 ></LI
 ></UL
@@ -10224,16 +10359,21 @@ NAME="edit-values"
 >3.11. Legal Values</A
 ></H2
 ><P
->&#13;      Since Bugzilla 2.20 RC1, legal values for Operating Systems, platforms,
-      bug priorities and severities can be edited from the User Interface
-      directly. This means that it is no longer required to manually edit
-      <TT
-CLASS="filename"
->localconfig</TT
->. Starting with Bugzilla 2.23.3, 
-      the list of valid resolutions can be customized from the same interface.
-      Since Bugzilla 3.1.1 the list of valid bug statuses can be customized
-      as well.
+>&#13;      Legal values for the operating system, platform, bug priority and
+      severity, custom fields of type <SPAN
+CLASS="QUOTE"
+>"Drop Down"</SPAN
+> and
+      <SPAN
+CLASS="QUOTE"
+>"Multiple-Selection Box"</SPAN
+> (see <A
+HREF="#custom-fields"
+>Section 3.10</A
+>),
+      as well as the list of valid bug statuses and resolutions can be
+      customized from the same interface. You can add, edit, disable and
+      remove values which can be used with these fields.
     </P
 ><DIV
 CLASS="section"
@@ -10248,7 +10388,7 @@ NAME="edit-values-list"
 CLASS="QUOTE"
 >"admin"</SPAN
 > privileges.
-        Select "Legal Values" from the Administration page. A list of all
+        Select "Field Values" from the Administration page. A list of all
         fields, both system fields and Custom Fields, for which legal values
         can be edited appears. Click a field name to edit its legal values.
       </P
@@ -10256,6 +10396,11 @@ CLASS="QUOTE"
 >&#13;        There is no limit to how many values a field can have, but each value 
         must be unique to that field. The sortkey is important to display these
         values in the desired order.
+      </P
+><P
+>&#13;        When the availability of the values of a custom field is controlled
+        by another field, you can select from here which value of the other field
+        must be set for the value of the custom field to appear.
       </P
 ></DIV
 ><DIV
@@ -10323,6 +10468,20 @@ CLASS="section"
 NAME="voting"
 >3.13. Voting</A
 ></H2
+><P
+>All of the code for voting in Bugzilla has been moved into an
+    extension, called "Voting", in the <TT
+CLASS="filename"
+>extensions/Voting/</TT
+>
+    directory. To enable it, you must remove the <TT
+CLASS="filename"
+>disabled</TT
+>
+    file from that directory, and run <TT
+CLASS="filename"
+>checksetup.pl</TT
+>.</P
 ><P
 >Voting allows users to be given a pot of votes which they can allocate
     to bugs, to indicate that they'd like them fixed. 
@@ -10392,14 +10551,14 @@ NAME="quips"
       is made from the pool of already existing quips.
     </P
 ><P
->&#13;      Quips are controlled by the <EM
->enablequips</EM
-> parameter.
-      It has several possible values: on, approved, frozen or off.
-      In order to enable quips approval you need to set this parameter
-      to "approved". In this way, users are free to submit quips for
-      addition but an administrator must explicitly approve them before
-      they are actually used.
+>&#13;      Quip submission is controlled by the <EM
+>quip_list_entry_control</EM
+>
+      parameter.  It has several possible values: open, moderated, or closed.
+      In order to enable quips approval you need to set this parameter to
+      "moderated". In this way, users are free to submit quips for addition
+      but an administrator must explicitly approve them before they are
+      actually used.
     </P
 ><P
 >&#13;      In order to see the user interface for the quips, it is enough to click
@@ -10412,7 +10571,7 @@ NAME="quips"
       be displayed.
     </P
 ><P
->&#13;      Next to each tip there is a checkbox, under the
+>&#13;      Next to each quip there is a checkbox, under the
       "Approved" column. Quips who have this checkbox checked are
       already approved and will appear next to the search results.
       The ones that have it unchecked are still preserved in the
@@ -10422,6 +10581,12 @@ NAME="quips"
 ><P
 >&#13;      Also, there is a delete link next to each quip,
       which can be used in order to permanently delete a quip.
+    </P
+><P
+>&#13;      Display of quips is controlled by the <EM
+>display_quips</EM
+>
+      user preference.  Possible values are "on" and "off".
     </P
 ></DIV
 ><DIV
@@ -10860,7 +11025,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN2110"
+NAME="AEN2162"
 >3.15.4. Assigning Group Controls to Products</A
 ></H3
 ><P
@@ -12198,7 +12363,7 @@ NAME="negation"
 >&#13;          At first glance, negation seems redundant. Rather than
           searching for
           <A
-NAME="AEN2438"
+NAME="AEN2490"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12209,7 +12374,7 @@ CLASS="BLOCKQUOTE"
 >
           one could search for 
           <A
-NAME="AEN2440"
+NAME="AEN2492"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12220,7 +12385,7 @@ CLASS="BLOCKQUOTE"
 >
           However, the search 
           <A
-NAME="AEN2442"
+NAME="AEN2494"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12232,7 +12397,7 @@ CLASS="BLOCKQUOTE"
           would find every bug where anyone on the CC list did not contain 
           "@mozilla.org" while
           <A
-NAME="AEN2444"
+NAME="AEN2496"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12246,7 +12411,7 @@ CLASS="BLOCKQUOTE"
           complex expressions to be built using terms OR'd together and then
           negated. Negation permits queries such as
           <A
-NAME="AEN2446"
+NAME="AEN2498"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12259,7 +12424,7 @@ CLASS="BLOCKQUOTE"
           to find bugs that are neither 
           in the update product or in the documentation component or
           <A
-NAME="AEN2448"
+NAME="AEN2500"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12287,7 +12452,7 @@ NAME="multiplecharts"
           a bug that has two different people cc'd on it, then you need 
           to use two boolean charts. A search for
           <A
-NAME="AEN2453"
+NAME="AEN2505"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12302,7 +12467,7 @@ CLASS="BLOCKQUOTE"
           containing "foo@" and someone else containing "@mozilla.org",
           then you would need two boolean charts.
           <A
-NAME="AEN2455"
+NAME="AEN2507"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -13008,7 +13173,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN2591"
+NAME="AEN2643"
 >5.8.1. Autolinkification</A
 ></H3
 ><P
@@ -13883,7 +14048,7 @@ CLASS="section"
 ><HR><H4
 CLASS="section"
 ><A
-NAME="AEN2788"
+NAME="AEN2840"
 >5.11.2.1. Creating Charts</A
 ></H4
 ><P
@@ -14352,7 +14517,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN2848"
+NAME="AEN2900"
 >5.13.4. Saving Your Changes</A
 ></H3
 ><P
@@ -15851,7 +16016,7 @@ NAME="trbl-relogin-everyone-share"
 >Example A-1. Examples of urlbase/cookiepath pairs for sharing login cookies</B
 ></P
 ><A
-NAME="AEN3090"
+NAME="AEN3142"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -15892,7 +16057,7 @@ NAME="trbl-relogin-everyone-restrict"
 >Example A-2. Examples of urlbase/cookiepath pairs to restrict the login cookie</B
 ></P
 ><A
-NAME="AEN3097"
+NAME="AEN3149"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -16655,7 +16820,7 @@ NAME="gfdl"
 ><P
 >Version 1.1, March 2000</P
 ><A
-NAME="AEN3255"
+NAME="AEN3307"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -17118,7 +17283,7 @@ NAME="gfdl-howto"
     of the License in the document and put the following copyright and
     license notices just after the title page:</P
 ><A
-NAME="AEN3345"
+NAME="AEN3397"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -17155,7 +17320,7 @@ CLASS="glossdiv"
 ><H1
 CLASS="glossdiv"
 ><A
-NAME="AEN3350"
+NAME="AEN3402"
 >0-9, high ascii</A
 ></H1
 ><DL
@@ -17676,7 +17841,7 @@ NAME="gloss-mysql"
 ></DT
 ><DD
 ><P
->MySQL is currently the required
+>MySQL is one of the supported
         <A
 HREF="#gloss-rdbms"
 ><I
@@ -18050,7 +18215,7 @@ NAME="gloss-zarro"
         Terry had the following to say:
         </P
 ><A
-NAME="AEN3591"
+NAME="AEN3643"
 ></A
 ><TABLE
 BORDER="0"

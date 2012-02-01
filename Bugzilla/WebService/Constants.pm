@@ -25,6 +25,8 @@ our @EXPORT = qw(
     ERROR_UNKNOWN_FATAL
     ERROR_UNKNOWN_TRANSIENT
 
+    CONTENT_TYPE_BLACKLIST
+
     WS_DISPATCH
 );
 
@@ -130,6 +132,7 @@ use constant WS_ERROR_CODE => {
     # User errors are 500-600.
     account_exists        => 500,
     illegal_email_address => 501,
+    auth_cant_create_account    => 501,
     account_creation_disabled   => 501,
     account_creation_restricted => 501,
     password_too_short    => 502,
@@ -165,6 +168,14 @@ use constant ERROR_UNKNOWN_FATAL     => -32000;
 use constant ERROR_UNKNOWN_TRANSIENT => 32000;
 
 use constant ERROR_GENERAL       => 999;
+
+# Blacklist content types which can lead to CSRF when using POST with JSON-RPC.
+# The default content type for JSON-RPC is application/json.
+use constant CONTENT_TYPE_BLACKLIST => qw(
+    text/plain
+    application/x-www-form-urlencoded
+    multipart/form-data
+);
 
 sub WS_DISPATCH {
     # We "require" here instead of "use" above to avoid a dependency loop.

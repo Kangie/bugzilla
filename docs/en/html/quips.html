@@ -7,7 +7,7 @@
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
-TITLE="The Bugzilla Guide - 4.0.2 
+TITLE="The Bugzilla Guide - 4.0.4 
     Release"
 HREF="index.html"><LINK
 REL="UP"
@@ -38,7 +38,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
->The Bugzilla Guide - 4.0.2 
+>The Bugzilla Guide - 4.0.4 
     Release</TH
 ></TR
 ><TR
@@ -85,14 +85,14 @@ NAME="quips"
       is made from the pool of already existing quips.
     </P
 ><P
->&#13;      Quips are controlled by the <EM
->enablequips</EM
-> parameter.
-      It has several possible values: on, approved, frozen or off.
-      In order to enable quips approval you need to set this parameter
-      to "approved". In this way, users are free to submit quips for
-      addition but an administrator must explicitly approve them before
-      they are actually used.
+>&#13;      Quip submission is controlled by the <EM
+>quip_list_entry_control</EM
+>
+      parameter.  It has several possible values: open, moderated, or closed.
+      In order to enable quips approval you need to set this parameter to
+      "moderated". In this way, users are free to submit quips for addition
+      but an administrator must explicitly approve them before they are
+      actually used.
     </P
 ><P
 >&#13;      In order to see the user interface for the quips, it is enough to click
@@ -105,7 +105,7 @@ NAME="quips"
       be displayed.
     </P
 ><P
->&#13;      Next to each tip there is a checkbox, under the
+>&#13;      Next to each quip there is a checkbox, under the
       "Approved" column. Quips who have this checkbox checked are
       already approved and will appear next to the search results.
       The ones that have it unchecked are still preserved in the
@@ -115,6 +115,12 @@ NAME="quips"
 ><P
 >&#13;      Also, there is a delete link next to each quip,
       which can be used in order to permanently delete a quip.
+    </P
+><P
+>&#13;      Display of quips is controlled by the <EM
+>display_quips</EM
+>
+      user preference.  Possible values are "on" and "off".
     </P
 ></DIV
 ><DIV

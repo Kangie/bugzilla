@@ -506,12 +506,6 @@ name="Other_Methods"
 <dd>
 <p>Returns true if the user wants mail for a given set of events. This method is more general than <code  class="code">wants_bug_mail</code>, allowing you to check e.g. permissions for flag mail.</p>
 
-<dt><a name="is_mover"
-><code  class="code">is_mover</code></a></dt>
-
-<dd>
-<p>Returns true if the user is in the list of users allowed to move bugs to another database. Note that this method doesn&#39;t check whether bug moving is enabled.</p>
-
 <dt><a name="is_insider"
 ><code  class="code">is_insider</code></a></dt>
 
@@ -547,6 +541,18 @@ name="CLASS_FUNCTIONS"
 
 <dd>
 <p>Takes a username as its only argument. Throws an error if there is no user with that username. Returns a <code  class="code">Bugzilla::User</code> object.</p>
+
+<dt><a name="check_account_creation_enabled"
+><code  class="code">check_account_creation_enabled</code></a></dt>
+
+<dd>
+<p>Checks that users can create new user accounts, and throws an error if user creation is disabled.</p>
+
+<dt><a name="check_and_send_account_creation_confirmation($login)"
+><code  class="code">check_and_send_account_creation_confirmation($login)</code></a></dt>
+
+<dd>
+<p>If the user request for a new account passes validation checks, an email is sent to this user for confirmation. Otherwise an error is thrown indicating why the request has been rejected.</p>
 
 <dt><a name="is_available_username"
 ><code  class="code">is_available_username</code></a></dt>

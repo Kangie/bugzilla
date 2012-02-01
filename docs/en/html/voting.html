@@ -7,7 +7,7 @@
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
-TITLE="The Bugzilla Guide - 4.0.2 
+TITLE="The Bugzilla Guide - 4.0.4 
     Release"
 HREF="index.html"><LINK
 REL="UP"
@@ -38,7 +38,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
->The Bugzilla Guide - 4.0.2 
+>The Bugzilla Guide - 4.0.4 
     Release</TH
 ></TR
 ><TR
@@ -78,6 +78,20 @@ CLASS="section"
 NAME="voting"
 >3.13. Voting</A
 ></H1
+><P
+>All of the code for voting in Bugzilla has been moved into an
+    extension, called "Voting", in the <TT
+CLASS="filename"
+>extensions/Voting/</TT
+>
+    directory. To enable it, you must remove the <TT
+CLASS="filename"
+>disabled</TT
+>
+    file from that directory, and run <TT
+CLASS="filename"
+>checksetup.pl</TT
+>.</P
 ><P
 >Voting allows users to be given a pot of votes which they can allocate
     to bugs, to indicate that they'd like them fixed. 
