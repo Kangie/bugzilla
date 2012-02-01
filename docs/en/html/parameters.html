@@ -7,7 +7,7 @@
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
-TITLE="The Bugzilla Guide - 4.0.3 
+TITLE="The Bugzilla Guide - 4.0.4 
     Release"
 HREF="index.html"><LINK
 REL="UP"
@@ -38,7 +38,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
->The Bugzilla Guide - 4.0.3 
+>The Bugzilla Guide - 4.0.4 
     Release</TH
 ></TR
 ><TR
@@ -1139,6 +1139,54 @@ CLASS="filename"
                 of all emails sent by this Bugzilla installation. Some email
                 servers require mail to be from a valid email address, therefore
                 it is recommended to choose a valid email address here.
+              </P
+></DD
+><DT
+>smtpserver</DT
+><DD
+><P
+>&#13;                This is the SMTP server address, if the <SPAN
+CLASS="QUOTE"
+>"mail_delivery_method"</SPAN
+>
+                parameter is set to SMTP.  Use "localhost" if you have a local MTA
+                running, otherwise use a remote SMTP server.  Append ":" and the port
+                number, if a non-default port is needed.
+              </P
+></DD
+><DT
+>smtp_username</DT
+><DD
+><P
+>&#13;                Username to use for SASL authentication to the SMTP server.  Leave
+                this parameter empty if your server does not require authentication.
+              </P
+></DD
+><DT
+>smtp_password</DT
+><DD
+><P
+>&#13;                Password to use for SASL authentication to the SMTP server. This
+                parameter will be ignored if the <SPAN
+CLASS="QUOTE"
+>"smtp_username"</SPAN
+>
+                parameter is left empty.
+              </P
+></DD
+><DT
+>smtp_ssl</DT
+><DD
+><P
+>&#13;                Enable SSL support for connection to the SMTP server.
+              </P
+></DD
+><DT
+>smtp_debug</DT
+><DD
+><P
+>&#13;                This parameter allows you to enable detailed debugging output.
+                Log messages are printed the web server's error log.
               </P
 ></DD
 ><DT

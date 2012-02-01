@@ -2,7 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->The Bugzilla Guide - 4.0.3 
+>The Bugzilla Guide - 4.0.4 
     Release</TITLE
 ><META
 NAME="GENERATOR"
@@ -43,7 +43,7 @@ CLASS="TITLEPAGE"
 CLASS="title"
 ><A
 NAME="AEN2"
->The Bugzilla Guide - 4.0.3 
+>The Bugzilla Guide - 4.0.4 
     Release</A
 ></H1
 ><H3
@@ -51,7 +51,7 @@ CLASS="corpauthor"
 >The Bugzilla Team</H3
 ><P
 CLASS="pubdate"
->2011-12-28<BR></P
+>2012-01-31<BR></P
 ><DIV
 ><DIV
 CLASS="abstract"
@@ -614,7 +614,7 @@ NAME="copyright"
 >1.1. Copyright Information</A
 ></H2
 ><P
->This document is copyright (c) 2000-2011 by the various
+>This document is copyright (c) 2000-2012 by the various
     Bugzilla contributors who wrote it.</P
 ><A
 NAME="AEN26"
@@ -683,7 +683,7 @@ NAME="newversions"
 >1.3. New Versions</A
 ></H2
 ><P
->&#13;      This is the 4.0.3 version of The Bugzilla Guide. It is so named 
+>&#13;      This is the 4.0.4 version of The Bugzilla Guide. It is so named 
       to match the current version of Bugzilla. 
     </P
 ><P
@@ -1841,7 +1841,7 @@ TYPE="1"
 ></LI
 ><LI
 ><P
->&#13;            DBI (1.41)
+>&#13;            DBI (1.614)
           </P
 ></LI
 ><LI
@@ -1977,7 +1977,7 @@ TYPE="1"
 ><LI
 ><P
 >&#13;            HTML::Parser
-            (3.40) for More HTML in Product/Group Descriptions
+            (3.67) for More HTML in Product/Group Descriptions
           </P
 ></LI
 ><LI
@@ -7486,6 +7486,54 @@ CLASS="filename"
               </P
 ></DD
 ><DT
+>smtpserver</DT
+><DD
+><P
+>&#13;                This is the SMTP server address, if the <SPAN
+CLASS="QUOTE"
+>"mail_delivery_method"</SPAN
+>
+                parameter is set to SMTP.  Use "localhost" if you have a local MTA
+                running, otherwise use a remote SMTP server.  Append ":" and the port
+                number, if a non-default port is needed.
+              </P
+></DD
+><DT
+>smtp_username</DT
+><DD
+><P
+>&#13;                Username to use for SASL authentication to the SMTP server.  Leave
+                this parameter empty if your server does not require authentication.
+              </P
+></DD
+><DT
+>smtp_password</DT
+><DD
+><P
+>&#13;                Password to use for SASL authentication to the SMTP server. This
+                parameter will be ignored if the <SPAN
+CLASS="QUOTE"
+>"smtp_username"</SPAN
+>
+                parameter is left empty.
+              </P
+></DD
+><DT
+>smtp_ssl</DT
+><DD
+><P
+>&#13;                Enable SSL support for connection to the SMTP server.
+              </P
+></DD
+><DT
+>smtp_debug</DT
+><DD
+><P
+>&#13;                This parameter allows you to enable detailed debugging output.
+                Log messages are printed the web server's error log.
+              </P
+></DD
+><DT
 >whinedays</DT
 ><DD
 ><P
@@ -10340,7 +10388,7 @@ NAME="edit-values-list"
 CLASS="QUOTE"
 >"admin"</SPAN
 > privileges.
-        Select "Legal Values" from the Administration page. A list of all
+        Select "Field Values" from the Administration page. A list of all
         fields, both system fields and Custom Fields, for which legal values
         can be edited appears. Click a field name to edit its legal values.
       </P
@@ -10421,6 +10469,20 @@ NAME="voting"
 >3.13. Voting</A
 ></H2
 ><P
+>All of the code for voting in Bugzilla has been moved into an
+    extension, called "Voting", in the <TT
+CLASS="filename"
+>extensions/Voting/</TT
+>
+    directory. To enable it, you must remove the <TT
+CLASS="filename"
+>disabled</TT
+>
+    file from that directory, and run <TT
+CLASS="filename"
+>checksetup.pl</TT
+>.</P
+><P
 >Voting allows users to be given a pot of votes which they can allocate
     to bugs, to indicate that they'd like them fixed. 
     This allows developers to gauge
@@ -10489,14 +10551,14 @@ NAME="quips"
       is made from the pool of already existing quips.
     </P
 ><P
->&#13;      Quips are controlled by the <EM
->enablequips</EM
-> parameter.
-      It has several possible values: on, approved, frozen or off.
-      In order to enable quips approval you need to set this parameter
-      to "approved". In this way, users are free to submit quips for
-      addition but an administrator must explicitly approve them before
-      they are actually used.
+>&#13;      Quip submission is controlled by the <EM
+>quip_list_entry_control</EM
+>
+      parameter.  It has several possible values: open, moderated, or closed.
+      In order to enable quips approval you need to set this parameter to
+      "moderated". In this way, users are free to submit quips for addition
+      but an administrator must explicitly approve them before they are
+      actually used.
     </P
 ><P
 >&#13;      In order to see the user interface for the quips, it is enough to click
@@ -10509,7 +10571,7 @@ NAME="quips"
       be displayed.
     </P
 ><P
->&#13;      Next to each tip there is a checkbox, under the
+>&#13;      Next to each quip there is a checkbox, under the
       "Approved" column. Quips who have this checkbox checked are
       already approved and will appear next to the search results.
       The ones that have it unchecked are still preserved in the
@@ -10519,6 +10581,12 @@ NAME="quips"
 ><P
 >&#13;      Also, there is a delete link next to each quip,
       which can be used in order to permanently delete a quip.
+    </P
+><P
+>&#13;      Display of quips is controlled by the <EM
+>display_quips</EM
+>
+      user preference.  Possible values are "on" and "off".
     </P
 ></DIV
 ><DIV
@@ -10957,7 +11025,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN2134"
+NAME="AEN2162"
 >3.15.4. Assigning Group Controls to Products</A
 ></H3
 ><P
@@ -12295,7 +12363,7 @@ NAME="negation"
 >&#13;          At first glance, negation seems redundant. Rather than
           searching for
           <A
-NAME="AEN2462"
+NAME="AEN2490"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12306,7 +12374,7 @@ CLASS="BLOCKQUOTE"
 >
           one could search for 
           <A
-NAME="AEN2464"
+NAME="AEN2492"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12317,7 +12385,7 @@ CLASS="BLOCKQUOTE"
 >
           However, the search 
           <A
-NAME="AEN2466"
+NAME="AEN2494"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12329,7 +12397,7 @@ CLASS="BLOCKQUOTE"
           would find every bug where anyone on the CC list did not contain 
           "@mozilla.org" while
           <A
-NAME="AEN2468"
+NAME="AEN2496"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12343,7 +12411,7 @@ CLASS="BLOCKQUOTE"
           complex expressions to be built using terms OR'd together and then
           negated. Negation permits queries such as
           <A
-NAME="AEN2470"
+NAME="AEN2498"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12356,7 +12424,7 @@ CLASS="BLOCKQUOTE"
           to find bugs that are neither 
           in the update product or in the documentation component or
           <A
-NAME="AEN2472"
+NAME="AEN2500"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12384,7 +12452,7 @@ NAME="multiplecharts"
           a bug that has two different people cc'd on it, then you need 
           to use two boolean charts. A search for
           <A
-NAME="AEN2477"
+NAME="AEN2505"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12399,7 +12467,7 @@ CLASS="BLOCKQUOTE"
           containing "foo@" and someone else containing "@mozilla.org",
           then you would need two boolean charts.
           <A
-NAME="AEN2479"
+NAME="AEN2507"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -13105,7 +13173,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN2615"
+NAME="AEN2643"
 >5.8.1. Autolinkification</A
 ></H3
 ><P
@@ -13980,7 +14048,7 @@ CLASS="section"
 ><HR><H4
 CLASS="section"
 ><A
-NAME="AEN2812"
+NAME="AEN2840"
 >5.11.2.1. Creating Charts</A
 ></H4
 ><P
@@ -14449,7 +14517,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN2872"
+NAME="AEN2900"
 >5.13.4. Saving Your Changes</A
 ></H3
 ><P
@@ -15948,7 +16016,7 @@ NAME="trbl-relogin-everyone-share"
 >Example A-1. Examples of urlbase/cookiepath pairs for sharing login cookies</B
 ></P
 ><A
-NAME="AEN3114"
+NAME="AEN3142"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -15989,7 +16057,7 @@ NAME="trbl-relogin-everyone-restrict"
 >Example A-2. Examples of urlbase/cookiepath pairs to restrict the login cookie</B
 ></P
 ><A
-NAME="AEN3121"
+NAME="AEN3149"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -16752,7 +16820,7 @@ NAME="gfdl"
 ><P
 >Version 1.1, March 2000</P
 ><A
-NAME="AEN3279"
+NAME="AEN3307"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -17215,7 +17283,7 @@ NAME="gfdl-howto"
     of the License in the document and put the following copyright and
     license notices just after the title page:</P
 ><A
-NAME="AEN3369"
+NAME="AEN3397"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -17252,7 +17320,7 @@ CLASS="glossdiv"
 ><H1
 CLASS="glossdiv"
 ><A
-NAME="AEN3374"
+NAME="AEN3402"
 >0-9, high ascii</A
 ></H1
 ><DL
@@ -18147,7 +18215,7 @@ NAME="gloss-zarro"
         Terry had the following to say:
         </P
 ><A
-NAME="AEN3615"
+NAME="AEN3643"
 ></A
 ><TABLE
 BORDER="0"
