@@ -32,6 +32,10 @@ sub install_filesystem {
 		files => 0640, dirs => 0750
 	};
 
+	$recurse_dirs->{"images/ranks"} = {
+		files => 0640, dirs => 0750
+	};
+
 	$htaccess->{"$datadir/cached/.htaccess"} = {
 		perms => 0640, contents => <<EOT
 # Allow access to the cached stuff
