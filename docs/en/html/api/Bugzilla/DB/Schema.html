@@ -549,6 +549,12 @@ name="METHODS"
                   C&#60;ABSTRACT_SCHEMA&#62; format.
  Returns:     nothing</pre>
 
+<dt><a name="set_fk($table,_$column_\%fk_def)"
+><code  class="code">set_fk($table, $column \%fk_def)</code></a></dt>
+
+<dd>
+<p>Sets the <code  class="code">REFERENCES</code> item on the specified column.</p>
+
 <dt><a name="set_index($table,_$name,_$definition)"
 ><code  class="code">set_index($table, $name, $definition)</code></a></dt>
 
@@ -619,7 +625,7 @@ name="SERIALIZATION/DESERIALIZATION"
 <pre  class="code"> Description: Used for when you&#39;ve read a serialized Schema off the disk,
               and you want a Schema object that represents that data.
  Params:      $serialized - scalar. The serialized data.
-              $version - A number in the format X.YZ. The &#34;version&#34;
+              $version - A number. The &#34;version&#34;
                   of the Schema that did the serialization.
                   See the docs for C&#60;SCHEMA_VERSION&#62; for more details.
  Returns:     A Schema object. It will have the methods of (and work 

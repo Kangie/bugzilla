@@ -34,7 +34,7 @@ name="SYNOPSIS"
 <pre  class="code">    use Bugzilla::Token;
 
     Bugzilla::Token::issue_new_user_account_token($login_name);
-    Bugzilla::Token::IssueEmailChangeToken($user, $old_email, $new_email);
+    Bugzilla::Token::IssueEmailChangeToken($user, $new_email);
     Bugzilla::Token::IssuePasswordToken($user);
     Bugzilla::Token::DeletePasswordTokens($user_id, $reason);
     Bugzilla::Token::Cancel($token, $cancelaction, $vars);
@@ -68,8 +68,8 @@ name="SUBROUTINES"
  Returns:     Nothing. It throws an error if the same user made the same
               request in the last few minutes.</pre>
 
-<dt><a name="sub_IssueEmailChangeToken($user,_$old_email,_$new_email)"
-><code  class="code">sub IssueEmailChangeToken($user, $old_email, $new_email)</code></a></dt>
+<dt><a name="sub_IssueEmailChangeToken($user,_$new_email)"
+><code  class="code">sub IssueEmailChangeToken($user, $new_email)</code></a></dt>
 
 <dd>
 <pre  class="code"> Description: Sends two distinct tokens per email to the old and new email
@@ -78,7 +78,6 @@ name="SUBROUTINES"
 
  Params:      $user      - User object of the user requesting a new
                            email address.
-              $old_email - The current (old) email address of the user.
               $new_email - The new email address of the user.
 
  Returns:     Nothing.</pre>

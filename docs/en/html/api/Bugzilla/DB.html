@@ -557,8 +557,8 @@ name="SQL_Generation"
 </dd>
 </dl>
 
-<dt><a name="sql_interval"
-><code  class="code">sql_interval</code></a></dt>
+<dt><a name="sql_date_math"
+><code  class="code">sql_date_math</code></a></dt>
 
 <dd>
 <dl>
@@ -566,7 +566,7 @@ name="SQL_Generation"
 ><b>Description</b></a></dt>
 
 <dd>
-<p>Outputs proper SQL syntax for a time interval function.</p>
+<p>Outputs proper SQL syntax for adding some amount of time to a date.</p>
 
 <p>Abstract method, should be overridden by database specific code.</p>
 
@@ -575,19 +575,37 @@ name="SQL_Generation"
 
 <dd>
 <dl>
-<dt><a name="$interval_-_the_time_interval_requested_(e.g._&#39;30&#39;)_(integer)"
-><code  class="code">$interval</code> - the time interval requested (e.g. &#39;30&#39;) (integer)</a></dt>
+<dt><a name="$date"
+><code  class="code">$date</code></a></dt>
 
 <dd>
-<dt><a name="$units_-_the_units_the_interval_is_in_(e.g._&#39;MINUTE&#39;)_(string)"
-><code  class="code">$units</code> - the units the interval is in (e.g. &#39;MINUTE&#39;) (string)</a></dt>
+<p><code  class="code">string</code> The date being added to or subtracted from.</p>
+
+<dt><a name="$operator"
+><code  class="code">$operator</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> Either <code  class="code">-</code> or <code  class="code">+</code>, depending on whether you&#39;re subtracting or adding.</p>
+
+<dt><a name="$interval"
+><code  class="code">$interval</code></a></dt>
+
+<dd>
+<p><code  class="code">integer</code> The time interval you&#39;re adding or subtracting (e.g. <code  class="code">30</code>)</p>
+
+<dt><a name="$units"
+><code  class="code">$units</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> the units the interval is in (e.g. &#39;MINUTE&#39;)</p>
+</dd>
 </dl>
 
 <dt><a name="Returns"
 ><b>Returns</b></a></dt>
 
 <dd>
-<p>Formatted SQL for interval function (scalar)</p>
+<p>Formatted SQL for adding or subtracting a date and some amount of time (scalar)</p>
 </dd>
 </dl>
 
@@ -733,7 +751,7 @@ name="SQL_Generation"
 
 <p>If one value is returned, it is a numeric expression that indicates a match with a positive value and a non-match with zero. In this case, the DB must support casting numeric expresions to booleans.</p>
 
-<p>If the DB does not support casting numeric expresions to booleans, then the first value is a boolean expression that indicates the presence of a match, and the second value is a numeric expression that can be used for ranking.</p>
+<p>If two values are returned, then the first value is a boolean expression that indicates the presence of a match, and the second value is a numeric expression that can be used for ranking.</p>
 
 <p>There is a ANSI SQL version of this method implemented using LIKE operator, but it&#39;s not a real full text search. DB specific modules should override this, as this generic implementation will be always much slower. This generic implementation returns &#39;relevance&#39; as 0 for no match, or 1 for a match.</p>
 

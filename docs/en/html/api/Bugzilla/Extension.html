@@ -68,6 +68,7 @@ Bugzilla::Extension</title>
       <li class='indexItem indexItem3'><a href='#enabled'>enabled</a>
       <li class='indexItem indexItem3'><a href='#package_dir'>package_dir</a>
       <li class='indexItem indexItem3'><a href='#template_dir'>template_dir</a>
+      <li class='indexItem indexItem3'><a href='#web_dir'>web_dir</a>
       <li class='indexItem indexItem3'><a href='#lib_dir'>lib_dir</a>
     </ul>
   </ul>
@@ -506,6 +507,17 @@ name="template_dir"
 <p>The directory that your package&#39;s templates are in.</p>
 
 <p>This defaults to the <code  class="code">template</code> subdirectory of the <a href="#package_dir" class="podlinkpod"
+>&#34;package_dir&#34;</a>.</p>
+
+<p>If you want to override this method, and you have a <em  class="code">Config.pm</em>, you must override this method in <em  class="code">Config.pm</em>.</p>
+
+<h3><a class='u' href='#___top' title='click to go to top of document'
+name="web_dir"
+><code  class="code">web_dir</code></a></h3>
+
+<p>The directory that your package&#39;s web related files are in, such as css and javascript.</p>
+
+<p>This defaults to the <code  class="code">web</code> subdirectory of the <a href="#package_dir" class="podlinkpod"
 >&#34;package_dir&#34;</a>.</p>
 
 <p>If you want to override this method, and you have a <em  class="code">Config.pm</em>, you must override this method in <em  class="code">Config.pm</em>.</p>

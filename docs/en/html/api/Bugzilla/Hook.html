@@ -47,7 +47,9 @@ Bugzilla::Hook</title>
     <li class='indexItem indexItem2'><a href='#install_before_final_checks'>install_before_final_checks</a>
     <li class='indexItem indexItem2'><a href='#install_filesystem'>install_filesystem</a>
     <li class='indexItem indexItem2'><a href='#install_update_db'>install_update_db</a>
+    <li class='indexItem indexItem2'><a href='#install_update_db_fielddefs'>install_update_db_fielddefs</a>
     <li class='indexItem indexItem2'><a href='#db_schema_abstract_schema'>db_schema_abstract_schema</a>
+    <li class='indexItem indexItem2'><a href='#job_map'>job_map</a>
     <li class='indexItem indexItem2'><a href='#mailer_before_send'>mailer_before_send</a>
     <li class='indexItem indexItem2'><a href='#object_before_create'>object_before_create</a>
     <li class='indexItem indexItem2'><a href='#object_before_delete'>object_before_delete</a>
@@ -530,6 +532,13 @@ name="bugmail_recipients"
 
 <p>(We use <code  class="code">+</code> in front of <code  class="code">REL_CC</code> so that Perl interprets it as a constant instead of as a string.)</p>
 
+<dt><a name="users"
+><code  class="code">users</code></a></dt>
+
+<dd>
+<p>This is a hash of <a href="../Bugzilla/User.html" class="podlinkpod"
+>Bugzilla::User</a> objects, keyed by id. This is so you can find out more information about any of the user ids in the <code  class="code">recipients</code> hash. Every id in the incoming <code  class="code">recipients</code> hash will have an object in here. (But if you add additional recipients to the <code  class="code">recipients</code> hash, you are <b>not</b> required to add them to this hash.)</p>
+
 <dt><a name="diffs"
 ><code  class="code">diffs</code></a></dt>
 
@@ -745,7 +754,7 @@ name="install_before_final_checks"
 name="install_filesystem"
 >install_filesystem</a></h2>
 
-<p>Allows for additional files and directories to be added to the list of files and directories already managed by checksetup.pl. You will be able to also set the permissions for the files and directories using this hook. You are also able to set or change permissions for current files and directories using this hook. You are also able to create appropriate htaccess files for the any directories to secure its contents. For examples see <a href="../FILESYSTEM.html" class="podlinkpod"
+<p>Allows for additional files and directories to be added to the list of files and directories already managed by checksetup.pl. You will be able to also set permissions for the files and directories using this hook. You can also use this hook to create appropriate .htaccess files for any directory to secure its contents. For examples see <a href="../FILESYSTEM.html" class="podlinkpod"
 >FILESYSTEM</a> in <a href="../Bugzilla/Install/Filesystem.html" class="podlinkpod"
 >Bugzilla::Install::Filesystem</a>.</p>
 
@@ -839,6 +848,15 @@ name="install_update_db"
 <p>This happens at the very end of all the tables being updated during an installation or upgrade. If you need to modify your custom schema or add new columns to existing tables, do it here. No params are passed.</p>
 
 <h2><a class='u' href='#___top' title='click to go to top of document'
+name="install_update_db_fielddefs"
+>install_update_db_fielddefs</a></h2>
+
+<p>This is used to update the schema of the fielddefs table before any other schema changes take place. No params are passed.</p>
+
+<p>This hook should only be used for updating the schema of the <code  class="code">fielddefs</code> table. Do not modify any other table in this hook. To modify other tables, use the <a href="#install_update_db" class="podlinkpod"
+>&#34;install_update_db&#34;</a> hook.</p>
+
+<h2><a class='u' href='#___top' title='click to go to top of document'
 name="db_schema_abstract_schema"
 >db_schema_abstract_schema</a></h2>
 
@@ -853,6 +871,21 @@ name="db_schema_abstract_schema"
 <dt><a 
 ><code  class="code">schema</code> - A hashref, in the format of <a href="../Bugzilla/DB/Schema.html#ABSTRACT_SCHEMA" class="podlinkpod"
 >&#34;ABSTRACT_SCHEMA&#34; in Bugzilla::DB::Schema</a>. Add new hash keys to make new table definitions. <em  class="code">checksetup.pl</em> will automatically add these tables to the database when run.</a></dt>
+</dl>
+
+<h2><a class='u' href='#___top' title='click to go to top of document'
+name="job_map"
+>job_map</a></h2>
+
+<p>Bugzilla has a system - <a href="../Bugzilla/JobQueue.html" class="podlinkpod"
+>Bugzilla::JobQueue</a> - for running jobs asynchronously, if the administrator has set it up. This hook allows the addition of mappings from job names to handler classes, so an extension can fire off jobs.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a 
+><code  class="code">job_map</code> - The job map hash. Key: the name of the job, as should be passed to Bugzilla-&#62;job_queue-&#62;insert(). Value: the name of the Perl module which implements the task (an instance of <a href="../TheSchwartz/Worker.html" class="podlinkpod"
+>TheSchwartz::Worker</a>).</a></dt>
 </dl>
 
 <h2><a class='u' href='#___top' title='click to go to top of document'

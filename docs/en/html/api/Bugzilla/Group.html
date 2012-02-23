@@ -70,15 +70,11 @@ name="SUBROUTINES"
 ><code  class="code">ValidateGroupName($name, @users)</code></a></dt>
 
 <dd>
-<pre  class="code"> Description: ValidateGroupName checks to see if ANY of the users
-              in the provided list of user objects can see the
-              named group.
+<p>Description: ValidateGroupName checks to see if ANY of the users in the provided list of user objects can see the named group.</p>
 
- Params:      $name - String with the group name.
-              @users - An array with Bugzilla::User objects.
+<p>Params: $name - String with the group name. @users - An array with Bugzilla::User objects.</p>
 
- Returns:     It returns the group id if successful
-              and undef otherwise.</pre>
+<p>Returns: It returns the group id if successful and undef otherwise.</p>
 </dd>
 </dl>
 
@@ -138,6 +134,12 @@ name="METHODS"
 <p>A <code  class="code">Bugzilla::Group</code> object on success, else an error is thrown.</p>
 </dd>
 </dl>
+
+<dt><a name="check_members_are_visible"
+><code  class="code">check_members_are_visible</code></a></dt>
+
+<dd>
+<p>Throws an error if this group is not visible (according to visibility groups) to the currently-logged-in user.</p>
 
 <dt><a name="check_remove"
 ><code  class="code">check_remove</code></a></dt>

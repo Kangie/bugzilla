@@ -22,6 +22,10 @@ Bugzilla::Webservice::Product</title>
     <li class='indexItem indexItem2'><a href='#get_accessible_products'>get_accessible_products</a>
     <li class='indexItem indexItem2'><a href='#get'>get</a>
   </ul>
+  <li class='indexItem indexItem1'><a href='#Product_Creation'>Product Creation</a>
+  <ul   class='indexList indexList2'>
+    <li class='indexItem indexItem2'><a href='#create'>create</a>
+  </ul>
 </ul>
 </div>
 
@@ -157,9 +161,25 @@ name="get"
 ><b>Params</b></a></dt>
 
 <dd>
-<p>A hash containing one item,
-<code  class="code">ids</code>,
-that is an array of product ids.</p>
+<p>In addition to the parameters below,
+this method also accepts the standard <a href="../../Bugzilla/WebService.html#include_fields" class="podlinkpod"
+>include_fields</a> and <a href="../../Bugzilla/WebService.html#exclude_fields" class="podlinkpod"
+>exclude_fields</a> arguments.</p>
+
+<dl>
+<dt><a name="ids"
+><code  class="code">ids</code></a></dt>
+
+<dd>
+<p>An array of product ids</p>
+
+<dt><a name="names"
+><code  class="code">names</code></a></dt>
+
+<dd>
+<p>An array of product names</p>
+</dd>
+</dl>
 
 <dt><a name="Returns"
 ><b>Returns</b></a></dt>
@@ -169,15 +189,130 @@ that is an array of product ids.</p>
 <code  class="code">products</code>,
 that is an array of hashes.
 Each hash describes a product,
-and has the following items: <code  class="code">id</code>,
-<code  class="code">name</code>,
-<code  class="code">description</code>,
-and <code  class="code">internals</code>.
-The <code  class="code">id</code> item is the id of the product.
-The <code  class="code">name</code> item is the name of the product.
-The <code  class="code">description</code> is the description of the product.
-Finally,
-the <code  class="code">internals</code> is an internal representation of the product.</p>
+and has the following items:</p>
+
+<dl>
+<dt><a name="id"
+><code  class="code">id</code></a></dt>
+
+<dd>
+<p><code  class="code">int</code> An integer id uniquely identifying the product in this installation only.</p>
+
+<dt><a name="name"
+><code  class="code">name</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The name of the product.
+This is a unique identifier for the product.</p>
+
+<dt><a name="description"
+><code  class="code">description</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> A description of the product,
+which may contain HTML.</p>
+
+<dt><a name="is_active"
+><code  class="code">is_active</code></a></dt>
+
+<dd>
+<p><code  class="code">boolean</code> A boolean indicating if the product is active.</p>
+
+<dt><a name="default_milestone"
+><code  class="code">default_milestone</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The name of the default milestone for the product.</p>
+
+<dt><a name="has_unconfirmed"
+><code  class="code">has_unconfirmed</code></a></dt>
+
+<dd>
+<p><code  class="code">boolean</code> Indicates whether the UNCONFIRMED bug status is available for this product.</p>
+
+<dt><a name="classification"
+><code  class="code">classification</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The classification name for the product.</p>
+
+<dt><a name="components"
+><code  class="code">components</code></a></dt>
+
+<dd>
+<p><code  class="code">array</code> An array of hashes,
+where each hash describes a component,
+and has the following items:</p>
+
+<dl>
+<dt><a name="id"
+><code  class="code">id</code></a></dt>
+
+<dd>
+<p><code  class="code">int</code> An integer id uniquely identifying the component in this installation only.</p>
+
+<dt><a name="name"
+><code  class="code">name</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The name of the component.
+This is a unique identifier for this component.</p>
+
+<dt><a name="description"
+><code  class="code">description</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> A description of the component,
+which may contain HTML.</p>
+
+<dt><a name="default_assigned_to"
+><code  class="code">default_assigned_to</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The login name of the user to whom new bugs will be assigned by default.</p>
+
+<dt><a name="default_qa_contact"
+><code  class="code">default_qa_contact</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The login name of the user who will be set as the QA Contact for new bugs by default.</p>
+
+<dt><a name="sort_key"
+><code  class="code">sort_key</code></a></dt>
+
+<dd>
+<p><code  class="code">int</code> Components,
+when displayed in a list,
+are sorted first by this integer and then secondly by their name.</p>
+
+<dt><a name="is_active"
+><code  class="code">is_active</code></a></dt>
+
+<dd>
+<p><code  class="code">boolean</code> A boolean indicating if the component is active.
+Inactive components are not enabled for new bugs.</p>
+</dd>
+</dl>
+
+<dt><a name="versions"
+><code  class="code">versions</code></a></dt>
+
+<dd>
+<p><code  class="code">array</code> An array of hashes,
+where each hash describes a version,
+and has the following items: <code  class="code">name</code>,
+<code  class="code">sort_key</code> and <code  class="code">is_active</code>.</p>
+
+<dt><a name="milestones"
+><code  class="code">milestones</code></a></dt>
+
+<dd>
+<p><code  class="code">array</code> An array of hashes,
+where each hash describes a milestone,
+and has the following items: <code  class="code">name</code>,
+<code  class="code">sort_key</code> and <code  class="code">is_active</code>.</p>
+</dd>
+</dl>
 
 <p>Note,
 that if the user tries to access a product that is not in the list of accessible products for the user,
@@ -187,6 +322,164 @@ and no information about that product is returned.</p>
 
 <dt><a name="Errors_(none)"
 ><b>Errors</b> (none)</a></dt>
+
+<dd>
+<dt><a name="History"
+><b>History</b></a></dt>
+
+<dd>
+<dl>
+<dt><a name="In_Bugzilla_4.2,_names_was_added_as_an_input_parameter."
+>In Bugzilla <b>4.2</b>,
+<code  class="code">names</code> was added as an input parameter.</a></dt>
+
+<dd>
+<dt><a 
+>In Bugzilla <b>4.2</b>,
+<code  class="code">classification</code>,
+<code  class="code">components</code>,
+<code  class="code">versions</code>,
+<code  class="code">milestones</code>,
+<code  class="code">default_milestone</code> and <code  class="code">has_unconfirmed</code> were added to the fields returned by <code  class="code">get</code> as a replacement for <code  class="code">internals</code>,
+which has been removed.</a></dt>
+</dl>
+</dd>
+</dl>
+
+<h1><a class='u' href='#___top' title='click to go to top of document'
+name="Product_Creation"
+>Product Creation</a></h1>
+
+<h2><a class='u' href='#___top' title='click to go to top of document'
+name="create"
+>create</a></h2>
+
+<p><b>EXPERIMENTAL</b></p>
+
+<dl>
+<dt><a name="Description"
+><b>Description</b></a></dt>
+
+<dd>
+<p>This allows you to create a new product in Bugzilla.</p>
+
+<dt><a name="Params"
+><b>Params</b></a></dt>
+
+<dd>
+<p>Some params must be set,
+or an error will be thrown.
+These params are marked <b>Required</b>.</p>
+
+<dl>
+<dt><a name="name"
+><code  class="code">name</code></a></dt>
+
+<dd>
+<p><b>Required</b> <code  class="code">string</code> The name of this product.
+Must be globally unique within Bugzilla.</p>
+
+<dt><a name="description"
+><code  class="code">description</code></a></dt>
+
+<dd>
+<p><b>Required</b> <code  class="code">string</code> A description for this product.
+Allows some simple HTML.</p>
+
+<dt><a name="version"
+><code  class="code">version</code></a></dt>
+
+<dd>
+<p><b>Required</b> <code  class="code">string</code> The default version for this product.</p>
+
+<dt><a name="has_unconfirmed"
+><code  class="code">has_unconfirmed</code></a></dt>
+
+<dd>
+<p><code  class="code">boolean</code> Allow the UNCONFIRMED status to be set on bugs in this product.
+Default: true.</p>
+
+<dt><a name="classification"
+><code  class="code">classification</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The name of the Classification which contains this product.</p>
+
+<dt><a name="default_milestone"
+><code  class="code">default_milestone</code></a></dt>
+
+<dd>
+<p><code  class="code">string</code> The default milestone for this product.
+Default: &#39;---&#39;.</p>
+
+<dt><a name="is_open"
+><code  class="code">is_open</code></a></dt>
+
+<dd>
+<p><code  class="code">boolean</code> True if the product is currently allowing bugs to be entered into it.
+Default: true.</p>
+
+<dt><a name="create_series"
+><code  class="code">create_series</code></a></dt>
+
+<dd>
+<p><code  class="code">boolean</code> True if you want series for New Charts to be created for this new product.
+Default: true.</p>
+</dd>
+</dl>
+
+<dt><a name="Returns"
+><b>Returns</b></a></dt>
+
+<dd>
+<p>A hash with one element,
+id.
+This is the id of the newly-filed product.</p>
+
+<dt><a name="Errors"
+><b>Errors</b></a></dt>
+
+<dd>
+<dl>
+<dt><a name="51_(Classification_does_not_exist)"
+>51 (Classification does not exist)</a></dt>
+
+<dd>
+<p>You must specify an existing classification name.</p>
+
+<dt><a name="700_(Product_blank_name)"
+>700 (Product blank name)</a></dt>
+
+<dd>
+<p>You must specify a non-blank name for this product.</p>
+
+<dt><a name="701_(Product_name_too_long)"
+>701 (Product name too long)</a></dt>
+
+<dd>
+<p>The name specified for this product was longer than the maximum allowed length.</p>
+
+<dt><a name="702_(Product_name_already_exists)"
+>702 (Product name already exists)</a></dt>
+
+<dd>
+<p>You specified the name of a product that already exists.
+(Product names must be globally unique in Bugzilla.)</p>
+
+<dt><a name="703_(Product_must_have_description)"
+>703 (Product must have description)</a></dt>
+
+<dd>
+<p>You must specify a description for this product.</p>
+
+<dt><a name="704_(Product_must_have_version)"
+>704 (Product must have version)</a></dt>
+
+<dd>
+<p>You must specify a version for this product.</p>
+</dd>
+</dl>
+</dd>
 </dl>
 <p class="backlinkbottom"><b><a name="___bottom" href="../../index.html" title="All Documents">&lt;&lt;</a></b></p>
 

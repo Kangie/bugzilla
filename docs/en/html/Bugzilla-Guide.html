@@ -2,7 +2,8 @@
 <HTML
 ><HEAD
 ><TITLE
->The Bugzilla Guide - 4.0.4 
+>The Bugzilla Guide - 4.2 
+    Development 
     Release</TITLE
 ><META
 NAME="GENERATOR"
@@ -43,7 +44,8 @@ CLASS="TITLEPAGE"
 CLASS="title"
 ><A
 NAME="AEN2"
->The Bugzilla Guide - 4.0.4 
+>The Bugzilla Guide - 4.2 
+    Development 
     Release</A
 ></H1
 ><H3
@@ -51,7 +53,7 @@ CLASS="corpauthor"
 >The Bugzilla Team</H3
 ><P
 CLASS="pubdate"
->2012-01-31<BR></P
+>2012-02-22<BR></P
 ><DIV
 ><DIV
 CLASS="abstract"
@@ -683,8 +685,10 @@ NAME="newversions"
 >1.3. New Versions</A
 ></H2
 ><P
->&#13;      This is the 4.0.4 version of The Bugzilla Guide. It is so named 
+>&#13;      This is the 4.2 version of The Bugzilla Guide. It is so named 
       to match the current version of Bugzilla. 
+       This version of the guide, like its associated Bugzilla version, is a
+      development version. 
     </P
 ><P
 >&#13;      The latest version of this guide can always be found at <A
@@ -1377,7 +1381,7 @@ HREF="http://www.mysql.com"
 TARGET="_top"
 >http://www.mysql.com</A
 >. You need MySQL version
-          4.1.2 or higher.
+          5.0.15 or higher.
           </P
 ><DIV
 CLASS="note"
@@ -1456,7 +1460,7 @@ HREF="http://www.postgresql.org/"
 TARGET="_top"
 >http://www.postgresql.org/</A
 >. You need PostgreSQL
-          version 8.00.0000 or higher.
+          version 8.03.0000 or higher.
           </P
 ><P
 >If you install from something other than a packaging/installation
@@ -1846,7 +1850,7 @@ TYPE="1"
 ></LI
 ><LI
 ><P
->&#13;            DBD::mysql (4.00) if using MySQL
+>&#13;            DBD::mysql (4.001) if using MySQL
           </P
 ></LI
 ><LI
@@ -1881,7 +1885,7 @@ TYPE="1"
 ></LI
 ><LI
 ><P
->&#13;            URI (any)
+>&#13;            URI (1.37)
           </P
 ></LI
 ></OL
@@ -1936,7 +1940,7 @@ TYPE="1"
 ></LI
 ><LI
 ><P
->&#13;            PatchReader (0.9.4) for pretty HTML view of patches
+>&#13;            PatchReader (0.9.6) for pretty HTML view of patches
           </P
 ></LI
 ><LI
@@ -2233,7 +2237,7 @@ CLASS="filename"
         the user you will create for your database. Pick a strong
         password (for simplicity, it should not contain single quote
         characters) and put it here. $db_driver can be either 'mysql',
-        'Pg' or 'oracle'.
+        'Pg', 'Oracle' or 'Sqlite'.
       </P
 ><DIV
 CLASS="note"
@@ -2346,11 +2350,14 @@ HREF="#mysql"
         PostgreSQL (<A
 HREF="#postgresql"
 >Section 2.2.2.3</A
->) and Oracle (<A
+>), Oracle (<A
 HREF="#oracle"
 >Section 2.2.2.4</A
 >)
-        are available.
+        and SQLite (<A
+HREF="#sqlite"
+>Section 2.2.2.5</A
+>) are available.
       </P
 ><DIV
 CLASS="section"
@@ -2482,7 +2489,7 @@ CLASS="section"
 ><HR><H5
 CLASS="section"
 ><A
-NAME="AEN438"
+NAME="AEN439"
 >2.2.2.2.2. Allow small words in full-text indexes</A
 ></H5
 ><P
@@ -2623,7 +2630,7 @@ CLASS="section"
 ><HR><H5
 CLASS="section"
 ><A
-NAME="AEN465"
+NAME="AEN466"
 >2.2.2.2.4. Permit attachments table to grow beyond 4GB</A
 ></H5
 ><P
@@ -2723,7 +2730,7 @@ CLASS="section"
 ><H5
 CLASS="section"
 ><A
-NAME="AEN481"
+NAME="AEN482"
 >2.2.2.3.1. Add a User to PostgreSQL</A
 ></H5
 ><P
@@ -2802,39 +2809,13 @@ CLASS="filename"
 >.
           The created user will not be a superuser (-S) and will not be able to create
           new users (-R). He will only have the ability to create databases (-d).</P
-><DIV
-CLASS="note"
-><P
-></P
-><TABLE
-CLASS="note"
-WIDTH="100%"
-BORDER="0"
-><TR
-><TD
-WIDTH="25"
-ALIGN="CENTER"
-VALIGN="TOP"
-><IMG
-SRC="../images/note.gif"
-HSPACE="5"
-ALT="Note"></TD
-><TD
-ALIGN="LEFT"
-VALIGN="TOP"
-><P
->If your are running PostgreSQL 8.0, you must replace -dRSP by -dAP.</P
-></TD
-></TR
-></TABLE
-></DIV
 ></DIV
 ><DIV
 CLASS="section"
 ><HR><H5
 CLASS="section"
 ><A
-NAME="AEN499"
+NAME="AEN498"
 >2.2.2.3.2. Configure PostgreSQL</A
 ></H5
 ><P
@@ -2895,7 +2876,7 @@ CLASS="section"
 ><H5
 CLASS="section"
 ><A
-NAME="AEN515"
+NAME="AEN514"
 >2.2.2.4.1. Create a New Tablespace</A
 ></H5
 ><P
@@ -2947,7 +2928,7 @@ CLASS="section"
 ><HR><H5
 CLASS="section"
 ><A
-NAME="AEN523"
+NAME="AEN522"
 >2.2.2.4.2. Add a User to Oracle</A
 ></H5
 ><P
@@ -3003,7 +2984,7 @@ CLASS="section"
 ><HR><H5
 CLASS="section"
 ><A
-NAME="AEN531"
+NAME="AEN530"
 >2.2.2.4.3. Configure the Web Server</A
 ></H5
 ><P
@@ -3035,13 +3016,70 @@ CLASS="programlisting"
           </P
 ></DIV
 ></DIV
+><DIV
+CLASS="section"
+><HR><H4
+CLASS="section"
+><A
+NAME="sqlite"
+>2.2.2.5. SQLite</A
+></H4
+><DIV
+CLASS="caution"
+><P
+></P
+><TABLE
+CLASS="caution"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/caution.gif"
+HSPACE="5"
+ALT="Caution"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>&#13;            Due to SQLite's <A
+HREF="http://sqlite.org/faq.html#q5"
+TARGET="_top"
+>concurrency
+            limitations</A
+> we recommend SQLite only for small and development
+            Bugzilla installations.
+          </P
+></TD
+></TR
+></TABLE
+></DIV
+><P
+>&#13;          No special configuration is required to run Bugzilla on SQLite.
+          The database will be stored in <TT
+CLASS="filename"
+>data/db/$db_name</TT
+>,
+          where <TT
+CLASS="literal"
+>$db_name</TT
+> is the database name defined
+          in <TT
+CLASS="filename"
+>localconfig</TT
+>.
+        </P
+></DIV
 ></DIV
 ><DIV
 CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN537"
+NAME="AEN545"
 >2.2.3. checksetup.pl</A
 ></H3
 ><P
@@ -3881,7 +3919,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN688"
+NAME="AEN696"
 >2.3.1. Bug Graphs</A
 ></H3
 ><P
@@ -5007,7 +5045,7 @@ CLASS="section"
 ><H3
 CLASS="section"
 ><A
-NAME="AEN851"
+NAME="AEN859"
 >2.6.1. Introduction</A
 ></H3
 ><P
@@ -5027,7 +5065,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN855"
+NAME="AEN863"
 >2.6.2. MySQL</A
 ></H3
 ><P
@@ -5083,7 +5121,7 @@ CLASS="section"
 ><HR><H4
 CLASS="section"
 ><A
-NAME="AEN863"
+NAME="AEN871"
 >2.6.2.1. Running MySQL as Non-Root</A
 ></H4
 ><DIV
@@ -5091,7 +5129,7 @@ CLASS="section"
 ><H5
 CLASS="section"
 ><A
-NAME="AEN865"
+NAME="AEN873"
 >2.6.2.1.1. The Custom Configuration Method</A
 ></H5
 ><P
@@ -5135,7 +5173,7 @@ CLASS="section"
 ><HR><H5
 CLASS="section"
 ><A
-NAME="AEN869"
+NAME="AEN877"
 >2.6.2.1.2. The Custom Built Method</A
 ></H5
 ><P
@@ -5158,7 +5196,7 @@ CLASS="section"
 ><HR><H5
 CLASS="section"
 ><A
-NAME="AEN874"
+NAME="AEN882"
 >2.6.2.1.3. Starting the Server</A
 ></H5
 ><P
@@ -5286,7 +5324,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN890"
+NAME="AEN898"
 >2.6.3. Perl</A
 ></H3
 ><P
@@ -5390,7 +5428,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN912"
+NAME="AEN920"
 >2.6.5. HTTP Server</A
 ></H3
 ><P
@@ -5404,7 +5442,7 @@ CLASS="section"
 ><HR><H4
 CLASS="section"
 ><A
-NAME="AEN915"
+NAME="AEN923"
 >2.6.5.1. Running Apache as Non-Root</A
 ></H4
 ><P
@@ -5486,7 +5524,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN924"
+NAME="AEN932"
 >2.6.6. Bugzilla</A
 ></H3
 ><P
@@ -10263,7 +10301,7 @@ HREF="#bugreports"
 >Field only appears when:</EM
 >
               A custom field can be made visible when some criteria is met.
-              For instance, when the bug belongs to a given product,
+              For instance, when the bug belongs to one or more products,
               or when the bug is of some given severity. If left empty, then
               the custom field will always be visible, in all bugs.
             </P
@@ -11025,7 +11063,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN2162"
+NAME="AEN2170"
 >3.15.4. Assigning Group Controls to Products</A
 ></H3
 ><P
@@ -11664,9 +11702,9 @@ NAME="myaccount"
     Bugzilla for the URL you should use to access it. If you're
     test-driving Bugzilla, use this URL: 
     <A
-HREF="http://landfill.bugzilla.org/bugzilla-4.0-branch/"
+HREF="http://landfill.bugzilla.org/bugzilla-tip/"
 TARGET="_top"
->http://landfill.bugzilla.org/bugzilla-4.0-branch/</A
+>http://landfill.bugzilla.org/bugzilla-tip/</A
 >.
     </P
 ><P
@@ -11816,7 +11854,7 @@ NAME="bug_page"
 >The core of Bugzilla is the screen which displays a particular
     bug. It's a good place to explain some Bugzilla concepts. 
     <A
-HREF="http://landfill.bugzilla.org/bugzilla-4.0-branch/show_bug.cgi?id=1"
+HREF="http://landfill.bugzilla.org/bugzilla-tip/show_bug.cgi?id=1"
 TARGET="_top"
 >&#13;    Bug 1 on Landfill</A
 >
@@ -12146,9 +12184,7 @@ CLASS="QUOTE"
 >Attachments:</EM
 >
           You can attach files (e.g. testcases or patches) to bugs. If there
-          are any attachments, they are listed in this section.  Attachments are
-          normally stored in the Bugzilla database, unless they are marked as
-          Big Files, which are stored directly on disk.
+          are any attachments, they are listed in this section.
         </P
 ></LI
 ><LI
@@ -12239,9 +12275,9 @@ NAME="query"
     any bug report, comment, or patch currently in the Bugzilla system. You
     can play with it here: 
     <A
-HREF="http://landfill.bugzilla.org/bugzilla-4.0-branch/query.cgi"
+HREF="http://landfill.bugzilla.org/bugzilla-tip/query.cgi"
 TARGET="_top"
->http://landfill.bugzilla.org/bugzilla-4.0-branch/query.cgi</A
+>http://landfill.bugzilla.org/bugzilla-tip/query.cgi</A
 >.</P
 ><P
 >The Search page has controls for selecting different possible
@@ -12363,7 +12399,7 @@ NAME="negation"
 >&#13;          At first glance, negation seems redundant. Rather than
           searching for
           <A
-NAME="AEN2490"
+NAME="AEN2498"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12374,7 +12410,7 @@ CLASS="BLOCKQUOTE"
 >
           one could search for 
           <A
-NAME="AEN2492"
+NAME="AEN2500"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12385,7 +12421,7 @@ CLASS="BLOCKQUOTE"
 >
           However, the search 
           <A
-NAME="AEN2494"
+NAME="AEN2502"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12397,7 +12433,7 @@ CLASS="BLOCKQUOTE"
           would find every bug where anyone on the CC list did not contain 
           "@mozilla.org" while
           <A
-NAME="AEN2496"
+NAME="AEN2504"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12411,7 +12447,7 @@ CLASS="BLOCKQUOTE"
           complex expressions to be built using terms OR'd together and then
           negated. Negation permits queries such as
           <A
-NAME="AEN2498"
+NAME="AEN2506"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12424,7 +12460,7 @@ CLASS="BLOCKQUOTE"
           to find bugs that are neither 
           in the update product or in the documentation component or
           <A
-NAME="AEN2500"
+NAME="AEN2508"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12452,7 +12488,7 @@ NAME="multiplecharts"
           a bug that has two different people cc'd on it, then you need 
           to use two boolean charts. A search for
           <A
-NAME="AEN2505"
+NAME="AEN2513"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12467,7 +12503,7 @@ CLASS="BLOCKQUOTE"
           containing "foo@" and someone else containing "@mozilla.org",
           then you would need two boolean charts.
           <A
-NAME="AEN2507"
+NAME="AEN2515"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -12734,7 +12770,7 @@ NAME="fillingbugs"
 >Years of bug writing experience has been distilled for your
       reading pleasure into the 
       <A
-HREF="http://landfill.bugzilla.org/bugzilla-4.0-branch/page.cgi?id=bug-writing.html"
+HREF="http://landfill.bugzilla.org/bugzilla-tip/page.cgi?id=bug-writing.html"
 TARGET="_top"
 >&#13;      Bug Writing Guidelines</A
 >. 
@@ -12786,7 +12822,7 @@ VALIGN="TOP"
 >&#13;              If you want to file a test bug to see how Bugzilla works,
               you can do it on one of our test installations on
               <A
-HREF="http://landfill.bugzilla.org/bugzilla-4.0-branch/"
+HREF="http://landfill.bugzilla.org/bugzilla-tip/"
 TARGET="_top"
 >Landfill</A
 >.
@@ -12959,37 +12995,17 @@ CLASS="filename"
 >.
     </P
 ><P
->&#13;      If you have a really large attachment, something that does not need to
-      be recorded forever (as most attachments are), or something that is too
-      big for your database, you can mark your attachment as a
-      <SPAN
-CLASS="QUOTE"
->"Big File"</SPAN
->, assuming the administrator of the installation
-      has enabled this feature.  Big Files are stored directly on disk instead
-      of in the database.  The maximum size of a <SPAN
-CLASS="QUOTE"
->"Big File"</SPAN
-> is
-      normally larger than the maximum size of a regular attachment. Independently
-      of the storage system used, an administrator can delete these attachments
-      at any time. Nevertheless, if these files are stored in the database, the
-      <SPAN
-CLASS="QUOTE"
->"allow_attachment_deletion"</SPAN
-> parameter (which is turned off
-      by default) must be enabled in order to delete them.
-    </P
-><P
->&#13;      Also, if the administrator turned on the <SPAN
-CLASS="QUOTE"
->"allow_attach_url"</SPAN
->
-      parameter, you can enter the URL pointing to the attachment instead of
+>&#13;      Also, you can enter the URL pointing to the attachment instead of
       uploading the attachment itself. For example, this is useful if you want to
       point to an external application, a website or a very large file. Note that
       there is no guarantee that the source file will always be available, nor
       that its content will remain unchanged.
+    </P
+><P
+>&#13;      Another way to attach data is to paste text directly in the text field,
+      and Bugzilla will convert it into an attachment. This is pretty useful
+      when you do copy and paste, and you don't want to put the text in a temporary
+      file first.
     </P
 ><DIV
 CLASS="section"
@@ -13173,7 +13189,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN2643"
+NAME="AEN2647"
 >5.8.1. Autolinkification</A
 ></H3
 ><P
@@ -13811,6 +13827,13 @@ CLASS="variablelist"
             </P
 ></DD
 ><DT
+>bz_quip_moderators</DT
+><DD
+><P
+>&#13;             Indicates user can moderate quips.
+            </P
+></DD
+><DT
 >bz_sudoers</DT
 ><DD
 ><P
@@ -14048,7 +14071,7 @@ CLASS="section"
 ><HR><H4
 CLASS="section"
 ><A
-NAME="AEN2840"
+NAME="AEN2848"
 >5.11.2.1. Creating Charts</A
 ></H4
 ><P
@@ -14517,7 +14540,7 @@ CLASS="section"
 ><HR><H3
 CLASS="section"
 ><A
-NAME="AEN2900"
+NAME="AEN2908"
 >5.13.4. Saving Your Changes</A
 ></H3
 ><P
@@ -14994,17 +15017,9 @@ TARGET="_top"
         This means that if the data can possibly contain special HTML characters
         such as &#60;, and the data was not intended to be HTML, they need to be
         converted to entity form, i.e. &#38;lt;.  You use the 'html' filter in the
-        Template Toolkit to do this.  If you forget, you may open up
-        your installation to cross-site scripting attacks.
-      </P
-><P
->&#13;        Also note that Bugzilla adds a few filters of its own, that are not
-        in standard Template Toolkit.  In particular, the 'url_quote' filter
-        can convert characters that are illegal or have special meaning in URLs,
-        such as &#38;, to the encoded form, i.e. %26.  This actually encodes most
-        characters (but not the common ones such as letters and numbers and so
-        on), including the HTML-special characters, so there's never a need to
-        HTML filter afterwards.
+        Template Toolkit to do this (or the 'uri' filter to encode special
+        characters in URLs).  If you forget, you may open up your installation
+        to cross-site scripting attacks.
       </P
 ><P
 >&#13;        Editing templates is a good way of doing a <SPAN
@@ -16016,7 +16031,7 @@ NAME="trbl-relogin-everyone-share"
 >Example A-1. Examples of urlbase/cookiepath pairs for sharing login cookies</B
 ></P
 ><A
-NAME="AEN3142"
+NAME="AEN3149"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -16057,7 +16072,7 @@ NAME="trbl-relogin-everyone-restrict"
 >Example A-2. Examples of urlbase/cookiepath pairs to restrict the login cookie</B
 ></P
 ><A
-NAME="AEN3149"
+NAME="AEN3156"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -16820,7 +16835,7 @@ NAME="gfdl"
 ><P
 >Version 1.1, March 2000</P
 ><A
-NAME="AEN3307"
+NAME="AEN3314"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -17283,7 +17298,7 @@ NAME="gfdl-howto"
     of the License in the document and put the following copyright and
     license notices just after the title page:</P
 ><A
-NAME="AEN3397"
+NAME="AEN3404"
 ></A
 ><BLOCKQUOTE
 CLASS="BLOCKQUOTE"
@@ -17320,7 +17335,7 @@ CLASS="glossdiv"
 ><H1
 CLASS="glossdiv"
 ><A
-NAME="AEN3402"
+NAME="AEN3409"
 >0-9, high ascii</A
 ></H1
 ><DL
@@ -18215,7 +18230,7 @@ NAME="gloss-zarro"
         Terry had the following to say:
         </P
 ><A
-NAME="AEN3643"
+NAME="AEN3650"
 ></A
 ><TABLE
 BORDER="0"

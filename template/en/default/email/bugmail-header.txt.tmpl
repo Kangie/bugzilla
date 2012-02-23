@@ -16,11 +16,13 @@
   # Rights Reserved.
   #
   # Contributor(s): André Batosti <batosti@async.com.br>
+  #                 Frédéric Buclin <LpSolit@gmail.com>
+  #                 Guy Pyrzak <guy.pyrzak@gmail.com>
   #%]
-
-[% PROCESS "global/variables.none.tmpl" %]
+  
+[% PROCESS "global/field-descs.none.tmpl" %]
 [% PROCESS "global/reason-descs.none.tmpl" %]
-
+[% isnew = bug.lastdiffed ? 0 : 1 %]
 [% cc = [] %]
 [% FOREACH cc_user IN bug.cc_users %]
 [% cc.push(cc_user.login_name) %]
@@ -50,37 +52,3 @@ X-Bugzilla-Changed-Fields: [% changedfields.join(" ") %]
 X-Bugzilla-Reporter: [% bug.reporter.login_name %]
 X-Bugzilla-CC: [% cc.join(", ") %]
 [%+ threadingmarker %]
-
-DO NOT REPLY TO THIS EMAIL. Also, do not reply via email to the person
-whose email is mentioned below. To comment on this bug, please visit:
-
-[% IF ( httpbase && sslbase ) && ssl_redirect == 0 %]
-Clear-Text: [%+ httpbase %]show_bug.cgi?id=[% bug.id %]
-Secure: [%+ sslbase %]show_bug.cgi?id=[% bug.id %]
-[% ELSE %]
-[%+ urlbase %]show_bug.cgi?id=[% bug.id %]
-[% END %]
-[%- IF diffs %]
-
-[%+ diffs %]
-[% END -%]
-[% FOREACH comment = new_comments %]
-
-[%- IF comment.count %]
---- Comment #[% comment.count %] from [% comment.author.identity %] [%+ comment.creation_ts FILTER time(undef, to_user.timezone) %] ---
-[% END %]
-[%+ comment.body_full({ is_bugmail => 1, wrap => 1 }) %]
-[% END %]
-
--- [%# Protect the trailing space of the signature marker %]
-Configure [% terms.bug %]mail: [% urlbase %]userprefs.cgi?tab=email
-------- You are receiving this mail because: -------
-[% SET reason_lines = [] %]
-[% FOREACH reason = reasons %]
-  [% reason_lines.push(reason_descs.$reason) IF reason_descs.$reason %]
-[% END %]
-[% FOREACH reason = reasons_watch %]
-  [% reason_lines.push(watch_reason_descs.$reason)
-       IF watch_reason_descs.$reason %]
-[% END %]
-[%+ reason_lines.join("\n") %]
