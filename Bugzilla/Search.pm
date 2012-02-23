@@ -1577,8 +1577,7 @@ sub _cc_nonchanged {
 
     my $chartseq = $$chartid;
     if ($$chartid eq "") {
-		$chartseq = "CC";
-		$chartseq .= $$sequence ? $$sequence : "";
+        $chartseq = "CC$$sequence";
         $$sequence++;
     }
     if ($$ff eq 'bugs.cc') {
