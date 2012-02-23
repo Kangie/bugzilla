@@ -275,6 +275,12 @@ name="String_Manipulation"
 <dd>
 <p>Disable utf8 on STDOUT (and display raw data instead).</p>
 
+<dt><a name="detect_encoding($str)"
+><code  class="code">detect_encoding($str)</code></a></dt>
+
+<dd>
+<p>Guesses what encoding a given data is encoded in, returning the canonical name of the detected encoding (which may be different from the MIME charset specification).</p>
+
 <dt><a 
 ><code  class="code">clean_text($str)</code> Returns the parameter &#34;cleaned&#34; by exchanging non-printable characters with spaces. Specifically characters (ASCII 0 through 31) and (ASCII 127) will become ASCII 32 (Space).</a></dt>
 
@@ -334,12 +340,6 @@ name="Formatting_Time"
 
 <p>This routine is mainly called from templates to filter dates, see &#34;FILTER time&#34; in <a href="../Bugzilla/Template.html" class="podlinkpod"
 >Bugzilla::Template</a>.</p>
-
-<dt><a name="format_time_decimal($time)"
-><code  class="code">format_time_decimal($time)</code></a></dt>
-
-<dd>
-<p>Returns a number with 2 digit precision, unless the last digit is a 0. Then it returns only 1 digit precision.</p>
 
 <dt><a name="datetime_from($time,_$timezone)"
 ><code  class="code">datetime_from($time, $timezone)</code></a></dt>

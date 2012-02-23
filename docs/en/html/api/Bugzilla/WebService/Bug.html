@@ -254,13 +254,19 @@ this will simply be an empty array.</p>
 >&#34;create&#34;</a>,
 etc.</p>
 
-<dt><a name="sortkey"
-><code  class="code">sortkey</code></a></dt>
+<dt><a name="sort_key"
+><code  class="code">sort_key</code></a></dt>
 
 <dd>
 <p><code  class="code">int</code> Values,
 when displayed in a list,
 are sorted first by this integer and then secondly by their name.</p>
+
+<dt><a name="sortkey"
+><code  class="code">sortkey</code></a></dt>
+
+<dd>
+<p><b>DEPRECATED</b> - Use <code  class="code">sort_key</code> instead.</p>
 
 <dt><a name="visibility_values"
 ><code  class="code">visibility_values</code></a></dt>
@@ -332,6 +338,10 @@ this is an array of hashes that determines which statuses you can transition to 
 <dd>
 <dt><a name="The_is_mandatory_return_value_was_added_in_Bugzilla_4.0."
 >The <code  class="code">is_mandatory</code> return value was added in Bugzilla <b>4.0</b>.</a></dt>
+
+<dd>
+<dt><a name="sortkey_was_renamed_to_sort_key_in_Bugzilla_4.2."
+><code  class="code">sortkey</code> was renamed to <code  class="code">sort_key</code> in Bugzilla <b>4.2</b>.</a></dt>
 </dl>
 </dd>
 </dl>
@@ -453,19 +463,14 @@ The return value looks like this:</p>
 
 <pre  class="code"> {
      bugs =&#62; {
-         1345 =&#62; {
-             attachments =&#62; [
-                 { (attachment) },
-                 { (attachment) }
-             ]
-         },
-         9874 =&#62; {
-             attachments =&#62; [
-                 { (attachment) },
-                 { (attachment) }
-             ]
-
-         },
+         1345 =&#62; [
+             { (attachment) },
+             { (attachment) }
+         ],
+         9874 =&#62; [
+             { (attachment) },
+             { (attachment) }
+         ],
      },
 
      attachments =&#62; {
@@ -474,7 +479,7 @@ The return value looks like this:</p>
      }
  }</pre>
 
-<p>The attachments of any bugs that you specified in the <code  class="code">ids</code> argument in input are returned in <code  class="code">bugs</code> on output. <code  class="code">bugs</code> is a hash that has integer bug IDs for keys and contains a single key, <code  class="code">attachments</code>. That key points to an arrayref that contains attachments as a hash. (Fields for attachments are described below.)</p>
+<p>The attachments of any bugs that you specified in the <code  class="code">ids</code> argument in input are returned in <code  class="code">bugs</code> on output. <code  class="code">bugs</code> is a hash that has integer bug IDs for keys and the values are arrayrefs that contain hashes as attachments. (Fields for attachments are described below.)</p>
 
 <p>For any attachments that you specified directly in <code  class="code">attachment_ids</code>, they are returned in <code  class="code">attachments</code> on output. This is a hash where the attachment ids point directly to hashes describing the individual attachment.</p>
 
@@ -543,12 +548,6 @@ The return value looks like this:</p>
 <dd>
 <p><code  class="code">boolean</code> True if the attachment is obsolete, False otherwise.</p>
 
-<dt><a name="is_url"
-><code  class="code">is_url</code></a></dt>
-
-<dd>
-<p><code  class="code">boolean</code> True if the attachment is a URL instead of actual data, False otherwise. Note that such attachments only happen when the Bugzilla installation has at some point had the <code  class="code">allow_attach_url</code> parameter enabled.</p>
-
 <dt><a name="is_patch"
 ><code  class="code">is_patch</code></a></dt>
 
@@ -600,6 +599,10 @@ The return value looks like this:</p>
 <dd>
 <dt><a name="The_data_return_value_was_added_in_Bugzilla_4.0."
 >The <code  class="code">data</code> return value was added in Bugzilla <b>4.0</b>.</a></dt>
+
+<dd>
+<dt><a name="In_Bugzilla_4.2,_the_is_url_return_value_was_removed_(this_attribute_no_longer_exists_for_attachments)."
+>In Bugzilla <b>4.2</b>, the <code  class="code">is_url</code> return value was removed (this attribute no longer exists for attachments).</a></dt>
 </dl>
 </dd>
 </dl>
@@ -1777,14 +1780,6 @@ name="add_attachment"
 <p><code  class="code">boolean</code> True if the attachment should be private (restricted to the &#34;insidergroup&#34;), False if the attachment should be public.</p>
 
 <p>Defaults to False if not specified.</p>
-
-<dt><a name="is_url"
-><code  class="code">is_url</code></a></dt>
-
-<dd>
-<p><code  class="code">boolean</code> True if the attachment is just a URL, pointing to data elsewhere. If so, the <code  class="code">data</code> item should just contain the URL.</p>
-
-<p>Defaults to False if not specified.</p>
 </dd>
 </dl>
 
@@ -1815,12 +1810,6 @@ name="add_attachment"
 <dd>
 <p>You specified a <code  class="code">content_type</code> argument that was blank, not a valid MIME type, or not a MIME type that Bugzilla accepts for attachments.</p>
 
-<dt><a name="602_(Illegal_URL)"
->602 (Illegal URL)</a></dt>
-
-<dd>
-<p>You specified <code  class="code">is_url</code> as True, but the data that you attempted to attach was not a valid URL.</p>
-
 <dt><a name="603_(File_Name_Not_Specified)"
 >603 (File Name Not Specified)</a></dt>
 
@@ -1833,18 +1822,25 @@ name="add_attachment"
 <dd>
 <p>You did not specify a value for the <code  class="code">summary</code> argument.</p>
 
-<dt><a name="605_(URL_Attaching_Disabled)"
->605 (URL Attaching Disabled)</a></dt>
-
-<dd>
-<p>You attempted to attach a URL, setting <code  class="code">is_url</code> to True, but this Bugzilla does not support attaching URLs.</p>
-
 <dt><a name="606_(Empty_Data)"
 >606 (Empty Data)</a></dt>
 
 <dd>
 <p>You set the &#34;data&#34; field to an empty string.</p>
 </dd>
+</dl>
+
+<dt><a name="History"
+><b>History</b></a></dt>
+
+<dd>
+<dl>
+<dt><a name="Added_in_Bugzilla_4.0."
+>Added in Bugzilla <b>4.0</b>.</a></dt>
+
+<dd>
+<dt><a name="The_is_url_parameter_was_removed_in_Bugzilla_4.2."
+>The <code  class="code">is_url</code> parameter was removed in Bugzilla <b>4.2</b>.</a></dt>
 </dl>
 </dd>
 </dl>

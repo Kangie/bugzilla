@@ -402,8 +402,7 @@ name="Database_Manipulation"
 >&#34;create&#34;</a>. This subroutine exists so that it can be overridden by subclasses who need to do special validations of their input parameters. This method is <b>only</b> called by <a href="#create" class="podlinkpod"
 >&#34;create&#34;</a>.</p>
 
-<p>Params: The same as <a href="#create" class="podlinkpod"
->&#34;create&#34;</a>.</p>
+<p>Params: <code  class="code">$params</code> - hashref - A value to put in each database field for this object. <code  class="code">$options</code> - hashref - Processing options. Currently the only option supported is <b>skip</b>, which can be used to specify a list of fields to not validate.</p>
 
 <p>Returns: A hash, in a similar format as <code  class="code">$params</code>, except that these are the values to be inserted into the database, not the values that were input to <a href="#create" class="podlinkpod"
 >&#34;create&#34;</a>.</p>

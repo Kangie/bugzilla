@@ -117,6 +117,14 @@ name="INFO_METHODS"
 
 <dd>
 <p>True if this login method requires no interaction from the user within Bugzilla. (For example, <code  class="code">Env</code> auth is &#34;automatic&#34; because the webserver just passes us an environment variable on most page requests, and does not ask the user for authentication information directly in Bugzilla.) Defaults to <code  class="code">false</code>.</p>
+
+<dt><a name="extern_id_used"
+><code  class="code">extern_id_used</code></a></dt>
+
+<dd>
+<p>Whether or not this login method uses the extern_id field. If used, users with editusers permission will be be allowed to edit the extern_id for all users.</p>
+
+<p>The default value is <code  class="code">0</code>.</p>
 </dd>
 </dl>
 <p class="backlinkbottom"><b><a name="___bottom" href="../../index.html" title="All Documents">&lt;&lt;</a></b></p>

@@ -1,8 +1,8 @@
-The Bugzilla Guide - 4.0.4 Release
+The Bugzilla Guide - 4.2 Development Release
 
 The Bugzilla Team
 
-   2012-01-31
+   2012-02-22
 
    This is the documentation for Bugzilla, a bug-tracking system from
    mozilla.org. Bugzilla is an enterprise-class piece of software that
@@ -175,8 +175,9 @@ Chapter 1. About This Guide
 
 1.3. New Versions
 
-   This is the 4.0.4 version of The Bugzilla Guide. It is so named to
-   match the current version of Bugzilla.
+   This is the 4.2 version of The Bugzilla Guide. It is so named to match
+   the current version of Bugzilla. This version of the guide, like its
+   associated Bugzilla version, is a development version.
 
    The latest version of this guide can always be found at
    http://www.bugzilla.org/docs/. However, you should read the version
@@ -341,7 +342,7 @@ Chapter 2. Installing Bugzilla
    mysql -V
 
    If you don't have it and your OS doesn't provide official packages,
-   visit http://www.mysql.com. You need MySQL version 4.1.2 or higher.
+   visit http://www.mysql.com. You need MySQL version 5.0.15 or higher.
 
    Note
 
@@ -363,7 +364,7 @@ Chapter 2. Installing Bugzilla
    psql -V
 
    If you don't have it and your OS doesn't provide official packages,
-   visit http://www.postgresql.org/. You need PostgreSQL version 8.00.0000
+   visit http://www.postgresql.org/. You need PostgreSQL version 8.03.0000
    or higher.
 
    If you install from something other than a packaging/installation
@@ -483,14 +484,14 @@ Chapter 2. Installing Bugzilla
     3. DateTime (0.28)
     4. DateTime::TimeZone (0.71)
     5. DBI (1.614)
-    6. DBD::mysql (4.00) if using MySQL
+    6. DBD::mysql (4.001) if using MySQL
     7. DBD::Pg (1.45) if using PostgreSQL
     8. DBD::Oracle (1.19) if using Oracle
     9. Digest::SHA (any)
    10. Email::Send (2.00)
    11. Email::MIME (1.904)
    12. Template (2.22)
-   13. URI (any)
+   13. URI (1.37)
 
    Optional Perl modules:
 
@@ -502,7 +503,7 @@ Chapter 2. Installing Bugzilla
     6. XML::Twig (any) for bug import/export
     7. MIME::Parser (5.406) for bug import/export
     8. LWP::UserAgent (any) for Automatic Update Notifications
-    9. PatchReader (0.9.4) for pretty HTML view of patches
+    9. PatchReader (0.9.6) for pretty HTML view of patches
    10. Net::LDAP (any) for LDAP Authentication
    11. Authen::SASL (any) for SASL Authentication
    12. Authen::Radius (any) for RADIUS Authentication
@@ -594,8 +595,8 @@ Chapter 2. Installing Bugzilla
    are $db_driver and $db_pass, respectively the type of the database and
    the password for the user you will create for your database. Pick a
    strong password (for simplicity, it should not contain single quote
-   characters) and put it here. $db_driver can be either 'mysql', 'Pg' or
-   'oracle'.
+   characters) and put it here. $db_driver can be either 'mysql', 'Pg',
+   'Oracle' or 'Sqlite'.
 
    Note
 
@@ -626,7 +627,8 @@ Chapter 2. Installing Bugzilla
 
    This section deals with configuring your database server for use with
    Bugzilla. Currently, MySQL (Section 2.2.2.2), PostgreSQL (Section
-   2.2.2.3) and Oracle (Section 2.2.2.4) are available.
+   2.2.2.3), Oracle (Section 2.2.2.4) and SQLite (Section 2.2.2.5) are
+   available.
      __________________________________________________________________
 
 2.2.2.1. Bugzilla Database Schema
@@ -754,10 +756,6 @@ max_allowed_packet=4M
    $db_pass in localconfig. The created user will not be a superuser (-S)
    and will not be able to create new users (-R). He will only have the
    ability to create databases (-d).
-
-   Note
-
-   If your are running PostgreSQL 8.0, you must replace -dRSP by -dAP.
      __________________________________________________________________
 
 2.2.2.3.2. Configure PostgreSQL
@@ -823,6 +821,18 @@ max_allowed_packet=4M
     SetEnv LD_LIBRARY_PATH /u01/app/oracle/product/10.2.0/lib/
 
    When this is done, restart your web server.
+     __________________________________________________________________
+
+2.2.2.5. SQLite
+
+   Caution
+
+   Due to SQLite's concurrency limitations we recommend SQLite only for
+   small and development Bugzilla installations.
+
+   No special configuration is required to run Bugzilla on SQLite. The
+   database will be stored in data/db/$db_name, where $db_name is the
+   database name defined in localconfig.
      __________________________________________________________________
 
 2.2.3. checksetup.pl
@@ -3259,9 +3269,9 @@ ReadOnly: ENTRY, NA/NA, CANEDIT
        (non-default) value must be selected, and for text and date fields,
        some text must be entered.
      * Field only appears when: A custom field can be made visible when
-       some criteria is met. For instance, when the bug belongs to a given
-       product, or when the bug is of some given severity. If left empty,
-       then the custom field will always be visible, in all bugs.
+       some criteria is met. For instance, when the bug belongs to one or
+       more products, or when the bug is of some given severity. If left
+       empty, then the custom field will always be visible, in all bugs.
      * Field that controls the values that appear in this field: When the
        custom field is of type "Drop Down" or "Multiple-Selection Box",
        you can restrict the availability of the values of the custom field
@@ -3772,7 +3782,7 @@ Chapter 5. Using Bugzilla
    Consult with the administrator responsible for your installation of
    Bugzilla for the URL you should use to access it. If you're
    test-driving Bugzilla, use this URL:
-   http://landfill.bugzilla.org/bugzilla-4.0-branch/.
+   http://landfill.bugzilla.org/bugzilla-tip/.
 
     1. On the home page index.cgi, click the "Open a new Bugzilla account"
        link, or the "New Account" link available in the footer of pages.
@@ -3898,9 +3908,7 @@ Chapter 5. Using Bugzilla
        Deadline: This field shows the deadline for this bug.
    17. Attachments: You can attach files (e.g. testcases or patches) to
        bugs. If there are any attachments, they are listed in this
-       section. Attachments are normally stored in the Bugzilla database,
-       unless they are marked as Big Files, which are stored directly on
-       disk.
+       section.
    18. *Dependencies: If this bug cannot be fixed unless other bugs are
        fixed (depends on), or this bug stops other bugs being fixed
        (blocks), their numbers are recorded here.
@@ -3926,8 +3934,7 @@ Chapter 5. Using Bugzilla
 
    The Bugzilla Search page is the interface where you can find any bug
    report, comment, or patch currently in the Bugzilla system. You can
-   play with it here:
-   http://landfill.bugzilla.org/bugzilla-4.0-branch/query.cgi.
+   play with it here: http://landfill.bugzilla.org/bugzilla-tip/query.cgi.
 
    The Search page has controls for selecting different possible values
    for all of the fields in a bug, as described above. For some fields,
@@ -4233,24 +4240,16 @@ Chapter 5. Using Bugzilla
    application/xhtml+xml), you can override this using a 'content_type'
    parameter on the URL, e.g. &content_type=text/plain.
 
-   If you have a really large attachment, something that does not need to
-   be recorded forever (as most attachments are), or something that is too
-   big for your database, you can mark your attachment as a "Big File",
-   assuming the administrator of the installation has enabled this
-   feature. Big Files are stored directly on disk instead of in the
-   database. The maximum size of a "Big File" is normally larger than the
-   maximum size of a regular attachment. Independently of the storage
-   system used, an administrator can delete these attachments at any time.
-   Nevertheless, if these files are stored in the database, the
-   "allow_attachment_deletion" parameter (which is turned off by default)
-   must be enabled in order to delete them.
+   Also, you can enter the URL pointing to the attachment instead of
+   uploading the attachment itself. For example, this is useful if you
+   want to point to an external application, a website or a very large
+   file. Note that there is no guarantee that the source file will always
+   be available, nor that its content will remain unchanged.
 
-   Also, if the administrator turned on the "allow_attach_url" parameter,
-   you can enter the URL pointing to the attachment instead of uploading
-   the attachment itself. For example, this is useful if you want to point
-   to an external application, a website or a very large file. Note that
-   there is no guarantee that the source file will always be available,
-   nor that its content will remain unchanged.
+   Another way to attach data is to paste text directly in the text field,
+   and Bugzilla will convert it into an attachment. This is pretty useful
+   when you do copy and paste, and you don't want to put the text in a
+   temporary file first.
      __________________________________________________________________
 
 5.7.1. Patch Viewer
@@ -4586,6 +4585,9 @@ Chapter 5. Using Bugzilla
 
    bz_canusewhines
           Indicates user can configure whine reports for self.
+
+   bz_quip_moderators
+          Indicates user can moderate quips.
 
    bz_sudoers
           Indicates user can perform actions as other users.
@@ -5067,16 +5069,9 @@ Chapter 6. Customizing Bugzilla
    that if the data can possibly contain special HTML characters such as
    <, and the data was not intended to be HTML, they need to be converted
    to entity form, i.e. &lt;. You use the 'html' filter in the Template
-   Toolkit to do this. If you forget, you may open up your installation to
-   cross-site scripting attacks.
-
-   Also note that Bugzilla adds a few filters of its own, that are not in
-   standard Template Toolkit. In particular, the 'url_quote' filter can
-   convert characters that are illegal or have special meaning in URLs,
-   such as &, to the encoded form, i.e. %26. This actually encodes most
-   characters (but not the common ones such as letters and numbers and so
-   on), including the HTML-special characters, so there's never a need to
-   HTML filter afterwards.
+   Toolkit to do this (or the 'uri' filter to encode special characters in
+   URLs). If you forget, you may open up your installation to cross-site
+   scripting attacks.
 
    Editing templates is a good way of doing a "poor man's custom fields".
    For example, if you don't use the Status Whiteboard, but want to have a

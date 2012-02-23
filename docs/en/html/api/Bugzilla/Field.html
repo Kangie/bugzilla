@@ -39,7 +39,7 @@ name="SYNOPSIS"
   use Data::Dumper;
 
   # Display information about all fields.
-  print Dumper(Bugzilla-&#62;get_fields());
+  print Dumper(Bugzilla-&#62;fields());
 
   # Display information about non-obsolete custom fields.
   print Dumper(Bugzilla-&#62;active_custom_fields);
@@ -47,9 +47,9 @@ name="SYNOPSIS"
   use Bugzilla::Field;
 
   # Display information about non-obsolete custom fields.
-  # Bugzilla-&#62;get_fields() is a wrapper around Bugzilla::Field-&#62;match(),
-  # so both methods take the same arguments.
-  print Dumper(Bugzilla::Field-&#62;match({ obsolete =&#62; 0, custom =&#62; 1 }));
+  # Bugzilla-&#62;fields() is a wrapper around Bugzilla::Field-&#62;get_all(),
+  # with arguments which filter the fields before returning them.
+  print Dumper(Bugzilla-&#62;fields({ obsolete =&#62; 0, custom =&#62; 1 }));
 
   # Create or update a custom field or field definition.
   my $field = Bugzilla::Field-&#62;create(
@@ -211,12 +211,12 @@ name="Instance_Properties"
 </dl>
 
 <dl>
-<dt><a name="visibility_value"
-><code  class="code">visibility_value</code></a></dt>
+<dt><a name="visibility_values"
+><code  class="code">visibility_values</code></a></dt>
 
 <dd>
 <p>If we have a <a href="#visibility_field" class="podlinkpod"
->&#34;visibility_field&#34;</a>, then what value does that field have to be set to in order to show this field? Returns a <a href="../Bugzilla/Field/Choice.html" class="podlinkpod"
+>&#34;visibility_field&#34;</a>, then what values does that field have to be set to in order to show this field? Returns a <a href="../Bugzilla/Field/Choice.html" class="podlinkpod"
 >Bugzilla::Field::Choice</a> or undef if there is no <code  class="code">visibility_field</code> set.</p>
 </dd>
 </dl>
@@ -287,6 +287,16 @@ name="Instance_Properties"
 </dd>
 </dl>
 
+<dl>
+<dt><a name="is_numeric"
+><code  class="code">is_numeric</code></a></dt>
+
+<dd>
+<p>A boolean specifying whether or not this field logically contains numeric (integer, decimal, or boolean) values. By &#34;logically contains&#34; we mean that the user inputs numbers into the value of the field in the UI. This is mostly used by <a href="../Bugzilla/Search.html" class="podlinkpod"
+>Bugzilla::Search</a>.</p>
+</dd>
+</dl>
+
 <h2><a class='u' href='#___top' title='click to go to top of document'
 name="Instance_Mutators"
 >Instance Mutators</a></h2>
@@ -330,8 +340,8 @@ name="Instance_Mutators"
 ><code  class="code">set_visibility_field</code></a></dt>
 
 <dd>
-<dt><a name="set_visibility_value"
-><code  class="code">set_visibility_value</code></a></dt>
+<dt><a name="set_visibility_values"
+><code  class="code">set_visibility_values</code></a></dt>
 
 <dd>
 <dt><a name="set_value_field"

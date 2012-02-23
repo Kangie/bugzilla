@@ -153,6 +153,12 @@ name="Saved_and_Shared_Queries"
 
 <dd>
 <p>An arrayref of group ids. The user can share their own queries with these groups.</p>
+
+<dt><a name="tags"
+><code  class="code">tags</code></a></dt>
+
+<dd>
+<p>Returns a hashref with tag IDs as key, and a hashref with tag &#39;id&#39;, &#39;name&#39; and &#39;bug_count&#39; as value.</p>
 </dd>
 </dl>
 
@@ -253,6 +259,12 @@ name="Other_Methods"
 
 <dd>
 <p>Returns a hash of hashes which holds the user&#39;s settings. The first key is the name of the setting, as found in setting.name. The second key is one of: is_enabled - true if the user is allowed to set the preference themselves; false to force the site defaults for themselves or must accept the global site default value default_value - the global site default for this setting value - the value of this setting for this user. Will be the same as the default_value if the user is not logged in, or if is_default is true. is_default - a boolean to indicate whether the user has chosen to make a preference for themself or use the site default.</p>
+
+<dt><a name="setting(name)"
+><code  class="code">setting(name)</code></a></dt>
+
+<dd>
+<p>Returns the value for the specified setting.</p>
 
 <dt><a name="timezone"
 ><code  class="code">timezone</code></a></dt>
@@ -427,6 +439,23 @@ name="Other_Methods"
  Params:      $product_name - a product name.
 
  Returns:     On success, a product object. On failure, an error is thrown.</pre>
+
+<dt><a name="check_can_admin_flagtype($flagtype_id)"
+><code  class="code">check_can_admin_flagtype($flagtype_id)</code></a></dt>
+
+<dd>
+<pre  class="code"> Description: Checks whether the user is allowed to edit properties of the flag type.
+              If the flag type is also used by some products for which the user
+              hasn&#39;t editcomponents privs, then the user is only allowed to edit
+              the inclusion and exclusion lists for products he can administrate.
+
+ Params:      $flagtype_id - a flag type ID.
+
+ Returns:     On success, a flag type object. On failure, an error is thrown.
+              In list context, a boolean indicating whether the user can edit
+              all properties of the flag type is also returned. The boolean
+              is false if the user can only edit the inclusion and exclusions
+              lists.</pre>
 
 <dt><a name="can_request_flag($flag_type)"
 ><code  class="code">can_request_flag($flag_type)</code></a></dt>

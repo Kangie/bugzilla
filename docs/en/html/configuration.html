@@ -7,7 +7,8 @@
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
-TITLE="The Bugzilla Guide - 4.0.4 
+TITLE="The Bugzilla Guide - 4.2 
+    Development 
     Release"
 HREF="index.html"><LINK
 REL="UP"
@@ -38,7 +39,8 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
->The Bugzilla Guide - 4.0.4 
+>The Bugzilla Guide - 4.2 
+    Development 
     Release</TH
 ></TR
 ><TR
@@ -169,7 +171,7 @@ CLASS="filename"
         the user you will create for your database. Pick a strong
         password (for simplicity, it should not contain single quote
         characters) and put it here. $db_driver can be either 'mysql',
-        'Pg' or 'oracle'.
+        'Pg', 'Oracle' or 'Sqlite'.
       </P
 ><DIV
 CLASS="note"
@@ -282,11 +284,14 @@ HREF="configuration.html#mysql"
         PostgreSQL (<A
 HREF="configuration.html#postgresql"
 >Section 2.2.2.3</A
->) and Oracle (<A
+>), Oracle (<A
 HREF="configuration.html#oracle"
 >Section 2.2.2.4</A
 >)
-        are available.
+        and SQLite (<A
+HREF="configuration.html#sqlite"
+>Section 2.2.2.5</A
+>) are available.
       </P
 ><DIV
 CLASS="section"
@@ -418,7 +423,7 @@ CLASS="section"
 ><H4
 CLASS="section"
 ><A
-NAME="AEN438"
+NAME="AEN439"
 >2.2.2.2.2. Allow small words in full-text indexes</A
 ></H4
 ><P
@@ -559,7 +564,7 @@ CLASS="section"
 ><H4
 CLASS="section"
 ><A
-NAME="AEN465"
+NAME="AEN466"
 >2.2.2.2.4. Permit attachments table to grow beyond 4GB</A
 ></H4
 ><P
@@ -659,7 +664,7 @@ CLASS="section"
 ><H4
 CLASS="section"
 ><A
-NAME="AEN481"
+NAME="AEN482"
 >2.2.2.3.1. Add a User to PostgreSQL</A
 ></H4
 ><P
@@ -738,39 +743,13 @@ CLASS="filename"
 >.
           The created user will not be a superuser (-S) and will not be able to create
           new users (-R). He will only have the ability to create databases (-d).</P
-><DIV
-CLASS="note"
-><P
-></P
-><TABLE
-CLASS="note"
-WIDTH="100%"
-BORDER="0"
-><TR
-><TD
-WIDTH="25"
-ALIGN="CENTER"
-VALIGN="TOP"
-><IMG
-SRC="../images/note.gif"
-HSPACE="5"
-ALT="Note"></TD
-><TD
-ALIGN="LEFT"
-VALIGN="TOP"
-><P
->If your are running PostgreSQL 8.0, you must replace -dRSP by -dAP.</P
-></TD
-></TR
-></TABLE
-></DIV
 ></DIV
 ><DIV
 CLASS="section"
 ><H4
 CLASS="section"
 ><A
-NAME="AEN499"
+NAME="AEN498"
 >2.2.2.3.2. Configure PostgreSQL</A
 ></H4
 ><P
@@ -831,7 +810,7 @@ CLASS="section"
 ><H4
 CLASS="section"
 ><A
-NAME="AEN515"
+NAME="AEN514"
 >2.2.2.4.1. Create a New Tablespace</A
 ></H4
 ><P
@@ -883,7 +862,7 @@ CLASS="section"
 ><H4
 CLASS="section"
 ><A
-NAME="AEN523"
+NAME="AEN522"
 >2.2.2.4.2. Add a User to Oracle</A
 ></H4
 ><P
@@ -939,7 +918,7 @@ CLASS="section"
 ><H4
 CLASS="section"
 ><A
-NAME="AEN531"
+NAME="AEN530"
 >2.2.2.4.3. Configure the Web Server</A
 ></H4
 ><P
@@ -971,13 +950,70 @@ CLASS="programlisting"
           </P
 ></DIV
 ></DIV
+><DIV
+CLASS="section"
+><H3
+CLASS="section"
+><A
+NAME="sqlite"
+>2.2.2.5. SQLite</A
+></H3
+><DIV
+CLASS="caution"
+><P
+></P
+><TABLE
+CLASS="caution"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/caution.gif"
+HSPACE="5"
+ALT="Caution"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>&#13;            Due to SQLite's <A
+HREF="http://sqlite.org/faq.html#q5"
+TARGET="_top"
+>concurrency
+            limitations</A
+> we recommend SQLite only for small and development
+            Bugzilla installations.
+          </P
+></TD
+></TR
+></TABLE
+></DIV
+><P
+>&#13;          No special configuration is required to run Bugzilla on SQLite.
+          The database will be stored in <TT
+CLASS="filename"
+>data/db/$db_name</TT
+>,
+          where <TT
+CLASS="literal"
+>$db_name</TT
+> is the database name defined
+          in <TT
+CLASS="filename"
+>localconfig</TT
+>.
+        </P
+></DIV
 ></DIV
 ><DIV
 CLASS="section"
 ><H2
 CLASS="section"
 ><A
-NAME="AEN537"
+NAME="AEN545"
 >2.2.3. checksetup.pl</A
 ></H2
 ><P

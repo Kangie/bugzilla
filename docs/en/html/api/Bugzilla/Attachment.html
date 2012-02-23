@@ -136,15 +136,6 @@ name="Instance_Properties"
 </dl>
 
 <dl>
-<dt><a name="isurl"
-><code  class="code">isurl</code></a></dt>
-
-<dd>
-<p>whether or not the attachment is a URL</p>
-</dd>
-</dl>
-
-<dl>
 <dt><a name="isobsolete"
 ><code  class="code">isobsolete</code></a></dt>
 
@@ -248,7 +239,7 @@ name="Class_Methods"
 <dd>
 <p>Description: inserts an attachment into the given bug.</p>
 
-<p>Params: takes a hashref with the following keys: <code  class="code">bug</code> - Bugzilla::Bug object - the bug for which to insert the attachment. <code  class="code">data</code> - Either a filehandle pointing to the content of the attachment, or the content of the attachment itself. <code  class="code">description</code> - string - describe what the attachment is about. <code  class="code">filename</code> - string - the name of the attachment (used by the browser when downloading it). If the attachment is a URL, this parameter has no effect. <code  class="code">mimetype</code> - string - a valid MIME type. <code  class="code">creation_ts</code> - string (optional) - timestamp of the insert as returned by SELECT LOCALTIMESTAMP(0). <code  class="code">ispatch</code> - boolean (optional, default false) - true if the attachment is a patch. <code  class="code">isprivate</code> - boolean (optional, default false) - true if the attachment is private. <code  class="code">isurl</code> - boolean (optional, default false) - true if the attachment is a URL pointing to some external ressource. <code  class="code">store_in_file</code> - boolean (optional, default false) - true if the attachment must be stored in data/attachments/ instead of in the DB.</p>
+<p>Params: takes a hashref with the following keys: <code  class="code">bug</code> - Bugzilla::Bug object - the bug for which to insert the attachment. <code  class="code">data</code> - Either a filehandle pointing to the content of the attachment, or the content of the attachment itself. <code  class="code">description</code> - string - describe what the attachment is about. <code  class="code">filename</code> - string - the name of the attachment (used by the browser when downloading it). If the attachment is a URL, this parameter has no effect. <code  class="code">mimetype</code> - string - a valid MIME type. <code  class="code">creation_ts</code> - string (optional) - timestamp of the insert as returned by SELECT LOCALTIMESTAMP(0). <code  class="code">ispatch</code> - boolean (optional, default false) - true if the attachment is a patch. <code  class="code">isprivate</code> - boolean (optional, default false) - true if the attachment is private.</p>
 
 <p>Returns: The new attachment object.</p>
 
