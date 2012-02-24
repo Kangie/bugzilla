@@ -131,7 +131,7 @@ sub SaveAccount {
             is_available_username($new_login_name)
               || ThrowUserError("account_exists", {email => $new_login_name});
             if(!$user->in_group("editusers")) {
-                ThrowUserError('restricted_email_address', {addr => $new_login_name}) if $new_login_name =~ m/[^\@]+\@gentoo\.org$/ or $old_login_name =~ m/[^\@]+\@gentoo\.org$/;
+                ThrowUserError('restricted_email_address', {addr => $new_login_name}) if $new_login_name =~ m/[^\@]+\@gentoo\.org$/ or $user->login =~ m/[^\@]+\@gentoo\.org$/;
             }
 
             Bugzilla::Token::IssueEmailChangeToken($user, $new_login_name);
