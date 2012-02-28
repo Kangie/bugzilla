@@ -56,8 +56,8 @@
     <tr class="hilight">
       <th align="right" valign="top">
         <a href="[% target %]?product=Gentoo%20Linux
-              [%- IF cloned_bug_id %]&amp;cloned_bug_id=[% cloned_bug_id FILTER url_quote %][% END -%] 
-              [%- IF format %]&amp;format=[% format FILTER url_quote %][% END %]">
+              [%- IF cloned_bug_id %]&amp;cloned_bug_id=[% cloned_bug_id FILTER uri %][% END -%]
+              [%- IF format %]&amp;format=[% format FILTER uri %][% END %]">
         Gentoo&nbsp;Linux</a>:&nbsp;
       </th>
       <td valign="top"><b>The Gentoo Linux Distribution &ndash; Ebuilds and System related issues</b></td> 
