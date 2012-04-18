@@ -21,6 +21,7 @@ Bugzilla::Hook</title>
   <li class='indexItem indexItem1'><a href='#SUBROUTINES'>SUBROUTINES</a>
   <li class='indexItem indexItem1'><a href='#HOOKS'>HOOKS</a>
   <ul   class='indexList indexList2'>
+    <li class='indexItem indexItem2'><a href='#admin_editusers_action'>admin_editusers_action</a>
     <li class='indexItem indexItem2'><a href='#attachment_process_data'>attachment_process_data</a>
     <li class='indexItem indexItem2'><a href='#auth_login_methods'>auth_login_methods</a>
     <li class='indexItem indexItem2'><a href='#auth_verify_methods'>auth_verify_methods</a>
@@ -32,6 +33,7 @@ Bugzilla::Hook</title>
     <li class='indexItem indexItem2'><a href='#bug_fields'>bug_fields</a>
     <li class='indexItem indexItem2'><a href='#bug_format_comment'>bug_format_comment</a>
     <li class='indexItem indexItem2'><a href='#buglist_columns'>buglist_columns</a>
+    <li class='indexItem indexItem2'><a href='#buglist_column_joins'>buglist_column_joins</a>
     <li class='indexItem indexItem2'><a href='#search_operator_field_override'>search_operator_field_override</a>
     <li class='indexItem indexItem2'><a href='#bugmail_recipients'>bugmail_recipients</a>
     <li class='indexItem indexItem2'><a href='#bugmail_relationships'>bugmail_relationships</a>
@@ -40,6 +42,7 @@ Bugzilla::Hook</title>
     <li class='indexItem indexItem2'><a href='#email_in_before_parse'>email_in_before_parse</a>
     <li class='indexItem indexItem2'><a href='#email_in_after_parse'>email_in_after_parse</a>
     <li class='indexItem indexItem2'><a href='#enter_bug_entrydefaultvars'>enter_bug_entrydefaultvars</a>
+    <li class='indexItem indexItem2'><a href='#error_catch'>error_catch</a>
     <li class='indexItem indexItem2'><a href='#flag_end_of_update'>flag_end_of_update</a>
     <li class='indexItem indexItem2'><a href='#group_before_delete'>group_before_delete</a>
     <li class='indexItem indexItem2'><a href='#group_end_of_create'>group_end_of_create</a>
@@ -158,6 +161,35 @@ name="HOOKS"
 >HOOKS</a></h1>
 
 <p>This describes what hooks exist in Bugzilla currently. They are mostly in alphabetical order, but some related hooks are near each other instead of being alphabetical.</p>
+
+<h2><a class='u' href='#___top' title='click to go to top of document'
+name="admin_editusers_action"
+>admin_editusers_action</a></h2>
+
+<p>This hook allows you to add additional actions to the admin Users page.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a name="vars"
+><code  class="code">vars</code></a></dt>
+
+<dd>
+<p>You can add as many new key/value pairs as you want to this hashref. It will be passed to the template.</p>
+
+<dt><a name="action"
+><code  class="code">action</code></a></dt>
+
+<dd>
+<p>A text which indicates the different behaviors that editusers.cgi will have. With this hook you can change the behavior of an action or add new actions.</p>
+
+<dt><a name="user"
+><code  class="code">user</code></a></dt>
+
+<dd>
+<p>This is a Bugzilla::User object of the user.</p>
+</dd>
+</dl>
 
 <h2><a class='u' href='#___top' title='click to go to top of document'
 name="attachment_process_data"
@@ -475,6 +507,43 @@ name="buglist_columns"
 </dl>
 
 <h2><a class='u' href='#___top' title='click to go to top of document'
+name="buglist_column_joins"
+>buglist_column_joins</a></h2>
+
+<p>This allows you to join additional tables to display additional columns in buglists. This hook is generally used in combination with the <code  class="code">buglist_columns</code> hook.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a 
+><code  class="code">column_joins</code> - A hashref containing data to return back to <a href="../Bugzilla/Search.html" class="podlinkpod"
+>Bugzilla::Search</a>. This hashref contains names of the columns as keys and a hashref about table to join as values. This hashref has the following keys:</a></dt>
+
+<dd>
+<dl>
+<dt><a name="table_-_The_name_of_the_additional_table_to_join."
+><code  class="code">table</code> - The name of the additional table to join.</a></dt>
+
+<dd>
+<dt><a 
+><code  class="code">as</code> - (optional) The alias used for the additional table. This alias must not conflict with an existing alias already used in the query.</a></dt>
+
+<dd>
+<dt><a 
+><code  class="code">from</code> - (optional) The name of the column in the <code  class="code">bugs</code> table which the additional table should be linked to. If omitted, <code  class="code">bug_id</code> will be used.</a></dt>
+
+<dd>
+<dt><a 
+><code  class="code">to</code> - (optional) The name of the column in the additional table which should be linked to the column in the <code  class="code">bugs</code> table, see <code  class="code">from</code> above. If omitted, <code  class="code">bug_id</code> will be used.</a></dt>
+
+<dd>
+<dt><a 
+><code  class="code">join</code> - (optional) Either INNER or LEFT. Determine how the additional table should be joined with the <code  class="code">bugs</code> table. If omitted, LEFT is used.</a></dt>
+</dl>
+</dd>
+</dl>
+
+<h2><a class='u' href='#___top' title='click to go to top of document'
 name="search_operator_field_override"
 >search_operator_field_override</a></h2>
 
@@ -650,6 +719,35 @@ name="enter_bug_entrydefaultvars"
 <dl>
 <dt><a name="vars_-_A_hashref._The_variables_that_will_be_passed_into_the_template."
 ><code  class="code">vars</code> - A hashref. The variables that will be passed into the template.</a></dt>
+</dl>
+
+<h2><a class='u' href='#___top' title='click to go to top of document'
+name="error_catch"
+>error_catch</a></h2>
+
+<p>This hook allows extensions to catch errors thrown by Bugzilla and take the appropriate actions.</p>
+
+<p>Params:</p>
+
+<dl>
+<dt><a name="error"
+><code  class="code">error</code></a></dt>
+
+<dd>
+<p>A string representing the error code thrown by Bugzilla. This string matches the <code  class="code">error</code> variable in <code  class="code">global/user-error.html.tmpl</code> and <code  class="code">global/code-error.html.tmpl</code>.</p>
+
+<dt><a name="message"
+><code  class="code">message</code></a></dt>
+
+<dd>
+<p>If the error mode is set to <code  class="code">ERROR_MODE_WEBPAGE</code>, you get a reference to the whole HTML page with the error message in it, including its header and footer. If you need to extract the error message itself, you can do it by looking at the content of the table cell whose ID is <code  class="code">error_msg</code>. If the error mode is not set to <code  class="code">ERROR_MODE_WEBPAGE</code>, you get a reference to the error message itself.</p>
+
+<dt><a name="vars"
+><code  class="code">vars</code></a></dt>
+
+<dd>
+<p>This hash contains all the data passed to the error template. Its content depends on the error thrown.</p>
+</dd>
 </dl>
 
 <h2><a class='u' href='#___top' title='click to go to top of document'
