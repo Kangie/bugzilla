@@ -54,9 +54,6 @@ name="SYNOPSIS"
   xml_quote($var);
   email_filter($var);
 
-  # Functions for decoding
-  $rv = url_decode($var);
-
   # Functions that tell you about your environment
   my $is_cgi   = i_am_cgi();
   my $urlbase  = correct_urlbase();
@@ -170,12 +167,6 @@ name="Quoting"
 <dd>
 <p>This is similar to <code  class="code">html_quote</code>, except that &#39; is escaped to &#38;apos;. This is kept separate from html_quote partly for compatibility with previous code (for &#38;apos;) and partly for future handling of non-ASCII characters.</p>
 
-<dt><a name="url_decode($val)"
-><code  class="code">url_decode($val)</code></a></dt>
-
-<dd>
-<p>Converts the %xx encoding from the given URL back to its original form.</p>
-
 <dt><a name="email_filter"
 ><code  class="code">email_filter</code></a></dt>
 
@@ -202,6 +193,18 @@ name="Environment_and_Location"
 
 <dd>
 <p>Returns either the <code  class="code">sslbase</code> or <code  class="code">urlbase</code> parameter, depending on the current setting for the <code  class="code">ssl_redirect</code> parameter.</p>
+
+<dt><a name="remote_ip()"
+><code  class="code">remote_ip()</code></a></dt>
+
+<dd>
+<p>Returns the IP address of the remote client. If Bugzilla is behind a trusted proxy, it will get the remote IP address by looking at the X-Forwarded-For header.</p>
+
+<dt><a name="validate_ip($ip)"
+><code  class="code">validate_ip($ip)</code></a></dt>
+
+<dd>
+<p>Returns the sanitized IP address if it is a valid IPv4 or IPv6 address, else returns undef.</p>
 
 <dt><a name="use_attachbase()"
 ><code  class="code">use_attachbase()</code></a></dt>
