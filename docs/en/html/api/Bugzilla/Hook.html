@@ -474,6 +474,13 @@ name="bug_format_comment"
 >Bugzilla::Comment</a> object representing the comment you are about to parse.</p>
 
 <p>Sometimes this is <code  class="code">undef</code>, meaning that we are parsing text that is not a bug comment (but could still be some other part of a bug, like the summary line).</p>
+
+<dt><a name="user"
+><code  class="code">user</code></a></dt>
+
+<dd>
+<p>The <a href="../Bugzilla/User.html" class="podlinkpod"
+>Bugzilla::User</a> object representing the user who will see the text. This is useful to determine how much confidential information can be displayed to the user.</p>
 </dd>
 </dl>
 

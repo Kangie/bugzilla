@@ -1,8 +1,8 @@
-The Bugzilla Guide - 4.2.1 Release
+The Bugzilla Guide - 4.2.2 Release
 
 The Bugzilla Team
 
-   2012-04-18
+   2012-07-26
 
    This is the documentation for Bugzilla, a bug-tracking system from
    mozilla.org. Bugzilla is an enterprise-class piece of software that
@@ -175,7 +175,7 @@ Chapter 1. About This Guide
 
 1.3. New Versions
 
-   This is the 4.2.1 version of The Bugzilla Guide. It is so named to
+   This is the 4.2.2 version of The Bugzilla Guide. It is so named to
    match the current version of Bugzilla. This version of the guide, like
    its associated Bugzilla version, is a development version.
 
