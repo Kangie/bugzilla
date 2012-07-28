@@ -31,6 +31,8 @@ use Bugzilla::User;
 use Bugzilla::Util qw(correct_urlbase trim trick_taint is_7bit_clean);
 use Bugzilla::Error;
 use Bugzilla::Mailer;
+use Bugzilla::Constants;
+use Bugzilla::Install::Util qw(vers_cmp);
 
 use Crypt::OpenPGP::Armour;
 use Crypt::OpenPGP::KeyRing;
@@ -43,6 +45,12 @@ our $VERSION = '0.5';
 use constant SECURE_NONE => 0;
 use constant SECURE_BODY => 1;
 use constant SECURE_ALL  => 2;
+
+our $FILTER_BUG_LINKS = 1;
+if(vers_cmp(BUGZILLA_VERSION, '4.2') > -1) {
+    eval "require HTML::Tree";
+    $FILTER_BUG_LINKS = 0 if $@;
+}
 
 ##############################################################################
 # Creating new columns
@@ -62,6 +70,13 @@ sub install_update_db {
 ##############################################################################
 # Maintaining new columns
 ##############################################################################
+
+BEGIN {
+    *Bugzilla::Group::secure_mail = \&_secure_mail;
+}
+
+sub _secure_mail { return $_[0]->{'secure_mail'}; }
+
 # Make sure generic functions know about the additional fields in the user
 # and group objects.
 sub object_columns {
@@ -241,16 +256,16 @@ sub mailer_before_send {
             }
             # If the insider group has securemail enabled..
             my $insider_group = Bugzilla::Group->new({ name => Bugzilla->params->{'insidergroup'} });
-            if ($insider_group->{secure_mail} && $make_secure == SECURE_NONE) {
+            if ($insider_group->secure_mail && $make_secure == SECURE_NONE) {
+                my $comment_is_private = Bugzilla->dbh->selectcol_arrayref(
+                    "SELECT isprivate FROM longdescs WHERE bug_id=? ORDER BY bug_when",
+                    undef, $bug_id);
                 # Encrypt if there are private comments on an otherwise public bug
                 while ($body =~ /[\r\n]--- Comment #(\d+)/g) {
-                    my $comment_id = $1;
-                    if ($comment_id) {
-                        my ($comment) = grep { $_->{count} == $comment_id } @{ $bug->comments };
-                        if ($comment && $comment->is_private) {
-                            $make_secure = SECURE_BODY;
-                            last;
-                        }
+                    my $comment_number = $1;
+                    if ($comment_number && $comment_is_private->[$comment_number]) {
+                        $make_secure = SECURE_BODY;
+                        last;
                     }
                 }
                 # Encrypt if updating a private attachment without a comment
@@ -270,7 +285,7 @@ sub mailer_before_send {
             # we default to secure).
             if ($user &&
                 !$user->{'public_key'} &&
-                !grep($_->{secure_mail}, @{ $user->groups }))
+                !grep($_->secure_mail, @{ $user->groups }))
             {
                 $make_secure = SECURE_NONE;
             }
@@ -281,8 +296,19 @@ sub mailer_before_send {
         # does that.
         my $public_key = $user ? $user->{'public_key'} : '';
 
-        if ($make_secure != SECURE_NONE) {
-            _make_secure($email, $public_key, $is_bugmail && $make_secure == SECURE_ALL);
+        # Check if the new bugmail prefix should be added to the subject.
+        my $add_new = ($email->header('X-Bugzilla-Type') eq 'new' &&
+                       $user &&
+                       $user->settings->{'bugmail_new_prefix'}->{'value'} eq 'on') ? 1 : 0;
+
+        if ($make_secure == SECURE_NONE) {
+            # Filter the bug_links in HTML email in case the bugs the links
+            # point are "secured" bugs and the user may not be able to see 
+            # the summaries.
+            _filter_bug_links($email) if $FILTER_BUG_LINKS;
+        }
+        else {
+            _make_secure($email, $public_key, $is_bugmail && $make_secure == SECURE_ALL, $add_new);
         }
     }
 }
@@ -296,7 +322,7 @@ sub bugmail_referenced_bugs {
     return if _should_secure_bug($args->{'updated_bug'});
     # Replace the subject if required
     foreach my $ref (@$referenced_bugs) {
-        if (grep($_->{'secure_mail'}, @{ $ref->{'bug'}->groups_in })) {
+        if (grep($_->secure_mail, @{ $ref->{'bug'}->groups_in })) {
             $ref->{'short_desc'} = "(Secure bug)";
         }
     }
@@ -309,11 +335,11 @@ sub _should_secure_bug {
     return
         !$bug
         || $bug->{'error'}
-        || grep($_->{secure_mail}, @{ $bug->groups_in });
+        || grep($_->secure_mail, @{ $bug->groups_in });
 }
 
 sub _make_secure {
-    my ($email, $key, $sanitise_subject) = @_;
+    my ($email, $key, $sanitise_subject, $add_new) = @_;
 
     my $subject = $email->header('Subject');
     my ($bug_id) = $subject =~ /\[\D+(\d+)\]/;
@@ -326,16 +352,6 @@ sub _make_secure {
         $key_type = 'S/MIME';
     }
 
-    if ($key_type && $sanitise_subject) {
-        # Subject gets placed in the body so it can still be read
-        my $body = $email->body_str;
-        if (!is_7bit_clean($subject)) {
-            $email->encoding_set('quoted-printable');
-        }
-        $body = "Subject: $subject\015\012\015\012" . $body;
-        $email->body_str_set($body);
-    }
-
     if ($key_type eq 'PGP') {
         ##################
         # PGP Encryption #
@@ -344,29 +360,81 @@ sub _make_secure {
         my $pubring = new Crypt::OpenPGP::KeyRing(Data => $key);
         my $pgp = new Crypt::OpenPGP(PubRing => $pubring);
 
-        # "@" matches every key in the public key ring, which is fine,
-        # because there's only one key in our keyring.
-        #
-        # We use the CAST5 cipher because the Rijndael (AES) module doesn't
-        # like us for some reason I don't have time to debug fully.
-        # ("key must be an untainted string scalar")
-        my $encrypted = $pgp->encrypt(Data       => $email->body,
-                                      Recipients => "@",
-                                      Cipher     => 'CAST5',
-                                      Armour     => 1);
-        if (defined $encrypted) {
-            $email->encoding_set('');
-            $email->body_set($encrypted);
+        if (scalar $email->parts > 1) {
+            my $old_boundary = $email->{ct}{attributes}{boundary};
+            my $to_encrypt = "Content-Type: " . $email->content_type . "\n\n";
+            
+            # We need to do some fix up of each part for proper encoding and then 
+            # stringify all parts for encrypting. We have to retain the old 
+            # boundaries as well so that the email client can reconstruct the 
+            # original message properly.
+            $email->walk_parts(\&_fix_part);
+            
+            $email->walk_parts(sub {
+                my ($part) = @_;
+                return if $part->parts > 1; # Top-level
+                if ($sanitise_subject && $part->content_type =~ /text\/plain/) {
+                    if (!is_7bit_clean($subject)) {
+                        $part->encoding_set('quoted-printable');
+                    }
+                    $part->body_str_set("Subject: $subject\015\012\015\012" . $part->body_str);
+                }
+                $to_encrypt .= "--$old_boundary\n" . $part->as_string . "\n";
+            });
+            $to_encrypt .= "--$old_boundary--";
+
+            # Now create the new properly formatted PGP parts containing the 
+            # encrypted original message 
+            my @new_parts = (
+                Email::MIME->create(
+                    attributes => {
+                        content_type => 'application/pgp-encrypted',
+                        encoding     => '7bit', 
+                    },
+                    body => "Version: 1\n",
+                ),
+                Email::MIME->create(
+                    attributes => {
+                        content_type => 'application/octet-stream',
+                        filename     => 'encrypted.asc',
+                        disposition  => 'inline',
+                        encoding     => '7bit', 
+                    },            
+                    body => _pgp_encrypt($pgp, $to_encrypt)
+                ),            
+            );
+            $email->parts_set(\@new_parts);
+            my $new_boundary = $email->{ct}{attributes}{boundary};
+            # Redo the old content type header with the new boundaries
+            # and other information needed for PGP
+            $email->header_set("Content-Type", 
+                               "multipart/encrypted; " .
+                               "protocol=\"application/pgp-encrypted\"; " . 
+                               "boundary=\"$new_boundary\"");
         }
         else {
-            $email->body_set('Error during Encryption: ' . $pgp->errstr);
+            $email->body_set(_pgp_encrypt($pgp, $email->body));
         }
-
     }
+
     elsif ($key_type eq 'S/MIME') {
         #####################
         # S/MIME Encryption #
         #####################
+
+        $email->walk_parts(\&_fix_part);
+
+        if ($sanitise_subject) {
+            $email->walk_parts(sub {
+                my ($part) = @_;
+                return if $part->parts > 1; # Top-level
+                if ($part->content_type =~ /text\/plain/) {
+                    # Subject gets placed in the body so it can still be read
+                    $part->body_str_set("Subject: $subject\015\012\015\012" . $part->body);
+                }
+            });
+        }
+
         my $smime = Crypt::SMIME->new();
         my $encrypted;
 
@@ -380,12 +448,14 @@ sub _make_secure {
             # out its component parts.
             my $enc_obj = new Email::MIME($encrypted);
             $email->header_obj_set($enc_obj->header_obj());
+            $email->parts_set([]);
             $email->body_set($enc_obj->body());
+            $email->content_type_set('application/pkcs7-mime');
         }
         else {
             $email->body_set('Error during Encryption: ' . $@);
         }
-    }
+    }  
     else {
         # No encryption key provided; send a generic, safe email.
         my $template = Bugzilla->template;
@@ -400,6 +470,8 @@ sub _make_secure {
                            $vars, \$message)
           || ThrowTemplateError($template->error());
 
+        $email->parts_set([]);
+        $email->content_type_set('text/plain');
         $email->body_set($message);
     }
 
@@ -407,9 +479,75 @@ sub _make_secure {
         # This is designed to still work if the admin changes the word
         # 'bug' to something else. However, it could break if they change
         # the format of the subject line in another way.
-        $subject =~ s/($bug_id\])\s+(.*)$/$1 (Secure bug $bug_id updated)/;
+        my $new = $add_new ? ' New:' : '';
+        $subject =~ s/($bug_id\])\s+(.*)$/$1$new (Secure bug $bug_id updated)/;
         $email->header_set('Subject', $subject);
     }
+}
+
+sub _pgp_encrypt {
+    my ($pgp, $text) = @_;
+    # "@" matches every key in the public key ring, which is fine,
+    # because there's only one key in our keyring.
+    #
+    # We use the CAST5 cipher because the Rijndael (AES) module doesn't
+    # like us for some reason I don't have time to debug fully.
+    # ("key must be an untainted string scalar")
+    my $encrypted = $pgp->encrypt(Data       => $text,
+                                  Recipients => "@",
+                                  Cipher     => 'CAST5',
+                                  Armour     => 1);
+    if (!defined $encrypted) {
+        return 'Error during Encryption: ' . $pgp->errstr;
+    }
+    return $encrypted;
+}
+
+# Copied from Bugzilla/Mailer as this extension runs before
+# this code there and Mailer.pm will no longer see the original
+# message.
+sub _fix_part {
+    my ($part) = @_;
+    return if $part->parts > 1; # Top-level
+    my $content_type = $part->content_type || '';
+    $content_type =~ /charset=['"](.+)['"]/;
+    # If no charset is defined or is the default us-ascii,
+    # then we encode the email to UTF-8 if Bugzilla has utf8 enabled.
+    # XXX - This is a hack to workaround bug 723944.
+    if (!$1 || $1 eq 'us-ascii') {
+        my $body = $part->body;
+        if (Bugzilla->params->{'utf8'}) {
+            $part->charset_set('UTF-8');
+            # encoding_set works only with bytes, not with utf8 strings.
+            my $raw = $part->body_raw;
+            if (utf8::is_utf8($raw)) {
+                utf8::encode($raw);
+                $part->body_set($raw);
+            }
+        }
+        $part->encoding_set('quoted-printable') if !is_7bit_clean($body);
+    }
+}
+
+sub _filter_bug_links {
+    my ($email) = @_;
+    $email->walk_parts(sub {
+        my $part = shift;
+        return if $part->content_type !~ /text\/html/;
+        my$body = $part->body;
+        my $tree = HTML::Tree->new->parse_content($body);
+        my @links = $tree->look_down( _tag  => q{a}, class => qr/bz_bug_link/ );
+        foreach my $link (@links) {
+            my $href = $link->attr('href');
+            my ($bug_id) = $href =~ /\Qshow_bug.cgi?id=\E(\d+)/;
+            my $bug = new Bugzilla::Bug($bug_id);
+            if ($bug && _should_secure_bug($bug)) {
+                $link->attr('title', '(secure bug)');
+                $link->attr('class', 'bz_bug_link');
+            }
+        }
+        $part->body_set($tree->as_HTML);
+    });
 }
 
 __PACKAGE__->NAME;
