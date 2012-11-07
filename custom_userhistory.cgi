@@ -39,16 +39,22 @@ if(!$userid || !$login_name) {
 
 my @bindValues2;
 $query = sprintf
-	'(SELECT bug_id,bug_when,fielddefs.name AS field '.
+	'(SELECT bug_id, bug_when, fielddefs.name AS field '.
 		'FROM bugs_activity JOIN fielddefs ON bugs_activity.fieldid=fielddefs.id '.
 		'WHERE who=? '.
 		'ORDER BY bug_when DESC '.
 		'LIMIT %d) '.
 	'UNION '.
-	'(SELECT bug_id, bug_when, \'ZZcomment\' AS field '.
+	'(SELECT bug_id, bug_when, \'ZZcomment #\' AS field '.
 		'FROM longdescs '.
 		'WHERE who=? '.
 		'ORDER BY bug_when DESC '.
+		'LIMIT %d) '.
+	'UNION '.
+	'(SELECT bug_id, creation_ts AS bug_when, CONCAT(\'ZZattachment #\', attach_id)  AS field '.
+		'FROM attachments'.
+		'WHERE submitter_id=? '.
+		'ORDER BY creation_ts DESC '.
 		'LIMIT %d) '.
 	'ORDER BY bug_when DESC '.
 	'LIMIT %d',
