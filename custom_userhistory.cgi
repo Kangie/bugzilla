@@ -52,14 +52,15 @@ $query = sprintf
 		'LIMIT %d) '.
 	'UNION '.
 	'(SELECT bug_id, creation_ts AS bug_when, CONCAT(\'ZZattachment #\', attach_id)  AS field '.
-		'FROM attachments'.
+		'FROM attachments '.
 		'WHERE submitter_id=? '.
 		'ORDER BY creation_ts DESC '.
 		'LIMIT %d) '.
 	'ORDER BY bug_when DESC '.
 	'LIMIT %d',
-	$limit,$limit,$limit;
+	$limit,$limit,$limit,$limit;
 
+push(@bindValues2, $userid);
 push(@bindValues2, $userid);
 push(@bindValues2, $userid);
 
