@@ -140,6 +140,7 @@ sub get_format {
     return
     {
         'template'    => $template,
+        'format'      => $format,
         'extension'   => $ctype,
         'ctype'       => Bugzilla::Constants::contenttypes->{$ctype}
     };
@@ -983,7 +984,7 @@ sub create {
                 }
                 return \@optional;
             },
-            'default_authorizer' => new Bugzilla::Auth(),
+            'default_authorizer' => sub { return Bugzilla::Auth->new() },
         },
     };
 
