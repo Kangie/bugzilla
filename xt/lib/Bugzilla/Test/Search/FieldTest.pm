@@ -1,23 +1,9 @@
-# -*- Mode: perl; indent-tabs-mode: nil -*-
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# The contents of this file are subject to the Mozilla Public
-# License Version 1.1 (the "License"); you may not use this file
-# except in compliance with the License. You may obtain a copy of
-# the License at http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS
-# IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-# implied. See the License for the specific language governing
-# rights and limitations under the License.
-#
-# The Original Code is the Bugzilla Bug Tracking System.
-#
-# The Initial Developer of the Original Code is Everything Solved, Inc.
-# Portions created by the Initial Developer are Copyright (C) 2010 the
-# Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Max Kanat-Alexander <mkanat@bugzilla.org>
+# This Source Code Form is "Incompatible With Secondary Licenses", as
+# defined by the Mozilla Public License, v. 2.0.
 
 # This module represents the tests that get run on a single
 # operator/field combination for Bugzilla::Test::Search.
@@ -28,6 +14,7 @@ use strict;
 use warnings;
 use Bugzilla::Search;
 use Bugzilla::Test::Search::Constants;
+use Bugzilla::Util qw(trim);
 
 use Data::Dumper;
 use Scalar::Util qw(blessed);
@@ -71,6 +58,13 @@ sub bugs { return $_[0]->search_test->bugs }
 sub bug {
     my $self = shift;
     return $self->search_test->bug(@_);
+}
+sub number {
+    my ($self, $id) = @_;
+    foreach my $number (1..NUM_BUGS) {
+        return $number if $self->search_test->bug($number)->id == $id;
+    }
+    return 0;
 }
 
 # The name displayed for this test by Test::More. Used in test descriptions.
@@ -147,9 +141,18 @@ sub translated_value {
     return $self->{translated_value};
 }
 # Used in failure diagnostic messages.
-sub debug_value {
-    my ($self) = @_;
-    return "Value: '" . $self->translated_value . "'";
+sub debug_fail {
+    my ($self, $number, $results, $sql) = @_;
+    my @expected = @{ $self->test->{contains} };
+    my @results = sort
+                  map { $self->number($_) }
+                  map { $_->[0] }
+                  @$results;
+    return
+        "   Value: '" . $self->translated_value . "'\n" .
+        "Expected: [" . join(',', @expected) . "]\n" .
+        " Results: [" . join(',', @results) . "]\n" .
+        trim($sql) . "\n";
 }
 
 # True for a bug if we ran the "transform" function on it and the
@@ -184,6 +187,7 @@ sub bug_is_contained {
 # The tests we know are broken for this operator/field combination.
 sub _known_broken {
     my ($self, $constant, $skip_pg_check) = @_;
+
     $constant ||= KNOWN_BROKEN;
     my $field = $self->field;
     my $type = $self->field_object->type;
@@ -192,8 +196,8 @@ sub _known_broken {
     my $value_name = "$operator-$value";
     if (my $extra_name = $self->test->{extra_name}) {
         $value_name .= "-$extra_name";
-    }    
-    
+    }
+
     my $value_broken = $constant->{$value_name}->{$field};
     $value_broken ||= $constant->{$value_name}->{$type};
     return $value_broken if $value_broken;
@@ -544,13 +548,13 @@ sub do_tests {
     my $sql;
     TODO: {
         local $TODO = $search_broken if $search_broken;
-        lives_ok { $sql = $search->sql } "$name: generate SQL";
+        lives_ok { $sql = $search->_sql } "$name: generate SQL";
     }
     
     my $results;
     SKIP: {
         skip "Can't run SQL without any SQL", 1 if !defined $sql;
-        $results = $self->_test_sql($sql);
+        $results = $self->_test_sql($search);
     }
 
     $self->_test_content($results, $sql);
@@ -567,12 +571,11 @@ sub _test_search_object_creation {
 }
 
 sub _test_sql {
-    my ($self, $sql) = @_;
-    my $dbh = Bugzilla->dbh;
+    my ($self, $search) = @_;
     my $name = $self->name;
     my $results;
-    lives_ok { $results = $dbh->selectall_arrayref($sql) } "$name: Run SQL Query"
-        or diag($sql);
+    lives_ok { $results = $search->data } "$name: Run SQL Query"
+        or diag($search->_sql);
     return $results;
 }
 
@@ -601,12 +604,12 @@ sub _test_content_for_bug {
         if ($self->bug_is_contained($number)) {
             ok($result_ids{$bug_id},
                "$name: contains bug $number ($bug_id)")
-                or diag Dumper($results) . $self->debug_value . "\n\nSQL: $sql";
+                or diag $self->debug_fail($number, $results, $sql);
         }
         else {
             ok(!$result_ids{$bug_id},
                "$name: does not contain bug $number ($bug_id)")
-                or diag Dumper($results) . $self->debug_value . "\n\nSQL: $sql";
+                or diag $self->debug_fail($number, $results, $sql);
         }
     }
 }

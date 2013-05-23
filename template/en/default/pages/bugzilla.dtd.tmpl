@@ -1,18 +1,65 @@
-<!ELEMENT bugzilla (bug+)>
-<!ATTLIST bugzilla
+[%# This Source Code Form is subject to the terms of the Mozilla Public
+  # License, v. 2.0. If a copy of the MPL was not distributed with this
+  # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #
+  # This Source Code Form is "Incompatible With Secondary Licenses", as
+  # defined by the Mozilla Public License, v. 2.0.
+  #%]
+[% USE Bugzilla %]
+<!ELEMENT [% "bugzilla" %] (bug+)>
+<!ATTLIST [% "bugzilla" %] 
           version CDATA #REQUIRED
           urlbase CDATA #REQUIRED
           maintainer CDATA #REQUIRED
           exporter CDATA #IMPLIED
 >
-<!ELEMENT bug (bug_id, (alias?, creation_ts, short_desc, delta_ts, reporter_accessible, 
-    cclist_accessible, classification_id, classification, product, component, 
-    version, rep_platform, op_sys, bug_status, resolution?, dup_id?, see_also*, 
-    bug_file_loc?, status_whiteboard?, keywords*, priority, bug_severity, 
-    target_milestone?, dependson*, blocked*, everconfirmed, reporter, assigned_to, 
-    cc*, (estimated_time, remaining_time, actual_time, deadline?)?, qa_contact?, 
-    votes?, token?, group*, flag*, long_desc*, attachment*)?)>
-<!ATTLIST bug
+<!ELEMENT [% "bug" %] (bug_id, 
+               (alias?, 
+                creation_ts, 
+                short_desc, 
+                delta_ts, 
+                reporter_accessible, 
+                cclist_accessible, 
+                classification_id, 
+                classification, 
+                product, 
+                component, 
+                version, 
+                rep_platform, 
+                op_sys, 
+                bug_status, 
+                resolution?, 
+                dup_id?, 
+                see_also*, 
+                bug_file_loc?, 
+                status_whiteboard?, 
+                keywords*, 
+                priority, 
+                bug_severity, 
+                target_milestone?, 
+                dependson*, 
+                blocked*, 
+                everconfirmed, 
+                reporter, 
+                assigned_to, 
+                cc*, 
+                (estimated_time, 
+                 remaining_time, 
+                 actual_time, 
+                 deadline?)?, 
+                qa_contact?,
+[% FOREACH field = Bugzilla.active_custom_fields %]
+                [%+ field.name FILTER xml -%]
+                [%- IF field.type == constants.FIELD_TYPE_MULTI_SELECT %]*[% ELSE %]?[% END %], 
+[% END %]
+                votes?, 
+                token?, 
+                group*, 
+                flag*, 
+                comment_sort_order*,
+                long_desc*, 
+                attachment*)?)>
+<!ATTLIST [% "bug" %]
           error (NotFound | NotPermitted | InvalidBugId) #IMPLIED
 >
 <!ELEMENT bug_id (#PCDATA)>
@@ -67,11 +114,16 @@
 <!ELEMENT remaining_time (#PCDATA)>
 <!ELEMENT actual_time (#PCDATA)>
 <!ELEMENT deadline (#PCDATA)>
-<!ELEMENT long_desc (commentid, attachid?, who, bug_when, work_time?, thetext)>
+[% FOREACH field = Bugzilla.active_custom_fields %]
+<!ELEMENT [% field.name FILTER xml %] (#PCDATA)>
+[% END %]
+<!ELEMENT comment_sort_order (#PCDATA)>
+<!ELEMENT long_desc (commentid, comment_count, attachid?, who, bug_when, work_time?, thetext)>
 <!ATTLIST long_desc
           isprivate (0|1) #REQUIRED
 >
 <!ELEMENT commentid (#PCDATA)>
+<!ELEMENT comment_count (#PCDATA)>
 <!ELEMENT who (#PCDATA)>
 <!ATTLIST who
           name CDATA #REQUIRED
@@ -86,6 +138,9 @@
           isprivate (0|1) #REQUIRED
 >
 <!ELEMENT attacher (#PCDATA)>
+<!ATTLIST attacher
+          name CDATA #REQUIRED
+>
 <!ELEMENT attachid (#PCDATA)>
 <!ELEMENT date (#PCDATA)>
 <!ELEMENT desc (#PCDATA)>
