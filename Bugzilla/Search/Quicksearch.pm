@@ -1,22 +1,9 @@
-# -*- Mode: perl; indent-tabs-mode: nil -*-
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# The contents of this file are subject to the Mozilla Public
-# License Version 1.1 (the "License"); you may not use this file
-# except in compliance with the License. You may obtain a copy of
-# the License at http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS
-# IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-# implied. See the License for the specific language governing
-# rights and limitations under the License.
-#
-# The Original Code is the Bugzilla Bug Tracking System.
-#
-# Contributor(s): C. Begle
-#                 Jesse Ruderman
-#                 Andreas Franke <afranke@mathweb.org>
-#                 Stephen Lee <slee@uk.bnsmc.com>
-#                 Marc Schumann <wurblzap@gmail.com>
+# This Source Code Form is "Incompatible With Secondary Licenses", as
+# defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Search::Quicksearch;
 
@@ -298,9 +285,10 @@ sub _handle_alias {
     if ($searchstring =~ /^([^,\s]+)$/) {
         my $alias = $1;
         # We use this direct SQL because we want quicksearch to be VERY fast.
-        my $is_alias = Bugzilla->dbh->selectrow_array(
-            q{SELECT 1 FROM bugs WHERE alias = ?}, undef, $alias);
-        if ($is_alias) {
+        my $bug_id = Bugzilla->dbh->selectrow_array(
+            q{SELECT bug_id FROM bugs WHERE alias = ?}, undef, $alias);
+        # If the user cannot see the bug, do not resolve its alias.
+        if ($bug_id && Bugzilla->user->can_see_bug($bug_id)) {
             $alias = url_quote($alias);
             print Bugzilla->cgi->redirect(
                 -uri => correct_urlbase() . "show_bug.cgi?id=$alias");
@@ -377,9 +365,14 @@ sub _handle_field_names {
 
     # Flag and requestee shortcut
     if ($or_operand =~ /^(?:flag:)?([^\?]+\?)([^\?]*)$/) {
-        addChart('flagtypes.name', 'substring', $1, $negate);
-        $chart++; $and = $or = 0; # Next chart for boolean AND
-        addChart('requestees.login_name', 'substring', $2, $negate);
+        my ($flagtype, $requestee) = ($1, $2);
+        addChart('flagtypes.name', 'substring', $flagtype, $negate);
+        if ($requestee) {
+            # AND
+            $chart++;
+            $and = $or = 0;
+            addChart('requestees.login_name', 'substring', $requestee, $negate);
+        }
         return 1;
     }
 

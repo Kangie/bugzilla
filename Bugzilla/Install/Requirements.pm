@@ -1,19 +1,9 @@
-# -*- Mode: perl; indent-tabs-mode: nil -*-
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# The contents of this file are subject to the Mozilla Public
-# License Version 1.1 (the "License"); you may not use this file
-# except in compliance with the License. You may obtain a copy of
-# the License at http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS
-# IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-# implied. See the License for the specific language governing
-# rights and limitations under the License.
-#
-# The Original Code is the Bugzilla Bug Tracking System.
-#
-# Contributor(s): Max Kanat-Alexander <mkanat@bugzilla.org>
-#                 Marc Schumann <wurblzap@gmail.com>
+# This Source Code Form is "Incompatible With Secondary Licenses", as
+# defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Install::Requirements;
 
@@ -29,7 +19,6 @@ use Bugzilla::Constants;
 use Bugzilla::Install::Util qw(vers_cmp install_string bin_loc 
                                extension_requirement_packages);
 use List::Util qw(max);
-use Safe;
 use Term::ANSIColor;
 
 # Return::Value 1.666002 pollutes the error log with warnings about this
@@ -110,10 +99,11 @@ sub REQUIRED_MODULES {
         module  => 'Digest::SHA',
         version => 0
     },
+    # 0.23 fixes incorrect handling of 1/2 & 3/4 timezones.
     {
         package => 'TimeDate',
         module  => 'Date::Format',
-        version => '2.21'
+        version => '2.23'
     },
     # 0.28 fixed some important bugs in DateTime.
     {
@@ -130,10 +120,11 @@ sub REQUIRED_MODULES {
         module  => 'DateTime::TimeZone',
         version => ON_WINDOWS ? '0.79' : '0.71'
     },
+    # 1.54 is required for Perl 5.10+. It also makes DBD::Oracle happy.
     {
         package => 'DBI',
         module  => 'DBI',
-        version => (vers_cmp($perl_ver, '5.13.3') > -1) ? '1.614' : '1.41'
+        version => (vers_cmp($perl_ver, '5.13.3') > -1) ? '1.614' : '1.54'
     },
     # 2.22 fixes various problems related to UTF8 strings in hash keys,
     # as well as line endings on Windows.
@@ -142,10 +133,11 @@ sub REQUIRED_MODULES {
         module  => 'Template',
         version => '2.22'
     },
+    # 2.04 implement the "Test" method (to write to data/mailer.testfile).
     {
         package => 'Email-Send',
         module  => 'Email::Send',
-        version => ON_WINDOWS ? '2.16' : '2.00',
+        version => ON_WINDOWS ? '2.16' : '2.04',
         blacklist => ['^2\.196$']
     },
     {
@@ -161,10 +153,11 @@ sub REQUIRED_MODULES {
         # in a URL query string.
         version => '1.37',
     },
+    # 0.32 fixes several memory leaks in the XS version of some functions.
     {
         package => 'List-MoreUtils',
         module  => 'List::MoreUtils',
-        version => 0.22,
+        version => 0.32,
     },
     {
         package => 'Math-Random-ISAAC',
@@ -268,6 +261,12 @@ sub OPTIONAL_MODULES {
         feature => ['smtp_auth'],
     },
     {
+        package => 'Net-SMTP-SSL',
+        module  => 'Net::SMTP::SSL',
+        version => 1.01,
+        feature => ['smtp_ssl'],
+    },
+    {
         package => 'RadiusPerl',
         module  => 'Authen::Radius',
         version => 0,
@@ -329,15 +328,16 @@ sub OPTIONAL_MODULES {
 
     # Inbound Email
     {
-        package => 'Email-MIME-Attachment-Stripper',
-        module  => 'Email::MIME::Attachment::Stripper',
+        package => 'Email-Reply',
+        module  => 'Email::Reply',
         version => 0,
         feature => ['inbound_email'],
     },
     {
-        package => 'Email-Reply',
-        module  => 'Email::Reply',
-        version => 0,
+        package => 'HTML-FormatText-WithLinks',
+        module  => 'HTML::FormatText::WithLinks',
+        # We need 0.13 to set the "bold" marker to "*".
+        version => '0.13',
         feature => ['inbound_email'],
     },
 
@@ -368,6 +368,20 @@ sub OPTIONAL_MODULES {
         # 0.96 properly determines process size on Linux.
         version => '0.96',
         feature => ['mod_perl'],
+    },
+
+    # typesniffer
+    {
+        package => 'File-MimeInfo',
+        module  => 'File::MimeInfo::Magic',
+        version => '0',
+        feature => ['typesniffer'],
+    },
+    {
+        package => 'IO-stringy',
+        module  => 'IO::Scalar',
+        version => '0',
+        feature => ['typesniffer'],
     },
     );
 
@@ -553,26 +567,6 @@ sub print_module_instructions {
     my $need_module_instructions =  
         ( (!$output and @{$check_results->{missing}})
           or ($output and $check_results->{any_missing}) ) ? 1 : 0;
-
-    # We only print the PPM repository note if we have to.
-    my $perl_ver = sprintf('%vd', $^V);
-    if ($need_module_instructions && ON_ACTIVESTATE && vers_cmp($perl_ver, '5.12') < 0) {
-        # URL when running Perl 5.8.x.
-        my $url_to_theory58S = 'http://theoryx5.uwinnipeg.ca/ppms';
-        # Packages for Perl 5.10 are not compatible with Perl 5.8.
-        if (vers_cmp($perl_ver, '5.10') > -1) {
-            $url_to_theory58S = 'http://cpan.uwinnipeg.ca/PPMPackages/10xx/';
-        }
-        print colored(
-            install_string('ppm_repo_add', 
-                           { theory_url => $url_to_theory58S }),
-            COLOR_ERROR);
-
-        # ActivePerls older than revision 819 require an additional command.
-        if (ON_ACTIVESTATE < 819) {
-            print install_string('ppm_repo_up');
-        }
-    }
 
     if ($need_module_instructions or @{ $check_results->{apache} }) {
         # If any output was required, we want to close the "table"

@@ -1,23 +1,9 @@
-# -*- Mode: perl; indent-tabs-mode: nil -*-
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# The contents of this file are subject to the Mozilla Public
-# License Version 1.1 (the "License"); you may not use this file
-# except in compliance with the License. You may obtain a copy of
-# the License at http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS
-# IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
-# implied. See the License for the specific language governing
-# rights and limitations under the License.
-#
-# The Original Code is the Bugzilla Bug Tracking System.
-#
-# The Initial Developer of the Original Code is Everything Solved, Inc.
-# Portions created by the Initial Developer are Copyright (C) 2010 the
-# Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Max Kanat-Alexander <mkanat@bugzilla.org>
+# This Source Code Form is "Incompatible With Secondary Licenses", as
+# defined by the Mozilla Public License, v. 2.0.
 
 
 # These are constants used by Bugzilla::Test::Search.
@@ -197,11 +183,14 @@ use constant GREATERTHAN_BROKEN => (
 );
 
 # allwords and allwordssubstr have these broken tests in common.
-#
-# allwordssubstr on cc fields matches against a single cc,
-# instead of matching against all ccs on a bug.
 use constant ALLWORDS_BROKEN => (
+    # allwordssubstr on cc fields matches against a single cc,
+    # instead of matching against all ccs on a bug.
     cc        => { contains => [1] },
+    # bug 828344 changed how these searches operate to revert back to the 4.0
+    # behavour, so these tests need to be updated (bug 849117).
+    'flagtypes.name' => { contains => [1] },
+    longdesc         => { contains => [1] },
 );
 
 # Fields that don't generally work at all with changed* searches, but
@@ -249,16 +238,21 @@ use constant CHANGED_VALUE_BROKEN => (
 # while the other fails. In this case, we have a special override for
 # "operator-value", which uniquely identifies tests.
 use constant KNOWN_BROKEN => {
-    "equals-%group.<1-bug_group>%" => {
-        commenter => { contains => [1,2,3,4,5] },
-    },
-
     greaterthan   => { GREATERTHAN_BROKEN },
     greaterthaneq => { GREATERTHAN_BROKEN },
 
     'allwordssubstr-<1>' => { ALLWORDS_BROKEN },
     'allwords-<1>' => {
         ALLWORDS_BROKEN,
+    },
+    'anywords-<1>' => {
+        'flagtypes.name' => { contains => [1,2,3,4,5] },
+    },
+    'anywords-<1> <2>' => {
+        'flagtypes.name' => { contains => [3,4,5] },
+    },
+    'anywordssubstr-<1> <2>' => {
+        'flagtypes.name' => { contains => [3,4,5] },
     },
 
     # setters.login_name and requestees.login name aren't tracked individually
@@ -330,6 +324,24 @@ use constant KNOWN_BROKEN => {
         # This should probably search the reporter.
         creation_ts => { contains => [1] },
     },
+    notequals => {
+        'flagtypes.name' => { contains => [1, 5] },
+        longdesc         => { contains => [1] },
+    },
+    notregexp => {
+        'flagtypes.name' => { contains => [1, 5] },
+        longdesc         => { contains => [1] },
+    },
+    notsubstring => {
+        'flagtypes.name' => { contains => [5] },
+        longdesc         => { contains => [1] },
+    },
+    nowords => {
+        'flagtypes.name' => { contains => [1, 5] },
+    },
+    nowordssubstr => {
+        'flagtypes.name' => { contains => [5] },
+    },
 };
 
 ###################
@@ -360,17 +372,40 @@ use constant CHANGED_FROM_TO_BROKEN_NOT => (
 
 # These are field/operator combinations that are broken when run under NOT().
 use constant BROKEN_NOT => {
-    allwords       => {
-        cc => { contains => [1] },
+    allwords => {
+        cc               => { contains => [1] },
+        'flagtypes.name' => { contains => [1, 5] },
+        longdesc         => { contains => [1] },
     },
     'allwords-<1> <2>' => {
         cc => { },
     },
     allwordssubstr => {
-        cc => { contains => [1] },
+        cc               => { contains => [1] },
+        'flagtypes.name' => { contains => [5, 6] },
+        longdesc         => { contains => [1] },
     },
     'allwordssubstr-<1>,<2>' => {
-        cc => { },
+        cc               => { },
+        longdesc         => { contains => [1] },
+    },
+    anyexact => {
+        'flagtypes.name' => { contains => [1, 2, 5] },
+    },
+    'anywords-<1>' => {
+        'flagtypes.name' => { contains => [1, 2, 3, 4, 5] },
+    },
+    'anywords-<1> <2>' => {
+        'flagtypes.name' => { contains => [3, 4, 5] },
+    },
+    anywordssubstr => {
+        'flagtypes.name' => { contains => [5] },
+    },
+    'anywordssubstr-<1> <2>' => {
+        'flagtypes.name' => { contains => [3,4,5] },
+    },
+    casesubstring => {
+        'flagtypes.name' => { contains => [5] },
     },
     changedafter => {
         "attach_data.thedata"   => { contains => [2, 3, 4] },
@@ -397,7 +432,6 @@ use constant BROKEN_NOT => {
         dependson       => { contains => [1, 3] },
         work_time       => { contains => [1] },
         FIELD_TYPE_BUG_ID, { contains => [1 .. 4] },
-        
     },
     changedto => {
         CHANGED_BROKEN_NOT,
@@ -406,10 +440,44 @@ use constant BROKEN_NOT => {
         "remaining_time" => { contains => [1] },
     },
     greaterthan => {
-        cc        => { contains => [1] },
+        cc               => { contains => [1] },
+        'flagtypes.name' => { contains => [5] },
     },
     greaterthaneq => {
         cc               => { contains => [1] },
+        'flagtypes.name' => { contains => [2, 5] },
+    },
+    equals => {
+        'flagtypes.name' => { contains => [1, 5] },
+    },
+    notequals => {
+        longdesc         => { contains => [1] },
+    },
+    notregexp => {
+        longdesc         => { contains => [1] },
+    },
+    notsubstring => {
+        longdesc         => { contains => [1] },
+    },
+    'nowords-<1>' => {
+        'flagtypes.name' => { contains => [5] },
+    },
+    'nowordssubstr-<1>' => {
+        'flagtypes.name' => { contains => [5] },
+    },
+    lessthan => {
+        'flagtypes.name' => { contains => [5] },
+    },
+    lessthaneq => {
+        'flagtypes.name' => { contains => [1, 5] },
+    },
+    regexp => {
+        'flagtypes.name' => { contains => [1, 5] },
+        longdesc         => { contains => [1] },
+    },
+    substring => {
+        'flagtypes.name' => { contains => [5] },
+        longdesc         => { contains => [1] },
     },
 };
 
