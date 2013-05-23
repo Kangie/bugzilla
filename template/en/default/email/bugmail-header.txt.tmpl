@@ -10,6 +10,10 @@
 [% isnew = bug.lastdiffed ? 0 : 1 %]
 [% show_new = isnew
               && (to_user.settings.bugmail_new_prefix.value == 'on') %]
+[% cc = [] %]
+[% FOREACH cc_user IN bug.cc_users %]
+[% cc.push(cc_user.login_name) %]
+[% END %]
 
 From: [% Param('mailfrom') %]
 To: [% to_user.email %]
