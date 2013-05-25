@@ -21,6 +21,7 @@
 
 package Bugzilla::Extension::SecureMail;
 use strict;
+
 use constant NAME => 'SecureMail';
 
 use constant REQUIRED_MODULES => [
@@ -37,9 +38,9 @@ use constant REQUIRED_MODULES => [
         version => 0,
     },
     {
-        package => 'HTML-Tree', 
-        module  => 'HTML::Tree', 
-        version => 0, 
+        package => 'HTML-Tree',
+        module  => 'HTML::Tree',
+        version => 0,
     }
 ];
 
