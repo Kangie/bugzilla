@@ -272,11 +272,21 @@ sub OPTIONAL_MODULES {
         version => 0,
         feature => ['auth_radius'],
     },
+    # XXX - Once we require XMLRPC::Lite 0.717 or higher, we can
+    # remove SOAP::Lite from the list.
     {
         package => 'SOAP-Lite',
         module  => 'SOAP::Lite',
         # Fixes various bugs, including 542931 and 552353 + stops
         # throwing warnings with Perl 5.12.
+        version => '0.712',
+        feature => ['xmlrpc'],
+    },
+    # Since SOAP::Lite 1.0, XMLRPC::Lite is no longer included
+    # and so it must be checked separately.
+    {
+        package => 'XMLRPC-Lite',
+        module  => 'XMLRPC::Lite',
         version => '0.712',
         feature => ['xmlrpc'],
     },
@@ -345,7 +355,8 @@ sub OPTIONAL_MODULES {
     {
         package => 'TheSchwartz',
         module  => 'TheSchwartz',
-        version => 0,
+        # 1.07 supports the prioritization of jobs.
+        version => 1.07,
         feature => ['jobqueue'],
     },
     {
@@ -673,8 +684,15 @@ sub have_vers {
     Bugzilla::Install::Util::set_output_encoding();
 
     # VERSION is provided by UNIVERSAL::, and can be called even if
-    # the module isn't loaded.
-    my $vnum = $module->VERSION || -1;
+    # the module isn't loaded. We eval'uate ->VERSION because it can die
+    # when the version is not valid (yes, this happens from time to time).
+    # In that case, we use an uglier method to get the version.
+    my $vnum = eval { $module->VERSION };
+    if ($@) {
+        no strict 'refs';
+        $vnum = ${"${module}::VERSION"};
+    }
+    $vnum ||= -1;
 
     # CGI's versioning scheme went 2.75, 2.751, 2.752, 2.753, 2.76
     # That breaks the standard version tests, so we need to manually correct

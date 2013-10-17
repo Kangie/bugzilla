@@ -26,6 +26,7 @@ Bugzilla::Webservice::Bug</title>
     <li class='indexItem indexItem2'><a href='#comments'>comments</a>
     <li class='indexItem indexItem2'><a href='#get'>get</a>
     <li class='indexItem indexItem2'><a href='#history'>history</a>
+    <li class='indexItem indexItem2'><a href='#possible_duplicates'>possible_duplicates</a>
     <li class='indexItem indexItem2'><a href='#search'>search</a>
   </ul>
   <li class='indexItem indexItem1'><a href='#Bug_Creation_and_Modification'>Bug Creation and Modification</a>
@@ -1497,6 +1498,65 @@ name="history"
 <dt><a 
 >Field names returned by the <code  class="code">field_name</code> field changed to be consistent with other methods. Since Bugzilla <b>4.4</b>, they now match names used by <a href="#update" class="podlinkpod"
 >Bug.update</a> for consistency.</a></dt>
+</dl>
+</dd>
+</dl>
+
+<h2><a class='u' href='#___top' title='click to go to top of document'
+name="possible_duplicates"
+>possible_duplicates</a></h2>
+
+<p><b>UNSTABLE</b></p>
+
+<dl>
+<dt><a name="Description"
+><b>Description</b></a></dt>
+
+<dd>
+<p>Allows a user to find possible duplicate bugs based on a set of keywords such as a user may use as a bug summary. Optionally the search can be narrowed down to specific products.</p>
+
+<dt><a name="Params"
+><b>Params</b></a></dt>
+
+<dd>
+<dl>
+<dt><a name="summary_(string)_Required_-_A_string_of_keywords_defining_the_type_of_bug_you_are_trying_to_report."
+><code  class="code">summary</code> (string) <b>Required</b> - A string of keywords defining the type of bug you are trying to report.</a></dt>
+
+<dd>
+<dt><a name="products_(array)_-_One_or_more_product_names_to_narrow_the_duplicate_search_to._If_omitted,_all_bugs_are_searched."
+><code  class="code">products</code> (array) - One or more product names to narrow the duplicate search to. If omitted, all bugs are searched.</a></dt>
+</dl>
+
+<dt><a name="Returns"
+><b>Returns</b></a></dt>
+
+<dd>
+<p>The same as <a href="#get" class="podlinkpod"
+>&#34;get&#34;</a>.</p>
+
+<p>Note that you will only be returned information about bugs that you can see. Bugs that you can&#39;t see will be entirely excluded from the results. So, if you want to see private bugs, you will have to first log in and <i>then</i> call this method.</p>
+
+<dt><a name="Errors"
+><b>Errors</b></a></dt>
+
+<dd>
+<dl>
+<dt><a name="50_(Param_Required)"
+>50 (Param Required)</a></dt>
+
+<dd>
+<p>You must specify a value for <code  class="code">summary</code> containing a string of keywords to search for duplicates.</p>
+</dd>
+</dl>
+
+<dt><a name="History"
+><b>History</b></a></dt>
+
+<dd>
+<dl>
+<dt><a name="Added_in_Bugzilla_4.0."
+>Added in Bugzilla <b>4.0</b>.</a></dt>
 </dl>
 </dd>
 </dl>

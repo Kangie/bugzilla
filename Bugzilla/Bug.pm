@@ -2508,6 +2508,7 @@ sub _set_product {
             my @idlist = ($self->id);
             push(@idlist, map {$_->id} @{ $params->{other_bugs} })
                 if $params->{other_bugs};
+            @idlist = uniq @idlist;
             # Get the ID of groups which are no longer valid in the new product.
             my $gids = $dbh->selectcol_arrayref(
                 'SELECT bgm.group_id
@@ -2522,9 +2523,13 @@ sub _set_product {
                                         . Bugzilla->user->groups_as_string . '))
                                        OR gcm.othercontrol != ?) )',
                 undef, (@idlist, $product->id, CONTROLMAPNA, CONTROLMAPNA));
-            $vars{'old_groups'} = Bugzilla::Group->new_from_list($gids);            
+            $vars{'old_groups'} = Bugzilla::Group->new_from_list($gids);
+
+            # Did we come here from editing multiple bugs? (affects how we
+            # show optional group changes)
+            $vars{multiple_bugs} = (@idlist > 1) ? 1 : 0;
         }
-        
+
         if (%vars) {
             $vars{product} = $product;
             $vars{bug} = $self;
@@ -3895,11 +3900,12 @@ sub get_activity {
             if ($operation->{'who'} && $who eq $operation->{'who'}
                 && $when eq $operation->{'when'}
                 && $fieldname eq $operation->{'fieldname'}
+                && ($comment_id || 0) == ($operation->{'comment_id'} || 0)
                 && ($attachid || 0) == ($operation->{'attachid'} || 0))
             {
                 my $old_change = pop @$changes;
-                $removed = _join_activity_entries($fieldname, $old_change->{'removed'}, $removed);
-                $added = _join_activity_entries($fieldname, $old_change->{'added'}, $added);
+                $removed = join_activity_entries($fieldname, $old_change->{'removed'}, $removed);
+                $added = join_activity_entries($fieldname, $old_change->{'added'}, $added);
             }
             $operation->{'who'} = $who;
             $operation->{'when'} = $when;
@@ -3909,7 +3915,7 @@ sub get_activity {
             $change{'added'} = $added;
 
             if ($comment_id) {
-                $change{'comment'} = Bugzilla::Comment->new($comment_id);
+                $operation->{comment_id} = $change{'comment'} = Bugzilla::Comment->new($comment_id);
             }
 
             push (@$changes, \%change);
@@ -3922,35 +3928,6 @@ sub get_activity {
     }
 
     return(\@operations, $incomplete_data);
-}
-
-sub _join_activity_entries {
-    my ($field, $current_change, $new_change) = @_;
-    # We need to insert characters as these were removed by old
-    # LogActivityEntry code.
-
-    return $new_change if $current_change eq '';
-
-    # Buglists and see_also need the comma restored
-    if ($field eq 'dependson' || $field eq 'blocked' || $field eq 'see_also') {
-        if (substr($new_change, 0, 1) eq ',' || substr($new_change, 0, 1) eq ' ') {
-            return $current_change . $new_change;
-        } else {
-            return $current_change . ', ' . $new_change;
-        }
-    }
-
-    # Assume bug_file_loc contain a single url, don't insert a delimiter
-    if ($field eq 'bug_file_loc') {
-        return $current_change . $new_change;
-    }
-
-    # All other fields get a space
-    if (substr($new_change, 0, 1) eq ' ') {
-        return $current_change . $new_change;
-    } else {
-        return $current_change . ' ' . $new_change;
-    }
 }
 
 # Update the bugs_activity table to reflect changes made in bugs.

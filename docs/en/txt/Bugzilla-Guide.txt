@@ -1,8 +1,8 @@
-The Bugzilla Guide - 4.4 Release
+The Bugzilla Guide - 4.4.1 Release
 
 The Bugzilla Team
 
-   2013-05-22
+   2013-10-16
 
    Abstract
 
@@ -57,7 +57,7 @@ The Bugzilla Team
 
               2.5.1. Microsoft Windows
               2.5.2. Mac OS X™
-              2.5.3. Linux Distributions
+              2.5.3. Linux/BSD Distributions
 
         2.6. UNIX (non-root) Installation Notes
 
@@ -332,8 +332,8 @@ Chapter 1. About This Guide
 
 1.3. New Versions
 
-   This is the 4.4 version of The Bugzilla Guide. It is so named to match
-   the current version of Bugzilla.
+   This is the 4.4.1 version of The Bugzilla Guide. It is so named to
+   match the current version of Bugzilla.
 
    The latest version of this guide can always be found at
    http://www.bugzilla.org/docs/. However, you should read the version
@@ -462,7 +462,7 @@ Chapter 2. Installing Bugzilla
 
         2.5.1. Microsoft Windows
         2.5.2. Mac OS X™
-        2.5.3. Linux Distributions
+        2.5.3. Linux/BSD Distributions
 
    2.6. UNIX (non-root) Installation Notes
 
@@ -671,7 +671,7 @@ bash# perl install-module.pl <modulename>
     2. Date::Format (2.23)
     3. DateTime (0.28)
     4. DateTime::TimeZone (0.71)
-    5. DBI (1.54)
+    5. DBI (1.614)
     6. DBD::mysql (4.001) if using MySQL
     7. DBD::Pg (2.7.0) if using PostgreSQL
     8. DBD::Oracle (1.19) if using Oracle
@@ -697,10 +697,10 @@ bash# perl install-module.pl <modulename>
    13. SOAP::Lite (0.712) for the web service interface
    14. JSON::RPC (any) for the JSON-RPC interface
    15. Test::Taint (any) for the web service interface
-   16. HTML::Parser (3.40) for More HTML in Product/Group Descriptions
+   16. HTML::Parser (3.67) for More HTML in Product/Group Descriptions
    17. HTML::Scrubber (any) for More HTML in Product/Group Descriptions
    18. Email::Reply (any) for Inbound Email
-   19. TheSchwartz (any) for Mail Queueing
+   19. TheSchwartz (1.07) for Mail Queueing
    20. Daemon::Generic (any) for Mail Queueing
    21. mod_perl2 (1.999022) for mod_perl
 
@@ -1464,16 +1464,16 @@ HKEY_CLASSES_ROOT\.cgi\Shell\ExecCGI\Command
 
    The exit command will return you to your original shell.
 
-2.5.3. Linux Distributions
+2.5.3. Linux/BSD Distributions
 
-   Many Linux distributions include Bugzilla and its dependencies in their
-   native package management systems. Installing Bugzilla with root access
-   on any Linux system should be as simple as finding the Bugzilla package
-   in the package management application and installing it using the
-   normal command syntax. Several distributions also perform the proper
-   web server configuration automatically on installation.
+   Many Linux/BSD distributions include Bugzilla and its dependencies in
+   their native package management systems. Installing Bugzilla with root
+   access on any Linux/BSD system should be as simple as finding the
+   Bugzilla package in the package management application and installing
+   it using the normal command syntax. Several distributions also perform
+   the proper web server configuration automatically on installation.
 
-   Please consult the documentation of your Linux distribution for
+   Please consult the documentation of your Linux/BSD distribution for
    instructions on how to install packages, or for specific instructions
    on installing Bugzilla with native package management tools. There is
    also a Bugzilla Wiki Page for distro-specific installation notes.
@@ -1642,9 +1642,9 @@ bash$ make && make test && make install
    after running ./checksetup.pl, every time you run it (or modify
    checksetup.pl to do them for you via the system() command).
 for i in docs graphs images js skins; do find $i -type d -exec chmod o+rx {} \;
- ; done
+; done
 for i in jpg gif css js png html rdf xul; do find . -name \*.$i -exec chmod o+r
- {} \; ; done
+{} \; ; done
 find . -name .htaccess -exec chmod o+r {} \;
 chmod o+x . data data/webdot
 
@@ -1788,8 +1788,7 @@ All changes applied successfully.
    /var/www/html directory (or its equivalent, if you use something else)
    and omit the first three lines of the example.
 bash$ cd /var/www/html
-bash$ wget http://ftp.mozilla.org/pub/mozilla.org/webtools/bugzilla-4.2.1.tar.g
-z
+bash$ wget http://ftp.mozilla.org/pub/mozilla.org/webtools/bugzilla-4.2.1.tar.gz
 (Output omitted)
 bash$ tar xzvf bugzilla-4.2.1.tar.gz
 bugzilla-4.2.1/
@@ -1833,8 +1832,8 @@ bash$ mv bugzilla-4.2.1 bugzilla
    line. If you have already downloaded it, you can omit the first two
    commands.
 bash$ cd /var/www/html/bugzilla
-bash$ wget http://ftp.mozilla.org/pub/mozilla.org/webtools/bugzilla-4.2-to-4.2.
-1.diff.gz
+bash$ wget http://ftp.mozilla.org/pub/mozilla.org/webtools/bugzilla-4.2-to-4.2.1
+.diff.gz
 (Output omitted)
 bash$ gunzip bugzilla-4.2-to-4.2.1.diff.gz
 bash$ patch -p1 < bugzilla-4.2-to-4.2.1.diff
@@ -2548,9 +2547,9 @@ Chapter 3. Administering Bugzilla
 
    Once you have found your user, you can change the following fields:
      * Login Name: This is generally the user's full email address.
-       However, if you have are using the “emailsuffix” parameter, this
-       may just be the user's login name. Note that users can now change
-       their login names themselves (to any valid email address).
+       However, if you are using the “emailsuffix” parameter, this may
+       just be the user's login name. Note that users can now change their
+       login names themselves (to any valid email address).
      * Real Name: The user's real name. Note that Bugzilla does not
        require this to create an account.
      * Password: You can change the user's password here. Users can
@@ -3921,7 +3920,7 @@ Chapter 5. Using Bugzilla
    Consult with the administrator responsible for your installation of
    Bugzilla for the URL you should use to access it. If you're
    test-driving Bugzilla, use this URL:
-   http://landfill.bugzilla.org/bugzilla-tip/.
+   http://landfill.bugzilla.org/bugzilla-4.4-branch/.
     1. On the home page index.cgi, click the “Open a new Bugzilla account”
        link, or the “New Account” link available in the footer of pages.
        Now enter your email address, then click the “Send” button.
@@ -4099,7 +4098,8 @@ Chapter 5. Using Bugzilla
 
    The Bugzilla Search page is the interface where you can find any bug
    report, comment, or patch currently in the Bugzilla system. You can
-   play with it here: http://landfill.bugzilla.org/bugzilla-tip/query.cgi.
+   play with it here:
+   http://landfill.bugzilla.org/bugzilla-4.4-branch/query.cgi.
 
    The Search page has controls for selecting different possible values
    for all of the fields in a bug, as described above. For some fields,
@@ -4136,20 +4136,20 @@ Chapter 5. Using Bugzilla
    Sometimes, a query needs to compare a user-related field (such as
    ReportedBy) with a role-specific user (such as the user running the
    query or the user to whom each bug is assigned). When the operator is
-   either "equals" or "notequals", the value can be "%reporter%",
-   "%assignee%", "%qacontact%", or "%user%". The user pronoun refers to
-   the user who is executing the query or, in the case of whining reports,
-   the user who will be the recipient of the report. The reporter,
-   assignee, and qacontact pronouns refer to the corresponding fields in
-   the bug.
+   either "is equal to" or "is not equal to", the value can be
+   "%reporter%", "%assignee%", "%qacontact%", or "%user%". The user
+   pronoun refers to the user who is executing the query or, in the case
+   of whining reports, the user who will be the recipient of the report.
+   The reporter, assignee, and qacontact pronouns refer to the
+   corresponding fields in the bug.
 
    Boolean charts also let you type a group name in any user-related field
-   if the operator is either "equals", "notequals" or "anyexact". This
-   will let you query for any member belonging (or not) to the specified
-   group. The group name must be entered following the "%group.foo%"
-   syntax, where "foo" is the group name. So if you are looking for bugs
-   reported by any user being in the "editbugs" group, then you can type
-   "%group.editbugs%".
+   if the operator is either "is equal to", "is not equal to" or "contains
+   the string (exact case)". This will let you query for any member
+   belonging (or not) to the specified group. The group name must be
+   entered following the "%group.foo%" syntax, where "foo" is the group
+   name. So if you are looking for bugs reported by any user being in the
+   "editbugs" group, then you can type "%group.editbugs%".
 
 5.5.1.2. Negation
 
@@ -4175,14 +4175,14 @@ Chapter 5. Using Bugzilla
    expressions to be built using terms OR'd together and then negated.
    Negation permits queries such as
 
-     NOT(("product" "equals" "update") OR ("component" "equals"
+     NOT(("product" "is equal to" "update") OR ("component" "is equal to"
      "Documentation"))
 
    to find bugs that are neither in the update product or in the
    documentation component or
 
-     NOT(("commenter" "equals" "%assignee%") OR ("component" "equals"
-     "Documentation"))
+     NOT(("commenter" "is equal to" "%assignee%") OR ("component" "is
+     equal to" "Documentation"))
 
    to find non-documentation bugs on which the assignee has never
    commented.
@@ -5497,8 +5497,8 @@ bash$ ./testserver.pl http://landfill.bugzilla.org/bugzilla-tip
 TEST-OK Webserver is running under group id in $webservergroup.
 TEST-OK Got ant picture.
 TEST-OK Webserver is executing CGIs.
-TEST-OK Webserver is preventing fetch of http://landfill.bugzilla.org/bugzilla-
-tip/localconfig.
+TEST-OK Webserver is preventing fetch of http://landfill.bugzilla.org/bugzilla-t
+ip/localconfig.
 
 A.3. I installed a Perl module, but checksetup.pl claims it's not installed!
 
@@ -5516,8 +5516,8 @@ A.4. DBD::Sponge::db prepare failed
 
    The following error message may appear due to a bug in DBD::mysql (over
    which the Bugzilla team have no control):
- DBD::Sponge::db prepare failed: Cannot determine NUM_OF_FIELDS at D:/Perl/site
-/lib/DBD/mysql.pm line 248.
+ DBD::Sponge::db prepare failed: Cannot determine NUM_OF_FIELDS at D:/Perl/site/
+lib/DBD/mysql.pm line 248.
   SV = NULL(0x0) at 0x20fc444
   REFCNT = 1
   FLAGS = (PADBUSY,PADMY)
