@@ -111,24 +111,23 @@ print $cgi->header() unless Bugzilla->usage_mode == USAGE_MODE_EMAIL;
 
 # Check for a mid-air collision. Currently this only works when updating
 # an individual bug.
-if (defined $cgi->param('delta_ts'))
-{
-    my $delta_ts_z = datetime_from($cgi->param('delta_ts'));
+my $delta_ts = $cgi->param('delta_ts') || '';
+
+if ($delta_ts) {
+    my $delta_ts_z = datetime_from($delta_ts)
+      or ThrowCodeError('invalid_timestamp', { timestamp => $delta_ts });
+
     my $first_delta_tz_z =  datetime_from($first_bug->delta_ts);
+
     if ($first_delta_tz_z ne $delta_ts_z) {
-        ($vars->{'operations'}) = $first_bug->get_activity(undef, $cgi->param('delta_ts'));
+        ($vars->{'operations'}) = $first_bug->get_activity(undef, $delta_ts);
 
-        ThrowCodeError('undefined_field', { field => 'longdesclength' })
-            if !defined $cgi->param('longdesclength');
-
-        my $start_at = $cgi->param('longdesclength');
+        my $start_at = $cgi->param('longdesclength')
+          or ThrowCodeError('undefined_field', { field => 'longdesclength' });
 
         # Always sort midair collision comments oldest to newest,
         # regardless of the user's personal preference.
         my $comments = $first_bug->comments({ order => "oldest_to_newest" });
-
-        # The token contains the old delta_ts. We need a new one.
-        $cgi->param('token', issue_hash_token([$first_bug->id, $first_bug->delta_ts]));
 
         # Show midair if previous changes made other than CC
         # and/or one or more comments were made
@@ -137,8 +136,10 @@ if (defined $cgi->param('delta_ts'))
         if (!$do_midair) {
             foreach my $operation (@{ $vars->{'operations'} }) {
                 foreach my $change (@{ $operation->{'changes'} }) {
-                    $do_midair = 1 if $change->{'fieldname'} ne 'cc';
-                    last;
+                    if ($change->{'fieldname'} ne 'cc') {
+                        $do_midair = 1;
+                        last;
+                    }
                 }
                 last if $do_midair;
             }
@@ -149,6 +150,8 @@ if (defined $cgi->param('delta_ts'))
             $vars->{'start_at'} = $start_at;
             $vars->{'comments'} = $comments;
             $vars->{'bug'} = $first_bug;
+            # The token contains the old delta_ts. We need a new one.
+            $cgi->param('token', issue_hash_token([$first_bug->id, $first_bug->delta_ts]));
 
             # Warn the user about the mid-air collision and ask them what to do.
             $template->process("bug/process/midair.html.tmpl", $vars)
@@ -164,7 +167,7 @@ if (defined $cgi->param('delta_ts'))
 my $token = $cgi->param('token');
 
 if ($cgi->param('id')) {
-    check_hash_token($token, [$first_bug->id, $first_bug->delta_ts]);
+    check_hash_token($token, [$first_bug->id, $delta_ts]);
 }
 else {
     check_token_data($token, 'buglist_mass_change', 'query.cgi');
