@@ -1,0 +1,8 @@
+bugzilla-update.xml
+jobqueue.pl.pid
+mailer.testfile
+params
+mining/
+cached/
+template/
+extensions/
