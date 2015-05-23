@@ -164,7 +164,66 @@
           behavior would occur. If more information appears later,
           the [% terms.bug %] can be reopened.
         </dd>
-        
+
+        <dt class="cantfix">
+          [% display_value("resolution", "CANTFIX") FILTER html %]
+        </dt>
+        <dd class="cantfix">
+          Fixing this [% terms.bug %] is not possible, and the reasoning
+          should be detailed by the closer. Generally speaking, fixing the
+          [% terms.bug %] might be technically unfeasible, require an
+          extraordinary (unreasonable) amount of effort, be disallowed for
+          legal/social reasons, or not within bounds of the current framework.
+          If circumstances change later on that affect the justification, the
+          [% terms.bug %] can be reopened and reconsidered.
+        </dd>
+
+        <dt class="needinfo">
+          [% display_value("resolution", "NEEDINFO") FILTER html %]
+        </dt>
+        <dd class="needinfo">
+          Before investigation can proceed further, the reporter needs to
+          provide more information. This often includes clarification of
+          already posted details, adding missing log files, or running some
+          tests to help debug the situation. Once the requested information
+          has been provided, the [% terms.bug %] should be re-opened. This
+          status is frequently used when the expectation is the submitter
+          has disappeared and won't follow up, or to help clear out open
+          reports that still need triaging.
+        </dd>
+
+        <dt class="testrequest">
+          [% display_value("resolution", "TEST-REQUEST") FILTER html %]
+        </dt>
+        <dd class="testrequest">
+          The [% terms.bug %] is thought to be fixed, but we would like
+          someone who is affected to verify the fix. If the [% terms.bug %]
+          is not actually fixed, then the report should be reopened and more
+          details posted (explaining why people believe the [% terms.bug %]
+          is not actually fixed).
+        </dd>
+
+        <dt class="upstream">
+          [% display_value("resolution", "UPSTREAM") FILTER html %]
+        </dt>
+        <dd class="upstream">
+          The requested [% terms.bug %] is considered to be out of the purview
+          of the distro and should be submitted/discussed directly with the
+          respective upstream project. This could include a number of things
+          such as changing default configuration options or behavior, adding
+          new options or functionality, or deleting support for older systems.
+        </dd>
+
+        <dt class="obsolete">
+          [% display_value("resolution", "OBSOLETE") FILTER html %]
+        </dt>
+        <dd class="obsolete">
+          Due to a variety of reasons, the [% terms.bug %] as reported is no
+          longer relevant. It might apply to older versions of a package and
+          the newer versions rewrote (implicitly fixing) the related code, or
+          perhaps support was dropped entirely.
+        </dd>
+
         [% Hook.process('resolution') %]
       </dl>
     </td>
