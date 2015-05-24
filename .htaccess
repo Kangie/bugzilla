@@ -44,6 +44,17 @@ Options -Indexes
 </IfModule>
 
 <FilesMatch ^custom_buglist.cgi$>
-  allow from 127.0.0.1 94.100.119.160/28
-  deny from all
+  <IfModule mod_version.c>
+    <IfVersion < 2.4>
+      Allow from localhost 94.100.119.160/28
+      Deny from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+      Require host localhost 94.100.119.160/28
+    </IfVersion>
+  </IfModule>
+  <IfModule !mod_version.c>
+    Allow from localhost 94.100.119.160/28
+    Deny from all
+  </IfModule>
 </FilesMatch>
