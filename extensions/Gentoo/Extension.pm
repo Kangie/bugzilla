@@ -55,7 +55,8 @@ sub template_before_create {
 		'yellowleg' => 'bugs-web2'
 	);
 
-	$constants->{GENTOO_NODE} = $nodemap{(uname())[1]} ? $nodemap{(uname())[1]} : "unknown";
+	my $hostname = (uname())[1];
+	$constants->{GENTOO_NODE} = $nodemap{$hostname} ? $nodemap{$hostname} : "[$hostname]";
 	$constants->{GENTOO_APPEND_VERSION} = "+";
 }
 
