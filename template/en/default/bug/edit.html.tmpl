@@ -1178,6 +1178,44 @@
         </table>
       </td></tr></table>
 
+      [% IF feature_enabled('jsonrpc') AND bug.assigned_to.login == 'bug-wranglers@gentoo.org' %]
+      [%# This seciton mostly left unindented to make updates from create.html.tmpl easier. %]
+        <table>
+    <tr id="possible_duplicates_container">
+      <th>Possible<br>Duplicates:</th>
+      <td colspan="3">
+        <div id="possible_duplicates"></div>
+        <script type="text/javascript">
+          var dt_columns = [
+              { key: "id", label: "[% field_descs.bug_id FILTER js %]",
+                formatter: YAHOO.bugzilla.dupTable.formatBugLink },
+              { key: "summary",
+                label: "[% field_descs.short_desc FILTER js %]",
+                formatter: "text" },
+              { key: "status",
+                label: "[% field_descs.bug_status FILTER js %]",
+                formatter: YAHOO.bugzilla.dupTable.formatStatus },
+              { key: "update_token", label: '',
+                formatter: YAHOO.bugzilla.dupTable.formatCcButton }
+          ];
+          YAHOO.bugzilla.dupTable.addCcMessage = "Add Me to the CC List";
+          YAHOO.bugzilla.dupTable.init({
+            container: 'possible_duplicates',
+            columns: dt_columns,
+            product_name: '[% product.name FILTER js %]',
+            summary_field: 'short_desc',
+            options: {
+              MSG_LOADING: 'Searching for possible duplicates...',
+              MSG_EMPTY:   'No possible duplicates found.',
+              SUMMARY:     'Possible Duplicates'
+            }
+          });
+        </script>
+      </td>
+    </tr>
+        </table><br>
+      [% END %]
+
     [%# For logged-out users %]
     [% ELSE %]
       <table>
