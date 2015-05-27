@@ -142,7 +142,7 @@ sub quicksearch {
     $searchstring =~ s/(^[\s,]+|[\s,]+$)//g;
     ThrowUserError('buglist_parameters_required') unless ($searchstring);
 
-    if ($searchstring =~ m/^[0-9,\s]*$/) {
+    if ($searchstring =~ m/^#?[0-9,\s]*$/) {
         _bug_numbers_only($searchstring);
     }
     else {
@@ -301,6 +301,8 @@ sub _bug_numbers_only {
     my $cgi = Bugzilla->cgi;
     # Allow separation by comma or whitespace.
     $searchstring =~ s/[,\s]+/,/g;
+    # Trim the leading # if used.
+    $searchstring =~ s/^#//;
 
     if ($searchstring !~ /,/ && !i_am_webservice()) {
         # Single bug number; shortcut to show_bug.cgi.
