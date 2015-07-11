@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,6 +6,7 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
 use warnings;
 
@@ -250,7 +251,6 @@ sub process_bug {
     foreach my $field (keys %fields) {
         $cgi->param(-name => $field, -value => $fields{$field});
     }
-    $cgi->param('longdesclength', scalar @{ $bug->comments });
     $cgi->param('token', issue_hash_token([$bug->id, $bug->delta_ts]));
 
     require 'process_bug.cgi';
@@ -469,7 +469,7 @@ sub die_handler {
 
     # If this is inside an eval, then we should just act like...we're
     # in an eval (instead of printing the error and exiting).
-    die(@_) if $^S;
+    die @_ if ($^S // Bugzilla::Error::_in_eval());
 
     # We can't depend on the MTA to send an error message, so we have
     # to generate one properly.

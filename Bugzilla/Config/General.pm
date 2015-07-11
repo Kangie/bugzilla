@@ -6,7 +6,11 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Config::General;
+
+use 5.10.1;
 use strict;
+use warnings;
+
 use Bugzilla::Config::Common;
 
 our $sortkey = 150;
@@ -18,13 +22,6 @@ use constant get_param_list => (
    no_reset => '1',
    default => '',
    checker => \&check_email
-  },
-
-  {
-   name => 'docs_urlbase',
-   type => 't',
-   default => 'docs/%lang%/html/',
-   checker => \&check_url
   },
 
   {

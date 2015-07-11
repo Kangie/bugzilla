@@ -5,9 +5,11 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-use strict;
-
 package Bugzilla::Classification;
+
+use 5.10.1;
+use strict;
+use warnings;
 
 use Bugzilla::Constants;
 use Bugzilla::Field;
@@ -15,12 +17,14 @@ use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Product;
 
-use base qw(Bugzilla::Field::ChoiceInterface Bugzilla::Object Exporter);
+use parent qw(Bugzilla::Field::ChoiceInterface Bugzilla::Object Exporter);
 @Bugzilla::Classification::EXPORT = qw(sort_products_by_classification);
 
 ###############################
 ####    Initialization     ####
 ###############################
+
+use constant IS_CONFIG => 1;
 
 use constant DB_TABLE => 'classifications';
 use constant LIST_ORDER => 'sortkey, name';
@@ -47,6 +51,7 @@ use constant VALIDATORS => {
 ###############################
 ####     Constructors     #####
 ###############################
+
 sub remove_from_db {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
@@ -54,9 +59,19 @@ sub remove_from_db {
     ThrowUserError("classification_not_deletable") if ($self->id == 1);
 
     $dbh->bz_start_transaction();
+
     # Reclassify products to the default classification, if needed.
-    $dbh->do("UPDATE products SET classification_id = 1
-              WHERE classification_id = ?", undef, $self->id);
+    my $product_ids = $dbh->selectcol_arrayref(
+        'SELECT id FROM products WHERE classification_id = ?', undef, $self->id);
+
+    if (@$product_ids) {
+        $dbh->do('UPDATE products SET classification_id = 1 WHERE '
+                  . $dbh->sql_in('id', $product_ids));
+        foreach my $id (@$product_ids) {
+            Bugzilla->memcached->clear({ table => 'products', id => $id });
+        }
+        Bugzilla->memcached->clear_config();
+    }
 
     $self->SUPER::remove_from_db();
 
@@ -259,3 +274,21 @@ A Classification is a higher-level grouping of Products.
 =back
 
 =cut
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item set_description
+
+=item sortkey
+
+=item set_name
+
+=item description
+
+=item remove_from_db
+
+=item set_sortkey
+
+=back

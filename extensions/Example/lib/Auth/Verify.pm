@@ -6,8 +6,12 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Extension::Example::Auth::Verify;
+
+use 5.10.1;
 use strict;
-use base qw(Bugzilla::Auth::Verify);
+use warnings;
+
+use parent qw(Bugzilla::Auth::Verify);
 use Bugzilla::Constants;
 
 # A verifier that always fails.

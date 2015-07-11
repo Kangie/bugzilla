@@ -6,8 +6,12 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Search::Condition;
+
+use 5.10.1;
 use strict;
-use base qw(Exporter);
+use warnings;
+
+use parent qw(Exporter);
 our @EXPORT_OK = qw(condition);
 
 sub new {
@@ -73,3 +77,27 @@ sub condition {
 }
 
 1;
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item as_string
+
+=item fov
+
+=item value
+
+=item negate
+
+=item translated
+
+=item operator
+
+=item as_params
+
+=item condition
+
+=item field
+
+=back

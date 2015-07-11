@@ -7,9 +7,11 @@
 
 package Bugzilla::WebService::Classification;
 
+use 5.10.1;
 use strict;
+use warnings;
 
-use base qw (Bugzilla::WebService);
+use parent qw (Bugzilla::WebService);
 
 use Bugzilla::Classification;
 use Bugzilla::Error;
@@ -44,39 +46,37 @@ sub get {
         @classification_objs = grep { $selectable_class{$_->id} } @classification_objs;
     }
 
-    my @classifications = map { filter($params, $self->_classification_to_hash($_)) } @classification_objs;
+    my @classifications = map { $self->_classification_to_hash($_, $params) } @classification_objs;
 
     return { classifications => \@classifications };
 }
 
 sub _classification_to_hash {
-    my ($self, $classification) = @_;
+    my ($self, $classification, $params) = @_;
 
     my $user = Bugzilla->user;
     return unless (Bugzilla->params->{'useclassification'} || $user->in_group('editclassifications'));
 
     my $products = $user->in_group('editclassifications') ?
                      $classification->products : $user->get_selectable_products($classification->id);
-    my %hash = (
+
+    return filter $params, {
         id          => $self->type('int',    $classification->id),
         name        => $self->type('string', $classification->name),
         description => $self->type('string', $classification->description),
         sort_key    => $self->type('int',    $classification->sortkey),
-        products    => [ map { $self->_product_to_hash($_) } @$products ],
-    );
-
-    return \%hash;
+        products    => [ map { $self->_product_to_hash($_, $params) } @$products ],
+    };
 }
 
 sub _product_to_hash {
-    my ($self, $product) = @_;
-    my %hash = (
+    my ($self, $product, $params) = @_;
+
+    return filter $params, {
        id          => $self->type('int', $product->id),
        name        => $self->type('string', $product->name),
        description => $self->type('string', $product->description),
-   );
-
-   return \%hash;
+   }, undef, 'products';
 }
 
 1;
@@ -89,13 +89,17 @@ Bugzilla::Webservice::Classification - The Classification API
 
 =head1 DESCRIPTION
 
-This part of the Bugzilla API allows you to deal with the available Classifications. 
+This part of the Bugzilla API allows you to deal with the available Classifications.
 You will be able to get information about them as well as manipulate them.
 
 =head1 METHODS
 
 See L<Bugzilla::WebService> for a description of how parameters are passed,
 and what B<STABLE>, B<UNSTABLE>, and B<EXPERIMENTAL> mean.
+
+Although the data input and output is the same for JSONRPC, XMLRPC and REST,
+the directions for how to access the data via REST is noted in each method
+where applicable.
 
 =head1 Classification Retrieval
 
@@ -109,13 +113,21 @@ B<EXPERIMENTAL>
 
 Returns a hash containing information about a set of classifications.
 
+=item B<REST>
+
+To return information on a single classification:
+
+GET /rest/classification/<classification_id_or_name>
+
+The returned data format will be the same as below.
+
 =item B<Params>
 
 In addition to the parameters below, this method also accepts the
 standard L<include_fields|Bugzilla::WebService/include_fields> and
 L<exclude_fields|Bugzilla::WebService/exclude_fields> arguments.
 
-You could get classifications info by supplying their names and/or ids. 
+You could get classifications info by supplying their names and/or ids.
 So, this method accepts the following parameters:
 
 =over
@@ -130,10 +142,10 @@ An array of classification names.
 
 =back
 
-=item B<Returns>    
+=item B<Returns>
 
 A hash with the key C<classifications> and an array of hashes as the corresponding value.
-Each element of the array represents a classification that the user is authorized to see 
+Each element of the array represents a classification that the user is authorized to see
 and has the following keys:
 
 =over
@@ -192,6 +204,8 @@ Classification is not enabled on this installation.
 =over
 
 =item Added in Bugzilla B<4.4>.
+
+=item REST API call added in Bugzilla B<5.0>.
 
 =back
 

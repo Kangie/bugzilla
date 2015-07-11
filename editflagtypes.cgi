@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,15 +6,12 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-################################################################################
-# Script Initialization
-################################################################################
-
-# Make it harder for us to do dangerous things in Perl.
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
-# Use Bugzilla's flag modules for handling flag types.
 use Bugzilla;
 use Bugzilla::Constants;
 use Bugzilla::Flag;
@@ -73,7 +70,7 @@ if (my ($category_action) = grep { $_ =~ /^categoryAction-(?:\w+)$/ } $cgi->para
     my @categories;
     if ($category_action =~ /^(in|ex)clude$/) {
         if (!$user->in_group('editcomponents') && !$product) {
-            # The user can only add the flag type to products he can administrate.
+            # The user can only add the flag type to products they can administrate.
             foreach my $prod (@products) {
                 push(@categories, $prod->id . ':0')
             }

@@ -7,7 +7,9 @@
 
 package Bugzilla::Config::Query;
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use Bugzilla::Config::Common;
 
@@ -22,13 +24,6 @@ sub get_param_list {
    choices => ['open', 'moderated', 'closed'],
    default => 'open',
    checker => \&check_multi
-  },
-
-  {
-   name => 'mostfreqthreshold',
-   type => 't',
-   default => '2',
-   checker => \&check_numeric
   },
 
   {

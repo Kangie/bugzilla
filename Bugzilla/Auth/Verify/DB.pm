@@ -6,8 +6,12 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Auth::Verify::DB;
+
+use 5.10.1;
 use strict;
-use base qw(Bugzilla::Auth::Verify);
+use warnings;
+
+use parent qw(Bugzilla::Auth::Verify);
 
 use Bugzilla::Constants;
 use Bugzilla::Token;
@@ -52,10 +56,19 @@ sub check_credentials {
                };
     } 
 
-    # Force the user to type a longer password if it's too short.
-    if (length($password) < USER_PASSWORD_MIN_LENGTH) {
-        return { failure => AUTH_ERROR, user_error => 'password_current_too_short',
-                 details => { locked_user => $user } };
+    # Force the user to change their password if it does not meet the current
+    # criteria. This should usually only happen if the criteria has changed.
+    if (Bugzilla->usage_mode == USAGE_MODE_BROWSER &&
+        Bugzilla->params->{password_check_on_login})
+    {
+        my $check = validate_password_check($password);
+        if ($check) {
+            return {
+                failure => AUTH_ERROR,
+                user_error => $check,
+                details => { locked_user => $user }
+            }
+        }
     }
 
     # The user's credentials are okay, so delete any outstanding
@@ -63,11 +76,22 @@ sub check_credentials {
     Bugzilla::Token::DeletePasswordTokens($user->id, "user_logged_in");
     $user->clear_login_failures();
 
+    my $update_password = 0;
+
     # If their old password was using crypt() or some different hash
     # than we're using now, convert the stored password to using
     # whatever hashing system we're using now.
     my $current_algorithm = PASSWORD_DIGEST_ALGORITHM;
-    if ($real_password_crypted !~ /{\Q$current_algorithm\E}$/) {
+    $update_password = 1 if ($real_password_crypted !~ /{\Q$current_algorithm\E}$/);
+
+    # If their old password was using a different length salt than what
+    # we're using now, update the password to use the new salt length.
+    if ($real_password_crypted =~ /^([^,]+),/) {
+        $update_password = 1 if (length($1) != PASSWORD_SALT_LENGTH);
+    }
+
+    # If needed, update the user's password.
+    if ($update_password) {
         # We can't call $user->set_password because we don't want the password
         # complexity rules to apply here.
         $user->{cryptpassword} = bz_crypt($password);
@@ -83,6 +107,7 @@ sub change_password {
     my $cryptpassword = bz_crypt($password);
     $dbh->do("UPDATE profiles SET cryptpassword = ? WHERE userid = ?",
              undef, $cryptpassword, $user->id);
+    Bugzilla->memcached->clear({ table => 'profiles', id => $user->id });
 }
 
 1;

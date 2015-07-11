@@ -12,7 +12,7 @@
 # More detailed information on each constant is available in the comments
 # in this file.
 package Bugzilla::Test::Search::Constants;
-use base qw(Exporter);
+use parent qw(Exporter);
 use Bugzilla::Constants;
 use Bugzilla::Util qw(generate_random_password);
 
@@ -947,6 +947,9 @@ use constant TESTS => {
           },
         },
     ],
+    # XXX these need tests developed
+    isempty => [],
+    isnotempty => [],
 };
 
 # Fields that do not behave as we expect, for InjectionTest.
@@ -995,6 +998,8 @@ use constant INJECTION_BROKEN_OPERATOR => {
     changedafter  => { search => 1, field_ok => ['creation_ts'] },
     changedbefore => { search => 1, field_ok => ['creation_ts'] },
     changedby     => { search => 1 },
+    isempty       => { search => 1 },
+    isnotempty    => { search => 1 },
 };
 
 # Tests run by Bugzilla::Test::Search::InjectionTest.

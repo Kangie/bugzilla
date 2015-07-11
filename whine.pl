@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,9 @@
 # Script Initialization
 ################################################################################
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib qw(. lib);
 
@@ -422,16 +424,8 @@ sub run_queries {
         next unless $savedquery;    # silently ignore missing queries
 
         # Execute the saved query
-        my @searchfields = qw(
-            bug_id
-            bug_severity
-            priority
-            rep_platform
-            assigned_to
-            bug_status
-            resolution
-            short_desc
-        );
+        my @searchfields = ('bug_id', DEFAULT_COLUMN_LIST);
+
         # A new Bugzilla::CGI object needs to be created to allow
         # Bugzilla::Search to execute a saved query.  It's exceedingly weird,
         # but that's how it works.

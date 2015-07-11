@@ -5,9 +5,11 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-use strict;
-
 package Bugzilla::Attachment;
+
+use 5.10.1;
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -44,8 +46,9 @@ use Bugzilla::Hook;
 
 use File::Copy;
 use List::Util qw(max);
+use Storable qw(dclone);
 
-use base qw(Bugzilla::Object);
+use parent qw(Bugzilla::Object);
 
 ###############################
 ####    Initialization     ####
@@ -58,22 +61,19 @@ use constant LIST_ORDER => ID_FIELD;
 use constant AUDIT_CREATES => 0;
 use constant AUDIT_UPDATES => 0;
 
-sub DB_COLUMNS {
-    my $dbh = Bugzilla->dbh;
-
-    return qw(
-        attach_id
-        bug_id
-        description
-        filename
-        isobsolete
-        ispatch
-        isprivate
-        mimetype
-        modification_time
-        submitter_id),
-        $dbh->sql_date_format('attachments.creation_ts', '%Y.%m.%d %H:%i') . ' AS creation_ts';
-}
+use constant DB_COLUMNS => qw(
+    attach_id
+    bug_id
+    creation_ts
+    description
+    filename
+    isobsolete
+    ispatch
+    isprivate
+    mimetype
+    modification_time
+    submitter_id
+);
 
 use constant REQUIRED_FIELD_MAP => {
     bug_id => 'bug',
@@ -99,7 +99,8 @@ use constant VALIDATORS => {
 };
 
 use constant VALIDATOR_DEPENDENCIES => {
-    mimetype => ['ispatch'],
+    content_type => ['ispatch'],
+    mimetype     => ['ispatch'],
 };
 
 use constant UPDATE_VALIDATORS => {
@@ -125,8 +126,7 @@ the ID of the bug to which the attachment is attached
 =cut
 
 sub bug_id {
-    my $self = shift;
-    return $self->{bug_id};
+    return $_[0]->{bug_id};
 }
 
 =over
@@ -140,11 +140,8 @@ the bug object to which the attachment is attached
 =cut
 
 sub bug {
-    my $self = shift;
-
     require Bugzilla::Bug;
-    $self->{bug} ||= Bugzilla::Bug->new($self->bug_id);
-    return $self->{bug};
+    return $_[0]->{bug} //= Bugzilla::Bug->new({ id => $_[0]->bug_id, cache => 1 });
 }
 
 =over
@@ -158,8 +155,7 @@ user-provided text describing the attachment
 =cut
 
 sub description {
-    my $self = shift;
-    return $self->{description};
+    return $_[0]->{description};
 }
 
 =over
@@ -173,8 +169,7 @@ the attachment's MIME media type
 =cut
 
 sub contenttype {
-    my $self = shift;
-    return $self->{mimetype};
+    return $_[0]->{mimetype};
 }
 
 =over
@@ -188,10 +183,8 @@ the user who attached the attachment
 =cut
 
 sub attacher {
-    my $self = shift;
-    return $self->{attacher} if exists $self->{attacher};
-    $self->{attacher} = new Bugzilla::User($self->{submitter_id});
-    return $self->{attacher};
+    return $_[0]->{attacher}
+      //= new Bugzilla::User({ id => $_[0]->{submitter_id}, cache => 1 });
 }
 
 =over
@@ -205,8 +198,7 @@ the date and time on which the attacher attached the attachment
 =cut
 
 sub attached {
-    my $self = shift;
-    return $self->{creation_ts};
+    return $_[0]->{creation_ts};
 }
 
 =over
@@ -220,8 +212,7 @@ the date and time on which the attachment was last modified.
 =cut
 
 sub modification_time {
-    my $self = shift;
-    return $self->{modification_time};
+    return $_[0]->{modification_time};
 }
 
 =over
@@ -235,8 +226,7 @@ the name of the file the attacher attached
 =cut
 
 sub filename {
-    my $self = shift;
-    return $self->{filename};
+    return $_[0]->{filename};
 }
 
 =over
@@ -250,8 +240,7 @@ whether or not the attachment is a patch
 =cut
 
 sub ispatch {
-    my $self = shift;
-    return $self->{ispatch};
+    return $_[0]->{ispatch};
 }
 
 =over
@@ -265,8 +254,7 @@ whether or not the attachment is obsolete
 =cut
 
 sub isobsolete {
-    my $self = shift;
-    return $self->{isobsolete};
+    return $_[0]->{isobsolete};
 }
 
 =over
@@ -280,8 +268,7 @@ whether or not the attachment is private
 =cut
 
 sub isprivate {
-    my $self = shift;
-    return $self->{isprivate};
+    return $_[0]->{isprivate};
 }
 
 =over
@@ -298,8 +285,7 @@ matches, because this will return a value even if it's matched by the generic
 =cut
 
 sub is_viewable {
-    my $self = shift;
-    my $contenttype = $self->contenttype;
+    my $contenttype = $_[0]->contenttype;
     my $cgi = Bugzilla->cgi;
 
     # We assume we can view all text and image types.
@@ -373,7 +359,7 @@ the length (in bytes) of the attachment content
 
 sub datasize {
     my $self = shift;
-    return $self->{datasize} if exists $self->{datasize};
+    return $self->{datasize} if defined $self->{datasize};
 
     # If we have already retrieved the data, return its size.
     return length($self->{data}) if exists $self->{data};
@@ -416,11 +402,8 @@ flags that have been set on the attachment
 =cut
 
 sub flags {
-    my $self = shift;
-
     # Don't cache it as it must be in sync with ->flag_types.
-    $self->{flags} = [map { @{$_->{flags}} } @{$self->flag_types}];
-    return $self->{flags};
+    return $_[0]->{flags} = [map { @{$_->{flags}} } @{$_[0]->flag_types}];
 }
 
 =over
@@ -443,8 +426,7 @@ sub flag_types {
                  component_id => $self->bug->component_id,
                  attach_id    => $self->id };
 
-    $self->{flag_types} = Bugzilla::Flag->_flag_types($vars);
-    return $self->{flag_types};
+    return $self->{flag_types} = Bugzilla::Flag->_flag_types($vars);
 }
 
 ###############################
@@ -674,23 +656,27 @@ sub get_attachments_by_bug {
     my $attachments = Bugzilla::Attachment->new_from_list($attach_ids);
     $_->{bug} = $bug foreach @$attachments;
 
-    # To avoid $attachment->flags to run SQL queries itself for each
-    # attachment listed here, we collect all the data at once and
-    # populate $attachment->{flags} ourselves.
-    # We also load all attachers at once for the same reason.
+    # To avoid $attachment->flags and $attachment->flag_types running SQL queries
+    # themselves for each attachment listed here, we collect all the data at once and
+    # populate $attachment->{flag_types} ourselves. We also load all attachers and
+    # datasizes at once for the same reason.
     if ($vars->{preload}) {
-        # Preload flags.
-        $_->{flags} = [] foreach @$attachments;
-        my %att = map { $_->id => $_ } @$attachments;
+        # Preload flag types and flags
+        my $vars = { target_type  => 'attachment',
+                     product_id   => $bug->product_id,
+                     component_id => $bug->component_id,
+                     attach_id    => $attach_ids };
+        my $flag_types = Bugzilla::Flag->_flag_types($vars);
 
-        my $flags = Bugzilla::Flag->match({ bug_id      => $bug->id,
-                                            target_type => 'attachment' });
-
-        # Exclude flags for private attachments you cannot see.
-        @$flags = grep {exists $att{$_->attach_id}} @$flags;
-
-        push(@{$att{$_->attach_id}->{flags}}, $_) foreach @$flags;
-        $attachments = [sort {$a->id <=> $b->id} values %att];
+        foreach my $attachment (@$attachments) {
+            $attachment->{flag_types} = [];
+            my $new_types = dclone($flag_types);
+            foreach my $new_type (@$new_types) {
+                $new_type->{flags} = [ grep($_->attach_id == $attachment->id,
+                                            @{ $new_type->{flags} }) ];
+                push(@{ $attachment->{flag_types} }, $new_type);
+            }
+        }
 
         # Preload attachers.
         my %user_ids = map { $_->{submitter_id} => 1 } @$attachments;
@@ -699,34 +685,44 @@ sub get_attachments_by_bug {
         foreach my $attachment (@$attachments) {
             $attachment->{attacher} = $user_map{$attachment->{submitter_id}};
         }
+
+        # Preload datasizes.
+        my $sizes =
+          $dbh->selectall_hashref('SELECT attach_id, LENGTH(thedata) AS datasize
+                                   FROM attachments LEFT JOIN attach_data ON attach_id = id
+                                   WHERE bug_id = ?',
+                                   'attach_id', undef, $bug->id);
+
+        # Force the size of attachments not in the DB to be recalculated.
+        $_->{datasize} = $sizes->{$_->id}->{datasize} || undef foreach @$attachments;
     }
+
     return $attachments;
 }
 
 =pod
 
-=item C<validate_can_edit($attachment, $product_id)>
+=item C<validate_can_edit>
 
 Description: validates if the user is allowed to view and edit the attachment.
              Only the submitter or someone with editbugs privs can edit it.
              Only the submitter and users in the insider group can view
              private attachments.
 
-Params:      $attachment - the attachment object being edited.
-             $product_id - the product ID the attachment belongs to.
+Params:      none
 
 Returns:     1 on success, 0 otherwise.
 
 =cut
 
 sub validate_can_edit {
-    my ($attachment, $product_id) = @_;
+    my $attachment = shift;
     my $user = Bugzilla->user;
 
     # The submitter can edit their attachments.
     return ($attachment->attacher->id == $user->id
             || ((!$attachment->isprivate || $user->is_insider)
-                 && $user->in_group('editbugs', $product_id))) ? 1 : 0;
+                 && $user->in_group('editbugs', $attachment->bug->product_id))) ? 1 : 0;
 }
 
 =item C<validate_obsolete($bug, $attach_ids)>
@@ -734,7 +730,7 @@ sub validate_can_edit {
 Description: validates if attachments the user wants to mark as obsolete
              really belong to the given bug and are not already obsolete.
              Moreover, a user cannot mark an attachment as obsolete if
-             he cannot view it (due to restrictions on it).
+             they cannot view it (due to restrictions on it).
 
 Params:      $bug - The bug object obsolete attachments should belong to.
              $attach_ids - The list of attachments to mark as obsolete.
@@ -763,7 +759,7 @@ sub validate_obsolete {
           || ThrowUserError('invalid_attach_id', $vars);
 
         # Check that the user can view and edit this attachment.
-        $attachment->validate_can_edit($bug->product_id)
+        $attachment->validate_can_edit
           || ThrowUserError('illegal_attachment_edit', { attach_id => $attachment->id });
 
         if ($attachment->bug_id != $bug->bug_id) {
@@ -904,10 +900,14 @@ sub update {
     }
 
     if (scalar(keys %$changes)) {
-      $dbh->do('UPDATE attachments SET modification_time = ? WHERE attach_id = ?',
-               undef, ($timestamp, $self->id));
-      $dbh->do('UPDATE bugs SET delta_ts = ? WHERE bug_id = ?',
-               undef, ($timestamp, $self->bug_id));
+        $dbh->do('UPDATE attachments SET modification_time = ? WHERE attach_id = ?',
+                 undef, ($timestamp, $self->id));
+        $dbh->do('UPDATE bugs SET delta_ts = ? WHERE bug_id = ?',
+                 undef, ($timestamp, $self->bug_id));
+        $self->{modification_time} = $timestamp;
+        # because we updated the attachments table after SUPER::update(), we
+        # need to ensure the cache is flushed.
+        Bugzilla->memcached->clear({ table => 'attachments', id => $self->id });
     }
 
     return $changes;
@@ -932,7 +932,10 @@ sub remove_from_db {
     my $dbh = Bugzilla->dbh;
 
     $dbh->bz_start_transaction();
-    $dbh->do('DELETE FROM flags WHERE attach_id = ?', undef, $self->id);
+    my $flag_ids = $dbh->selectcol_arrayref(
+        'SELECT id FROM flags WHERE attach_id = ?', undef, $self->id);
+    $dbh->do('DELETE FROM flags WHERE ' . $dbh->sql_in('id', $flag_ids))
+        if @$flag_ids;
     $dbh->do('DELETE FROM attach_data WHERE id = ?', undef, $self->id);
     $dbh->do('UPDATE attachments SET mimetype = ?, ispatch = ?, isobsolete = ?
               WHERE attach_id = ?', undef, ('text/plain', 0, 1, $self->id));
@@ -941,6 +944,13 @@ sub remove_from_db {
     my $filename = $self->_get_local_filename;
     if (-e $filename) {
         unlink $filename or warn "Couldn't unlink $filename: $!";
+    }
+
+    # As we don't call SUPER->remove_from_db we need to manually clear
+    # memcached here.
+    Bugzilla->memcached->clear({ table => 'attachments', id => $self->id });
+    foreach my $flag_id (@$flag_ids) {
+        Bugzilla->memcached->clear({ table => 'flags', id => $flag_id });
     }
 }
 
@@ -985,3 +995,29 @@ sub get_content_type {
 
 
 1;
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item set_filename
+
+=item set_is_obsolete
+
+=item DB_COLUMNS
+
+=item set_is_private
+
+=item set_content_type
+
+=item set_description
+
+=item get_content_type
+
+=item set_flags
+
+=item set_is_patch
+
+=item update
+
+=back

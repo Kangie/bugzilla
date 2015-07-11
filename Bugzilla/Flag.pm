@@ -5,9 +5,11 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-use strict;
-
 package Bugzilla::Flag;
+
+use 5.10.1;
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -49,7 +51,7 @@ use Bugzilla::Mailer;
 use Bugzilla::Constants;
 use Bugzilla::Field;
 
-use base qw(Bugzilla::Object Exporter);
+use parent qw(Bugzilla::Object Exporter);
 @Bugzilla::Flag::EXPORT = qw(SKIP_REQUESTEE_ON_ERROR);
 
 ###############################
@@ -180,22 +182,20 @@ is an attachment flag, else undefined.
 sub type {
     my $self = shift;
 
-    $self->{'type'} ||= new Bugzilla::FlagType($self->{'type_id'});
-    return $self->{'type'};
+    return $self->{'type'} ||= new Bugzilla::FlagType($self->{'type_id'});
 }
 
 sub setter {
     my $self = shift;
 
-    $self->{'setter'} ||= new Bugzilla::User($self->{'setter_id'});
-    return $self->{'setter'};
+    return $self->{'setter'} ||= new Bugzilla::User({ id => $self->{'setter_id'}, cache => 1 });
 }
 
 sub requestee {
     my $self = shift;
 
     if (!defined $self->{'requestee'} && $self->{'requestee_id'}) {
-        $self->{'requestee'} = new Bugzilla::User($self->{'requestee_id'});
+        $self->{'requestee'} = new Bugzilla::User({ id => $self->{'requestee_id'}, cache => 1 });
     }
     return $self->{'requestee'};
 }
@@ -205,16 +205,15 @@ sub attachment {
     return undef unless $self->attach_id;
 
     require Bugzilla::Attachment;
-    $self->{'attachment'} ||= new Bugzilla::Attachment($self->attach_id);
-    return $self->{'attachment'};
+    return $self->{'attachment'}
+      ||= new Bugzilla::Attachment({ id => $self->attach_id, cache => 1 });
 }
 
 sub bug {
     my $self = shift;
 
     require Bugzilla::Bug;
-    $self->{'bug'} ||= new Bugzilla::Bug($self->bug_id);
-    return $self->{'bug'};
+    return $self->{'bug'} ||= new Bugzilla::Bug({ id => $self->bug_id, cache => 1 });
 }
 
 ################################
@@ -464,6 +463,7 @@ sub update {
                  undef, ($timestamp, $self->id));
         $self->{'modification_date'} =
           format_time($timestamp, '%Y.%m.%d %T', Bugzilla->local_timezone);
+        Bugzilla->memcached->clear({ table => 'flags', id => $self->id });
     }
     return $changes;
 }
@@ -610,6 +610,7 @@ sub force_retarget {
         if ($is_retargetted) {
             $dbh->do('UPDATE flags SET type_id = ? WHERE id = ?',
                      undef, ($flag->type_id, $flag->id));
+            Bugzilla->memcached->clear({ table => 'flags', id => $flag->id });
         }
         else {
             # Track deleted attachment flags.
@@ -670,9 +671,14 @@ sub _check_requestee {
         # Make sure the user didn't specify a requestee unless the flag
         # is specifically requestable. For existing flags, if the requestee
         # was set before the flag became specifically unrequestable, the
-        # user can either remove him or leave him alone.
-        ThrowUserError('flag_requestee_disabled', { type => $self->type })
+        # user can either remove them or leave them alone.
+        ThrowUserError('flag_type_requestee_disabled', { type => $self->type })
           if !$self->type->is_requesteeble;
+
+        # You can't ask a disabled account, as they don't have the ability to
+        # set the flag.
+        ThrowUserError('flag_requestee_disabled', { requestee => $requestee })
+          if !$requestee->is_enabled;
 
         # Make sure the requestee can see the bug.
         # Note that can_see_bug() will query the DB, so if the bug
@@ -821,7 +827,7 @@ sub extract_flags_from_cgi {
     # Extract a list of existing flag IDs.
     my @flag_ids = map(/^flag-(\d+)$/ ? $1 : (), $cgi->param());
 
-    return () if (!scalar(@flagtype_ids) && !scalar(@flag_ids));
+    return ([], []) unless (scalar(@flagtype_ids) || scalar(@flag_ids));
 
     my (@new_flags, @flags);
     foreach my $flag_id (@flag_ids) {
@@ -916,6 +922,117 @@ sub extract_flags_from_cgi {
         else {
             push (@new_flags, { type_id => $type_id,
                                 status  => $status });
+        }
+    }
+
+    # Return the list of flags to update and/or to create.
+    return (\@flags, \@new_flags);
+}
+
+=pod
+
+=over
+
+=item C<multi_extract_flags_from_cgi($bug, $hr_vars)>
+
+Checks whether or not there are new flags to create and returns an
+array of hashes. This array is then passed to Flag::create(). This differs
+from the previous sub-routine as it is called for changing multiple bugs
+
+=back
+
+=cut
+
+sub multi_extract_flags_from_cgi {
+    my ($class, $bug, $vars, $skip) = @_;
+    my $cgi = Bugzilla->cgi;
+
+    my $match_status = Bugzilla::User::match_field({
+        '^requestee(_type)?-(\d+)$' => { 'type' => 'multi' },
+    }, undef, $skip);
+
+    $vars->{'match_field'} = 'requestee';
+    if ($match_status == USER_MATCH_FAILED) {
+        $vars->{'message'} = 'user_match_failed';
+    }
+    elsif ($match_status == USER_MATCH_MULTIPLE) {
+        $vars->{'message'} = 'user_match_multiple';
+    }
+
+    # Extract a list of flag type IDs from field names.
+    my @flagtype_ids = map(/^flag_type-(\d+)$/ ? $1 : (), $cgi->param());
+
+    my (@new_flags, @flags);
+
+    # Get a list of active flag types available for this product/component.
+    my $flag_types = Bugzilla::FlagType::match(
+        { 'product_id'   => $bug->{'product_id'},
+          'component_id' => $bug->{'component_id'},
+          'is_active'    => 1 });
+
+    foreach my $flagtype_id (@flagtype_ids) {
+        # Checks if there are unexpected flags for the product/component.
+        if (!scalar(grep { $_->id == $flagtype_id } @$flag_types)) {
+            $vars->{'message'} = 'unexpected_flag_types';
+            last;
+        }
+    }
+
+    foreach my $flag_type (@$flag_types) {
+        my $type_id = $flag_type->id;
+
+        # Bug flags are only valid for bugs
+        next unless ($flag_type->target_type eq 'bug');
+
+        # We are only interested in flags the user tries to create.
+        next unless scalar(grep { $_ == $type_id } @flagtype_ids);
+
+        # Get the flags of this type already set for this bug.
+        my $current_flags = $class->match(
+            { 'type_id'     => $type_id,
+              'target_type' => 'bug',
+              'bug_id'      => $bug->bug_id });
+
+        # We will update existing flags (instead of creating new ones)
+        # if the flag exists and the user has not chosen the 'always add'
+        # option
+        my $update = scalar(@$current_flags) && ! $cgi->param("flags_add-$type_id");
+
+        my $status = $cgi->param("flag_type-$type_id");
+        trick_taint($status);
+
+        my @logins = $cgi->param("requestee_type-$type_id");
+        if ($status eq "?" && scalar(@logins)) {
+            foreach my $login (@logins) {
+                if ($update) {
+                foreach my $current_flag (@$current_flags) {
+                    push (@flags, { id        => $current_flag->id,
+                                    status    => $status,
+                                    requestee => $login,
+                                    skip_roe  => $skip });
+                    }
+                }
+                else {
+                    push (@new_flags, { type_id   => $type_id,
+                                        status    => $status,
+                                        requestee => $login,
+                                        skip_roe  => $skip });
+                }
+
+                last unless $flag_type->is_multiplicable;
+            }
+        }
+        else {
+            if ($update) {
+                foreach my $current_flag (@$current_flags) {
+                    push (@flags, { id      => $current_flag->id,
+                                    status  => $status });
+                }
+            }
+            else {
+                push (@new_flags, { type_id => $type_id,
+                                    status  => $status });
+            }
         }
     }
 
@@ -1087,3 +1204,29 @@ sub _flag_types {
 }
 
 1;
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item update_activity
+
+=item setter_id
+
+=item bug
+
+=item requestee_id
+
+=item DB_COLUMNS
+
+=item set_flag
+
+=item type_id
+
+=item snapshot
+
+=item update_flags
+
+=item update
+
+=back

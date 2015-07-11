@@ -6,7 +6,11 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Auth::Persist::Cookie;
+
+use 5.10.1;
 use strict;
+use warnings;
+
 use fields qw();
 
 use Bugzilla::Constants;
@@ -108,7 +112,7 @@ sub logout {
     if ($cookie) {
         push(@login_cookies, $cookie->value);
     }
-    elsif ($cookie = $cgi->cookie("Bugzilla_logincookie")) {
+    elsif ($cookie = $cgi->cookie('Bugzilla_logincookie')) {
         push(@login_cookies, $cookie);
     }
 
@@ -147,6 +151,7 @@ sub logout {
     if ($type != LOGOUT_KEEP_CURRENT) {
         clear_browser_cookies();
     }
+
 }
 
 sub clear_browser_cookies {

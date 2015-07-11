@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,10 @@
 # are being run instead of shown. This script does not rely on database access
 # or correct params.
 
+use 5.10.1;
 use strict;
-print "content-type:text/plain\n\n";
-print "OK " . ($::ENV{MOD_PERL} || "mod_cgi") . "\n";
+use warnings;
+
+say "content-type:text/plain\n";
+say "OK " . ($::ENV{MOD_PERL} || "mod_cgi");
 exit;

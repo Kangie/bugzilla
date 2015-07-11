@@ -5,9 +5,13 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-use strict;
 package Bugzilla::DB::Schema::Sqlite;
-use base qw(Bugzilla::DB::Schema);
+
+use 5.10.1;
+use strict;
+use warnings;
+
+use parent qw(Bugzilla::DB::Schema);
 
 use Bugzilla::Error;
 use Bugzilla::Util qw(generate_random_password);
@@ -43,6 +47,7 @@ sub _initialize {
         LONGBLOB =>     'blob',
 
         DATETIME =>     'DATETIME',
+        DATE     =>     'DATETIME',
     };
 
     $self->_adjust_schema;
@@ -296,3 +301,25 @@ sub get_drop_fk_sql {
 
 
 1;
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item get_rename_column_ddl
+
+=item get_add_fks_sql
+
+=item get_drop_fk_sql
+
+=item get_create_database_sql
+
+=item get_alter_column_ddl
+
+=item get_add_column_ddl
+
+=item get_type_ddl
+
+=item get_drop_column_ddl
+
+=back

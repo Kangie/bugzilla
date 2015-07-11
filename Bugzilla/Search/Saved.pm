@@ -5,11 +5,13 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-use strict;
-
 package Bugzilla::Search::Saved;
 
-use base qw(Bugzilla::Object);
+use 5.10.1;
+use strict;
+use warnings;
+
+use parent qw(Bugzilla::Object);
 
 use Bugzilla::CGI;
 use Bugzilla::Constants;
@@ -186,6 +188,7 @@ sub rename_field_value {
         }
         $dbh->do("UPDATE $table SET query = ? WHERE $id_field = ?",
                  undef, $query, $id);
+        Bugzilla->memcached->clear({ table => $table, id => $id });
     }
 
     $dbh->bz_commit_transaction();
@@ -288,9 +291,8 @@ sub url  { return $_[0]->{'query'}; }
 
 sub user {
     my ($self) = @_;
-    return $self->{user} if defined $self->{user};
-    $self->{user} = new Bugzilla::User($self->{userid});
-    return $self->{user};
+    return $self->{user} ||=
+        Bugzilla::User->new({ id => $self->{userid}, cache => 1 });
 }
 
 ############
@@ -383,5 +385,23 @@ this search isn't shared.
 
 Returns how many users (besides the author of the saved search) are
 using the saved search, i.e. have it displayed in their footer.
+
+=back
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item create
+
+=item set_name
+
+=item set_url
+
+=item rename_field_value
+
+=item user
+
+=item used_in_whine
 
 =back
