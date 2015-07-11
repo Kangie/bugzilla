@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,9 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib qw(. lib);
 
@@ -75,6 +77,7 @@ if ($action eq "add") {
              undef, ($user->id, $comment, $approved));
 
     $vars->{'added_quip'} = $comment;
+    $vars->{'message'} = 'quips_added';
 }
 
 if ($action eq 'approve') {
@@ -115,6 +118,7 @@ if ($action eq 'approve') {
             join(",", @unapproved) . ")") if($#unapproved > -1);
     $vars->{ 'approved' }   = \@approved;
     $vars->{ 'unapproved' } = \@unapproved;
+    $vars->{'message'} = 'quips_approved_unapproved';
 }
 
 if ($action eq "delete") {
@@ -130,6 +134,7 @@ if ($action eq "delete") {
                                     "SELECT quip FROM quips WHERE quipid = ?",
                                     undef, $quipid);
     $dbh->do("DELETE FROM quips WHERE quipid = ?", undef, $quipid);
+    $vars->{'message'} = 'quips_deleted';
 }
 
 print $cgi->header();

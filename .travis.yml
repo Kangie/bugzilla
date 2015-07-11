@@ -6,6 +6,8 @@ addons:
 perl:
   - 5.10
   - 5.12
+  - 5.14
+  - 5.16
 
 env:
   - TEST_SUITE=sanity
@@ -17,19 +19,39 @@ env:
 
 matrix:
   exclude:
+    - perl: 5.10
+      env: TEST_SUITE=docs
     - perl: 5.12
+      env: TEST_SUITE=docs
+    - perl: 5.14
       env: TEST_SUITE=docs
     - perl: 5.10
       env: TEST_SUITE=webservices DB=mysql
-    - perl: 5.12
-      env: TEST_SUITE=selenium DB=mysql
     - perl: 5.10
       env: TEST_SUITE=webservices DB=pg
+    - perl: 5.10
+      env: TEST_SUITE=selenium DB=mysql
+    - perl: 5.10
+      env: TEST_SUITE=selenium DB=pg
     - perl: 5.12
+      env: TEST_SUITE=webservices DB=mysql
+    - perl: 5.12
+      env: TEST_SUITE=webservices DB=pg
+    - perl: 5.12
+      env: TEST_SUITE=selenium DB=mysql
+    - perl: 5.12
+      env: TEST_SUITE=selenium DB=pg
+    - perl: 5.14
+      env: TEST_SUITE=webservices DB=mysql
+    - perl: 5.14
+      env: TEST_SUITE=webservices DB=pg
+    - perl: 5.14
+      env: TEST_SUITE=selenium DB=mysql
+    - perl: 5.14
       env: TEST_SUITE=selenium DB=pg
 
 before_install:
-  - git clone https://github.com/bugzilla/qa.git -b 4.4 qa
+  - git clone https://github.com/bugzilla/qa.git -b 5.0 qa
 
 install: true
 

@@ -7,8 +7,9 @@
 
 package Bugzilla::Search::Quicksearch;
 
-# Make it harder for us to do dangerous things in Perl.
+use 5.10.1;
 use strict;
+use warnings;
 
 use Bugzilla::Error;
 use Bugzilla::Constants;
@@ -21,7 +22,7 @@ use List::Util qw(min max);
 use List::MoreUtils qw(firstidx);
 use Text::ParseWords qw(parse_line);
 
-use base qw(Exporter);
+use parent qw(Exporter);
 @Bugzilla::Search::Quicksearch::EXPORT = qw(quicksearch);
 
 # Custom mappings for some fields.
@@ -101,6 +102,17 @@ sub FIELD_MAP {
 use constant FIELD_OPERATOR => {
     content         => 'matches',
     owner_idle_time => 'greaterthan',
+};
+
+# Mappings for operators symbols to support operators other than "substring"
+use constant OPERATOR_SYMBOLS => {
+    ':'  => 'substring',
+    '='  => 'equals',
+    '!=' => 'notequals',
+    '>=' => 'greaterthaneq',
+    '<=' => 'lessthaneq',
+    '>'  => 'greaterthan',
+    '<'  => 'lessthan',
 };
 
 # We might want to put this into localconfig or somewhere
@@ -196,6 +208,7 @@ sub quicksearch {
         foreach my $qsword (@qswords) {
             my @or_operand = _parse_line('\|', 1, $qsword);
             foreach my $term (@or_operand) {
+                next unless defined $term;
                 my $negate = substr($term, 0, 1) eq '-';
                 if ($negate) {
                     $term = substr($term, 1);
@@ -262,6 +275,8 @@ sub quicksearch {
 
 sub _parse_line {
     my ($delim, $keep, $line) = @_;
+    return () unless defined $line;
+
     # parse_line always treats ' as a quote character, making it impossible
     # to sanely search for contractions. As this behavour isn't
     # configurable, we replace ' with a placeholder to hide it from the
@@ -276,7 +291,7 @@ sub _parse_line {
 
     my @words = parse_line($delim, $keep, $line);
     foreach my $word (@words) {
-        $word =~ tr/\000/'/;
+        $word =~ tr/\000/'/ if defined $word;
     }
     return @words;
 }
@@ -287,7 +302,7 @@ sub _bug_numbers_only {
     # Allow separation by comma or whitespace.
     $searchstring =~ s/[,\s]+/,/g;
 
-    if ($searchstring !~ /,/) {
+    if ($searchstring !~ /,/ && !i_am_webservice()) {
         # Single bug number; shortcut to show_bug.cgi.
         print $cgi->redirect(
             -uri => correct_urlbase() . "show_bug.cgi?id=$searchstring");
@@ -307,9 +322,10 @@ sub _handle_alias {
         my $alias = $1;
         # We use this direct SQL because we want quicksearch to be VERY fast.
         my $bug_id = Bugzilla->dbh->selectrow_array(
-            q{SELECT bug_id FROM bugs WHERE alias = ?}, undef, $alias);
-        # If the user cannot see the bug, do not resolve its alias.
-        if ($bug_id && Bugzilla->user->can_see_bug($bug_id)) {
+            q{SELECT bug_id FROM bugs_aliases WHERE alias = ?}, undef, $alias);
+        # If the user cannot see the bug or if we are using a webservice,
+        # do not resolve its alias.
+        if ($bug_id && Bugzilla->user->can_see_bug($bug_id) && !i_am_webservice()) {
             $alias = url_quote($alias);
             print Bugzilla->cgi->redirect(
                 -uri => correct_urlbase() . "show_bug.cgi?id=$alias");
@@ -348,6 +364,7 @@ sub _handle_status_and_resolution {
 
 sub _handle_special_first_chars {
     my ($qsword, $negate) = @_;
+    return 0 if !defined $qsword || length($qsword) <= 1;
 
     my $firstChar = substr($qsword, 0, 1);
     my $baseWord = substr($qsword, 1);
@@ -386,8 +403,13 @@ sub _handle_field_names {
 
     # Generic field1,field2,field3:value1,value2 notation.
     # We have to correctly ignore commas and colons in quotes.
-    my @field_values = _parse_line(':', 1, $or_operand);
-    if (scalar @field_values == 2) {
+    # Longer operators must be tested first as we don't want single character
+    # operators such as <, > and = to be tested before <=, >= and !=.
+    my @operators = sort { length($b) <=> length($a) } keys %{ OPERATOR_SYMBOLS() };
+
+    foreach my $symbol (@operators) {
+        my @field_values = _parse_line($symbol, 1, $or_operand);
+        next unless scalar @field_values == 2;
         my @fields = _parse_line(',', 1, $field_values[0]);
         my @values = _parse_line(',', 1, $field_values[1]);
         foreach my $field (@fields) {
@@ -406,7 +428,9 @@ sub _handle_field_names {
                     $bug_status_set = 1;
                 }
                 foreach my $value (@values) {
-                    my $operator = FIELD_OPERATOR->{$translated} || 'substring';
+                    my $operator = FIELD_OPERATOR->{$translated}
+                        || OPERATOR_SYMBOLS->{$symbol}
+                        || 'substring';
                     # If the string was quoted to protect some special
                     # characters such as commas and colons, we need
                     # to remove quotes.
@@ -448,7 +472,7 @@ sub _handle_flags {
         # are unable to run queries of the form (a AND b) OR c. In our case:
         # (flag name is foo AND requestee is bar) OR (any other criteria).
         # But this has never been possible, so this is not a regression. If one
-        # needs to run such queries, he must use the Custom Search section of
+        # needs to run such queries, they must use the Custom Search section of
         # the Advanced Search page.
         $chart++;
         $and = $or = 0;
@@ -654,3 +678,21 @@ sub makeChart {
 }
 
 1;
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item FIELD_MAP
+
+=item quicksearch
+
+=item negateComparisonType
+
+=item makeChart
+
+=item addChart
+
+=item matchPrefixes
+
+=back

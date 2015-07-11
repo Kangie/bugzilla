@@ -6,8 +6,12 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Search::Recent;
+
+use 5.10.1;
 use strict;
-use base qw(Bugzilla::Object);
+use warnings;
+
+use parent qw(Bugzilla::Object);
 
 use Bugzilla::Constants;
 use Bugzilla::Error;
@@ -38,6 +42,9 @@ use constant VALIDATORS => {
 };
 
 use constant UPDATE_COLUMNS => qw(bug_list list_order);
+
+# There's no gain to caching these objects
+use constant USE_MEMCACHED => 0;
 
 ###################
 # DB Manipulation #
@@ -157,3 +164,27 @@ Bugzilla::Search::Recent - A search recently run by a logged-in user.
 This is an implementation of L<Bugzilla::Object>, and so has all the
 same methods available as L<Bugzilla::Object>, in addition to what is
 documented below.
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item create
+
+=item list_order
+
+=item check_quietly
+
+=item new_from_cookie
+
+=item create_placeholder
+
+=item bug_list
+
+=item set_bug_list
+
+=item user_id
+
+=item set_list_order
+
+=back

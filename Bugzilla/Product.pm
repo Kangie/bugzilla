@@ -6,8 +6,12 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Product;
+
+use 5.10.1;
 use strict;
-use base qw(Bugzilla::Field::ChoiceInterface Bugzilla::Object);
+use warnings;
+
+use parent qw(Bugzilla::Field::ChoiceInterface Bugzilla::Object);
 
 use Bugzilla::Constants;
 use Bugzilla::Util;
@@ -30,6 +34,8 @@ use constant DEFAULT_CLASSIFICATION_ID => 1;
 ###############################
 ####    Initialization     ####
 ###############################
+
+use constant IS_CONFIG => 1;
 
 use constant DB_TABLE => 'products';
 
@@ -97,6 +103,7 @@ sub create {
     Bugzilla::Hook::process('product_end_of_create', { product => $product });
 
     $dbh->bz_commit_transaction();
+    Bugzilla->memcached->clear_config();
     return $product;
 }
 
@@ -253,6 +260,7 @@ sub update {
     # Changes have been committed.
     delete $self->{check_group_controls};
     Bugzilla->user->clear_product_cache();
+    Bugzilla->memcached->clear_config();
 
     return $changes;
 }
@@ -270,8 +278,8 @@ sub remove_from_db {
         if (Bugzilla->params->{'allowbugdeletion'}) {
             require Bugzilla::Bug;
             foreach my $bug_id (@{$self->bug_ids}) {
-                # Note that we allow the user to delete bugs he can't see,
-                # which is okay, because he's deleting the whole Product.
+                # Note that we allow the user to delete bugs they can't see,
+                # which is okay, because they're deleting the whole Product.
                 my $bug = new Bugzilla::Bug($bug_id);
                 $bug->remove_from_db();
             }
@@ -311,6 +319,7 @@ sub remove_from_db {
     $self->SUPER::remove_from_db();
 
     $dbh->bz_commit_transaction();
+    Bugzilla->memcached->clear_config();
 
     # We have to delete these internal variables, else we get
     # the old lists of products and classifications again.
@@ -807,8 +816,8 @@ sub flag_types {
 
 sub classification {
     my $self = shift;
-    $self->{'classification'} ||= 
-        new Bugzilla::Classification($self->classification_id);
+    $self->{'classification'} ||=
+        new Bugzilla::Classification({ id => $self->classification_id, cache => 1 });
     return $self->{'classification'};
 }
 
@@ -1022,7 +1031,7 @@ a group is valid in a particular product.)
 
  Params:      C<$user> - A Bugzilla::User object.
 
- Returns      C<1> If this user's groups allow him C<entry> access to
+ Returns      C<1> If this user's groups allow them C<entry> access to
               this Product, C<0> otherwise.
 
 =item C<flag_types()>
@@ -1067,3 +1076,37 @@ C<Bugzilla::Product::preload($products)>.
 L<Bugzilla::Object>
 
 =cut
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item set_allows_unconfirmed
+
+=item allows_unconfirmed
+
+=item set_name
+
+=item set_default_milestone
+
+=item set_group_controls
+
+=item create
+
+=item set_description
+
+=item set_is_active
+
+=item classification_id
+
+=item description
+
+=item default_milestone
+
+=item remove_from_db
+
+=item is_active
+
+=item update
+
+=back

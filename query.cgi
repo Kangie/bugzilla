@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,20 +6,24 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
 use Bugzilla;
 use Bugzilla::Bug;
 use Bugzilla::Constants;
 use Bugzilla::Search;
+use Bugzilla::Search::Saved;
 use Bugzilla::User;
 use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Product;
+use Bugzilla::Version;
 use Bugzilla::Keyword;
 use Bugzilla::Field;
-use Bugzilla::Install::Util qw(vers_cmp);
 use Bugzilla::Token;
 
 ###############
@@ -75,9 +79,11 @@ if ($cgi->param('nukedefaultquery')) {
     if ($userid) {
         my $token = $cgi->param('token');
         check_hash_token($token, ['nukedefaultquery']);
-        $dbh->do("DELETE FROM namedqueries" .
-                 " WHERE userid = ? AND name = ?", 
-                 undef, ($userid, DEFAULT_QUERY_NAME));
+        my $named_queries = Bugzilla::Search::Saved->match(
+            { userid => $userid, name => DEFAULT_QUERY_NAME });
+        if (@$named_queries) {
+            $named_queries->[0]->remove_from_db();
+        }
     }
     $buffer = "";
 }
@@ -189,9 +195,9 @@ foreach my $val (editable_bug_fields()) {
 if ($user->is_timetracker) {
     push @chfields, "work_time";
 } else {
-    @chfields = grep($_ ne "deadline", @chfields);
-    @chfields = grep($_ ne "estimated_time", @chfields);
-    @chfields = grep($_ ne "remaining_time", @chfields);
+    foreach my $tt_field (TIMETRACKING_FIELDS) {
+        @chfields = grep($_ ne $tt_field, @chfields);
+    }
 }
 @chfields = (sort(@chfields));
 $vars->{'chfield'} = \@chfields;
@@ -205,12 +211,26 @@ $vars->{'resolution'} = Bugzilla::Field->new({name => 'resolution'})->legal_valu
 # Boolean charts
 my @fields = @{ Bugzilla->fields({ obsolete => 0 }) };
 
+my %exclude_fields = ();
+
 # If we're not in the time-tracking group, exclude time-tracking fields.
 if (!$user->is_timetracker) {
     foreach my $tt_field (TIMETRACKING_FIELDS) {
-        @fields = grep($_->name ne $tt_field, @fields);
+        $exclude_fields{$tt_field} = 1;
     }
 }
+
+# Exclude fields turned off by params
+my %param_controlled_fields = ('useqacontact'        => 'qa_contact',
+                               'usetargetmilestone'  => 'target_milestone',
+                               'useclassification'   => 'classification',
+                               'usestatuswhiteboard' => 'status_whiteboard');
+
+while (my ($param, $field) = each %param_controlled_fields) {
+    $exclude_fields{$field} = 1 unless Bugzilla->params->{$param};
+}
+
+@fields = grep(!$exclude_fields{$_->name}, @fields);
 
 @fields = sort {lc($a->description) cmp lc($b->description)} @fields;
 unshift(@fields, { name => "noop", description => "---" });

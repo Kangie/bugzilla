@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,7 +18,10 @@ C<bz_webservice_demo.pl --help> for detailed help
 
 =cut
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(lib);
 use Getopt::Long;
 use Pod::Usage;
@@ -255,8 +258,6 @@ if ($fetch_extension_info) {
 
 Call C<Bug.get> with the ID of the bug you want to know more of.
 The call will return a C<Bugzilla::Bug> object.
-
-Note: You can also use "Bug.get_bugs" for compatibility with Bugzilla 3.0 API.
 
 =cut
 

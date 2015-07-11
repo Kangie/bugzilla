@@ -6,8 +6,12 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::BugUrl::GitHub;
+
+use 5.10.1;
 use strict;
-use base qw(Bugzilla::BugUrl);
+use warnings;
+
+use parent qw(Bugzilla::BugUrl);
 
 ###############################
 ####        Methods        ####
@@ -18,8 +22,10 @@ sub should_handle {
 
     # GitHub issue URLs have only one form:
     #  https://github.com/USER_OR_TEAM_OR_ORGANIZATION_NAME/REPOSITORY_NAME/issues/111
+    # GitHub pull request URLs have only one form:
+    #  https://github.com/USER_OR_TEAM_OR_ORGANIZATION_NAME/REPOSITORY_NAME/pull/111
     return (lc($uri->authority) eq 'github.com'
-            and $uri->path =~ m|^/[^/]+/[^/]+/issues/\d+$|) ? 1 : 0;
+            and $uri->path =~ m!^/[^/]+/[^/]+/(?:issues|pull)/\d+$!) ? 1 : 0;
 }
 
 sub _check_value {

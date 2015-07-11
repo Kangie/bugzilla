@@ -8,21 +8,27 @@
 
 package Support::Files;
 
+use 5.10.1;
+use strict;
+use warnings;
+
 use File::Find;
 
-@additional_files = ();
+our @additional_files = ();
 
-@files = glob('*');
-find(sub { push(@files, $File::Find::name) if $_ =~ /\.pm$/;}, 'Bugzilla');
-push(@files, 'extensions/create.pl');
+our @files = glob('*');
+find(sub { push(@files, $File::Find::name) if $_ =~ /\.pm$/;}, qw(Bugzilla docs));
+push(@files, 'extensions/create.pl', 'docs/makedocs.pl');
 
-@extensions =
+our @extensions =
     grep { $_ ne 'extensions/create.pl' && ! -e "$_/disabled" }
     glob('extensions/*');
 
 foreach my $extension (@extensions) {
     find(sub { push(@files, $File::Find::name) if $_ =~ /\.pm$/;}, $extension);
 }
+
+our @test_files = glob('t/*.t');
 
 sub isTestingFile {
     my ($file) = @_;
@@ -38,10 +44,13 @@ sub isTestingFile {
     return undef;
 }
 
-foreach $currentfile (@files) {
+our (@testitems, @module_files);
+
+foreach my $currentfile (@files) {
     if (isTestingFile($currentfile)) {
-        push(@testitems,$currentfile);
+        push(@testitems, $currentfile);
     }
+    push(@module_files, $currentfile) if $currentfile =~ /\.pm$/;
 }
 
 

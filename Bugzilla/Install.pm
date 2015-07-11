@@ -15,7 +15,9 @@ package Bugzilla::Install;
 # make those assumptions, then it should go into one of the
 # packages under the Bugzilla::Install namespace.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use Bugzilla::Component;
 use Bugzilla::Config qw(:admin);
@@ -25,7 +27,7 @@ use Bugzilla::Group;
 use Bugzilla::Product;
 use Bugzilla::User;
 use Bugzilla::User::Setting;
-use Bugzilla::Util qw(get_text say);
+use Bugzilla::Util qw(get_text);
 use Bugzilla::Version;
 
 use constant STATUS_WORKFLOW => (
@@ -86,6 +88,8 @@ sub SETTINGS {
     requestee_cc       => { options => ['on', 'off'], default => 'on' },
     # 2012-04-30 glob@mozilla.com -- Bug 663747
     bugmail_new_prefix => { options => ['on', 'off'], default => 'on' },
+    # 2013-07-26 joshi_sunil@in.com -- Bug 669535
+    possible_duplicates => { options => ['on', 'off'], default => 'on' },
     }
 };
 
@@ -490,5 +494,21 @@ Description: Creates the default product and component if
 Params:      none
 
 Returns:     nothing
+
+=back
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item update_system_groups
+
+=item reset_password
+
+=item make_admin
+
+=item create_admin
+
+=item init_workflow
 
 =back

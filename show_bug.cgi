@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,9 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib qw(. lib);
 
@@ -39,14 +41,14 @@ if (!$cgi->param('id') && $single) {
 my (@bugs, @illegal_bugs);
 my %marks;
 
-# If the user isn't logged in, we use data from the shadow DB. If he plans
-# to edit the bug(s), he will have to log in first, meaning that the data
+# If the user isn't logged in, we use data from the shadow DB. If they plan
+# to edit the bug(s), they will have to log in first, meaning that the data
 # will be reloaded anyway, from the main DB.
 Bugzilla->switch_to_shadow_db unless $user->id;
 
 if ($single) {
     my $id = $cgi->param('id');
-    push @bugs, Bugzilla::Bug->check($id);
+    push @bugs, Bugzilla::Bug->check({ id => $id, cache => 1 });
     if (defined $cgi->param('mark')) {
         foreach my $range (split ',', $cgi->param('mark')) {
             if ($range =~ /^(\d+)-(\d+)$/) {
@@ -68,7 +70,7 @@ if ($single) {
         foreach my $bug_id (@ids) {
 			last if $count == 100;
             next unless $bug_id;
-            my $bug = new Bugzilla::Bug($bug_id);
+            my $bug = new Bugzilla::Bug({ id => $bug_id, cache => 1 });
             if (!$bug->{error}) {
                 push(@check_bugs, $bug);
             }
@@ -113,7 +115,7 @@ if ($cgi->param("field")) {
 }
 
 unless ($user->is_timetracker) {
-    @fieldlist = grep($_ !~ /(^deadline|_time)$/, @fieldlist);
+    @fieldlist = grep($_ !~ /_time$/, @fieldlist);
 }
 
 foreach (@fieldlist) {

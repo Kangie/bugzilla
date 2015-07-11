@@ -15,7 +15,9 @@ package Bugzilla::Install::Filesystem;
 # * Files do not have the correct permissions.
 # * The database does not exist.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use Bugzilla::Constants;
 use Bugzilla::Error;
@@ -28,10 +30,12 @@ use File::Find;
 use File::Path;
 use File::Basename;
 use File::Copy qw(move);
+use File::Spec;
+use File::Slurp;
 use IO::File;
 use POSIX ();
 
-use base qw(Exporter);
+use parent qw(Exporter);
 our @EXPORT = qw(
     update_filesystem
     create_htaccess
@@ -57,7 +61,7 @@ use constant HT_DEFAULT_DENY => <<EOT;
   </IfVersion>
 </IfModule>
 <IfModule !mod_version.c>
-    Deny from all
+  Deny from all
 </IfModule>
 EOT
 
@@ -130,6 +134,7 @@ sub FILESYSTEM {
     my $localconfig   = bz_locations()->{'localconfig'};
     my $template_cache = bz_locations()->{'template_cache'};
     my $graphsdir     = bz_locations()->{'graphsdir'};
+    my $assetsdir     = bz_locations()->{'assetsdir'};
 
     # We want to set the permissions the same for all localconfig files
     # across all PROJECTs, so we do something special with $localconfig,
@@ -165,6 +170,7 @@ sub FILESYSTEM {
         'jobqueue.pl'     => { perms => WS_EXECUTE },
         'migrate.pl'      => { perms => OWNER_EXECUTE },
         'install-module.pl' => { perms => OWNER_EXECUTE },
+        'clean-bug-user-last-visit.pl' => { perms => WS_EXECUTE },
 
         'Bugzilla.pm'   => { perms => CGI_READ },
         "$localconfig*" => { perms => CGI_READ },
@@ -181,7 +187,7 @@ sub FILESYSTEM {
         'docs/style.css'       => { perms => WS_SERVE },
         'docs/*/rel_notes.txt' => { perms => WS_SERVE },
         'docs/*/README.docs'   => { perms => OWNER_WRITE },
-        "$datadir/params"      => { perms => CGI_WRITE },
+        "$datadir/params.json" => { perms => CGI_WRITE },
         "$datadir/old-params.txt"  => { perms => OWNER_WRITE },
         "$extensionsdir/create.pl" => { perms => OWNER_EXECUTE },
         "$extensionsdir/*/*.pl"    => { perms => WS_EXECUTE },
@@ -211,6 +217,8 @@ sub FILESYSTEM {
                                   dirs => DIR_CGI_WRITE | DIR_ALSO_WS_SERVE },
          "$datadir/db"      => { files => CGI_WRITE,
                                   dirs => DIR_CGI_WRITE },
+         $assetsdir         => { files => WS_SERVE,
+                                  dirs => DIR_CGI_OVERWRITE | DIR_ALSO_WS_SERVE },
 
          # Readable directories
          "$datadir/mining"     => { files => CGI_READ,
@@ -270,7 +278,8 @@ sub FILESYSTEM {
     # The name of each directory that we should actually *create*,
     # pointing at its default permissions.
     my %create_dirs = (
-        # This is DIR_ALSO_WS_SERVE because it contains $webdotdir.
+        # This is DIR_ALSO_WS_SERVE because it contains $webdotdir and
+        # $assetsdir.
         $datadir                => DIR_CGI_OVERWRITE | DIR_ALSO_WS_SERVE,
         # Directories that are read-only for cgi scripts
         "$datadir/mining"       => DIR_CGI_READ,
@@ -281,6 +290,7 @@ sub FILESYSTEM {
         $attachdir              => DIR_CGI_WRITE,
         $graphsdir              => DIR_CGI_WRITE | DIR_ALSO_WS_SERVE,
         $webdotdir              => DIR_CGI_WRITE | DIR_ALSO_WS_SERVE,
+        $assetsdir              => DIR_CGI_WRITE | DIR_ALSO_WS_SERVE,
         # Directories that contain content served directly by the web server.
         "$skinsdir/custom"      => DIR_WS_SERVE,
         "$skinsdir/contrib"     => DIR_WS_SERVE,
@@ -409,8 +419,8 @@ EOT
   </IfModule>
 </FilesMatch>
 
-# Allow access to .png files created by a local copy of 'dot'
-<FilesMatch \\.png\$>
+ # Allow access to .png files created by a local copy of 'dot'
+ <FilesMatch \\.png\$>
   <IfModule mod_version.c>
     <IfVersion < 2.4>
       Allow from all
@@ -448,6 +458,48 @@ EOT
 </IfModule>
 EOT
         },
+
+        "$assetsdir/.htaccess" => { perms => WS_SERVE, contents => <<EOT
+# Allow access to .css files
+<FilesMatch \\.(css|js)\$>
+  <IfModule mod_version.c>
+    <IfVersion < 2.4>
+      Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+      <IfModule mod_perl.c>
+        Allow from all
+      </IfModule>
+      <IfModule !mod_perl.c>
+        Require all granted
+      </IfModule>
+    </IfVersion>
+  </IfModule>
+  <IfModule !mod_version.c>
+     Allow from all
+  </IfModule>
+</FilesMatch>
+
+# And no directory listings, either.
+<IfModule mod_version.c>
+  <IfVersion < 2.4>
+    Deny from all
+  </IfVersion>
+  <IfVersion >= 2.4>
+    <IfModule mod_perl.c>
+      Deny from all
+    </IfModule>
+    <IfModule !mod_perl.c>
+      Require all denied
+    </IfModule>
+  </IfVersion>
+</IfModule>
+<IfModule !mod_version.c>
+  Deny from all
+</IfModule>
+EOT
+        },
+
     );
 
     Bugzilla::Hook::process('install_filesystem', {
@@ -482,11 +534,19 @@ sub update_filesystem {
 
     my $datadir = bz_locations->{'datadir'};
     my $graphsdir = bz_locations->{'graphsdir'};
+    my $assetsdir = bz_locations->{'assetsdir'};
     # If the graphs/ directory doesn't exist, we're upgrading from
     # a version old enough that we need to update the $datadir/mining 
     # format.
     if (-d "$datadir/mining" && !-d $graphsdir) {
         _update_old_charts($datadir);
+    }
+
+    # If there is a file named '-All-' in $datadir/mining, then we're still
+    # having mining files named by product name, and we need to convert them to
+    # files named by product ID.
+    if (-e File::Spec->catfile($datadir, 'mining', '-All-')) {
+        _update_old_mining_filenames(File::Spec->catdir($datadir, 'mining'));
     }
 
     # By sorting the dirs, we assure that shorter-named directories
@@ -513,6 +573,13 @@ sub update_filesystem {
     my $oldparamsfile = "old_params.txt";
     if (-e $oldparamsfile) {
         _rename_file($oldparamsfile, "$datadir/$oldparamsfile");
+    }
+
+    # Remove old assets htaccess file to force recreation with correct values.
+    if (-e "$assetsdir/.htaccess") {
+        if (read_file("$assetsdir/.htaccess") =~ /<FilesMatch \\\.css\$>/) {
+            unlink("$assetsdir/.htaccess");
+        }
     }
 
     _create_files(%files);
@@ -558,6 +625,7 @@ EOT
 
     _remove_empty_css_files();
     _convert_single_file_skins();
+    _remove_dynamic_assets();
 }
 
 sub _remove_empty_css_files {
@@ -599,6 +667,27 @@ sub _convert_single_file_skins {
         $dir_name =~ s/\.css$//;
         mkdir $dir_name or warn "$dir_name: $!";
         _rename_file($skin_file, "$dir_name/global.css");
+    }
+}
+
+# delete all automatically generated css/js files to force recreation at the
+# next request.
+sub _remove_dynamic_assets {
+    my @files = (
+        glob(bz_locations()->{assetsdir} . '/*.css'),
+        glob(bz_locations()->{assetsdir} . '/*.js'),
+    );
+    foreach my $file (@files) {
+        unlink($file);
+    }
+
+    # remove old skins/assets directory
+    my $old_path = bz_locations()->{skinsdir} . '/assets';
+    if (-d $old_path) {
+        foreach my $file (glob("$old_path/*.css")) {
+            unlink($file);
+        }
+        rmdir($old_path);
     }
 }
 
@@ -728,6 +817,59 @@ sub _update_old_charts {
         close(IN);
         close(OUT);
     } 
+}
+
+# The old naming scheme has product names as mining file names; we rename them
+# to product IDs.
+sub _update_old_mining_filenames {
+    my ($miningdir) = @_;
+    my @conversion_errors;
+
+    require Bugzilla::Product;
+
+    # We use a dummy product instance with ID 0, representing all products
+    my $product_all = {id => 0, name => '-All-'};
+    bless($product_all, 'Bugzilla::Product');
+
+    print "Updating old charting data file names...";
+    my @products = Bugzilla::Product->get_all();
+    push(@products, $product_all);
+    foreach my $product (@products) {
+        if (-e File::Spec->catfile($miningdir, $product->id)) {
+            push(@conversion_errors,
+                 { product => $product,
+                   message => 'A file named "' . $product->id .
+                              '" already exists.' });
+        }
+    }
+
+    if (! @conversion_errors) {
+        # Renaming mining files should work now without a hitch.
+        foreach my $product (@products) {
+            if (! rename(File::Spec->catfile($miningdir, $product->name),
+                         File::Spec->catfile($miningdir, $product->id))) {
+                push(@conversion_errors,
+                     { product => $product,
+                       message => $! });
+            }
+        }
+    }
+
+    # Error reporting
+    if (! @conversion_errors) {
+        print " done.\n";
+    }
+    else {
+        print " FAILED:\n";
+        foreach my $error (@conversion_errors) {
+            printf "Cannot rename charting data file for product %d (%s): %s\n",
+                   $error->{product}->id, $error->{product}->name,
+                   $error->{message};
+        }
+        print "You need to empty the \"$miningdir\" directory, then run\n",
+              "   collectstats.pl --regenerate\n",
+              "in order to clean this up.\n";
+    }
 }
 
 sub fix_dir_permissions {
@@ -959,5 +1101,31 @@ If it fails to set the permissions, a warning will be printed to STDERR.
 Given the name of a file, its permissions will be fixed according to
 how they are supposed to be set in Bugzilla's current configuration.
 If it fails to set the permissions, a warning will be printed to STDERR.
+
+=back
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item CGI_WRITE
+
+=item DIR_WS_SERVE
+
+=item DIR_ALSO_WS_SERVE
+
+=item WS_SERVE
+
+=item FILESYSTEM
+
+=item WS_EXECUTE
+
+=item CGI_READ
+
+=item DIR_CGI_READ
+
+=item DIR_CGI_WRITE
+
+=item DIR_CGI_OVERWRITE
 
 =back

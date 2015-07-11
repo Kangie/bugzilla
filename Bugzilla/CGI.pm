@@ -6,12 +6,17 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::CGI;
+
+use 5.10.1;
 use strict;
-use base qw(CGI);
+use warnings;
+
+use parent qw(CGI);
 
 use Bugzilla::Constants;
 use Bugzilla::Error;
 use Bugzilla::Util;
+use Bugzilla::Hook;
 use Bugzilla::Search::Recent;
 
 use File::Basename;
@@ -53,7 +58,7 @@ sub new {
     # the rendering of pages.
     my $script = basename($0);
     if (my $path_info = $self->path_info) {
-        my @whitelist;
+        my @whitelist = ("rest.cgi");
         Bugzilla::Hook::process('path_info_whitelist', { whitelist => \@whitelist });
         if (!grep($_ eq $script, @whitelist)) {
             # IIS includes the full path to the script in PATH_INFO,
@@ -120,7 +125,8 @@ sub canonicalise_query {
         my $esc_key = url_quote($key);
 
         foreach my $value ($self->param($key)) {
-            if (defined($value)) {
+            # Omit params with an empty value
+            if (defined($value) && $value ne '') {
                 my $esc_value = url_quote($value);
 
                 push(@parameters, "$esc_key=$esc_value");
@@ -233,11 +239,11 @@ sub check_etag {
         $possible_etag =~ s/^\"//g;
         $possible_etag =~ s/\"$//g;
         if ($possible_etag eq $valid_etag or $possible_etag eq '*') {
-            print $self->header(-ETag => $possible_etag,
-                                -status => '304 Not Modified');
-            exit;
+            return 1;
         }
     }
+
+    return 0;
 }
 
 # Have to add the cookies in.
@@ -270,28 +276,35 @@ sub multipart_start {
 }
 
 sub close_standby_message {
-    my ($self, $contenttype, $disposition) = @_;
+    my ($self, $contenttype, $disp, $disp_prefix, $extension) = @_;
+    $self->set_dated_content_disp($disp, $disp_prefix, $extension);
 
     if ($self->{_multipart_in_progress}) {
         print $self->multipart_end();
-        print $self->multipart_start(-type                => $contenttype,
-                                     -content_disposition => $disposition);
+        print $self->multipart_start(-type => $contenttype);
     }
     else {
-        print $self->header(-type                => $contenttype,
-                            -content_disposition => $disposition);
+        print $self->header($contenttype);
     }
 }
 
 # Override header so we can add the cookies in
 sub header {
     my $self = shift;
+
+    my %headers;
     my $user = Bugzilla->user;
 
     # If there's only one parameter, then it's a Content-Type.
     if (scalar(@_) == 1) {
-        # Since we're adding parameters below, we have to name it.
-        unshift(@_, '-type' => shift(@_));
+        %headers = ('-type' => shift(@_));
+    }
+    else {
+        %headers = @_;
+    }
+
+    if ($self->{'_content_disp'}) {
+        $headers{'-content_disposition'} = $self->{'_content_disp'};
     }
 
     if (!$user->id && $user->authorizer->can_login
@@ -308,7 +321,7 @@ sub header {
 
     # Add the cookies in if we have any
     if (scalar(@{$self->{Bugzilla_cookie_list}})) {
-        unshift(@_, '-cookie' => $self->{Bugzilla_cookie_list});
+        $headers{'-cookie'} = $self->{Bugzilla_cookie_list};
     }
 
     # Add Strict-Transport-Security (STS) header if this response
@@ -322,24 +335,29 @@ sub header {
         {
             $sts_opts .= '; includeSubDomains';
         }
-        unshift(@_, '-strict_transport_security' => $sts_opts);
+        
+        $headers{'-strict_transport_security'} = $sts_opts;
     }
 
     # Add X-Frame-Options header to prevent framing and subsequent
     # possible clickjacking problems.
     unless ($self->url_is_attachment_base) {
-        unshift(@_, '-x_frame_options' => 'SAMEORIGIN');
+        $headers{'-x_frame_options'} = 'SAMEORIGIN';
     }
 
     # Add X-XSS-Protection header to prevent simple XSS attacks
     # and enforce the blocking (rather than the rewriting) mode.
-    unshift(@_, '-x_xss_protection' => '1; mode=block');
+    $headers{'-x_xss_protection'} = '1; mode=block';
 
     # Add X-Content-Type-Options header to prevent browsers sniffing
     # the MIME type away from the declared Content-Type.
-    unshift(@_, '-x_content_type_options' => 'nosniff');
+    $headers{'-x_content_type_options'} = 'nosniff';
 
-    return $self->SUPER::header(@_) || "";
+    Bugzilla::Hook::process('cgi_headers',
+        { cgi => $self, headers => \%headers }
+    );
+
+    return $self->SUPER::header(%headers) || "";
 }
 
 sub param {
@@ -356,10 +374,7 @@ sub param {
         if (!scalar(@result)
             && $self->request_method && $self->request_method eq 'POST')
         {
-            # Some servers fail to set the QUERY_STRING parameter, which
-            # causes undef issues
-            $ENV{'QUERY_STRING'} = '' unless exists $ENV{'QUERY_STRING'};
-            @result = $self->SUPER::url_param(@_);
+            @result = $self->url_param(@_);
         }
 
         # Fix UTF-8-ness of input parameters.
@@ -382,6 +397,14 @@ sub param {
     }
 
     return $self->SUPER::param(@_);
+}
+
+sub url_param {
+    my $self = shift;
+    # Some servers fail to set the QUERY_STRING parameter, which
+    # causes undef issues
+    $ENV{'QUERY_STRING'} //= '';
+    return $self->SUPER::url_param(@_);
 }
 
 sub _fix_utf8 {
@@ -554,6 +577,22 @@ sub url_is_attachment_base {
     return ($self->url =~ $regex) ? 1 : 0;
 }
 
+sub set_dated_content_disp {
+    my ($self, $type, $prefix, $ext) = @_;
+
+    my @time = localtime(time());
+    my $date = sprintf "%04d-%02d-%02d", 1900+$time[5], $time[4]+1, $time[3];
+    my $filename = "$prefix-$date.$ext";
+
+    $filename =~ s/\s/_/g; # Remove whitespace to avoid HTTP header tampering
+    $filename =~ s/\\/_/g; # Remove backslashes as well
+    $filename =~ s/"/\\"/g; # escape quotes
+
+    my $disposition = "$type; filename=\"$filename\"";
+
+    $self->{'_content_disp'} = $disposition;
+}
+
 ##########################
 # Vars TIEHASH Interface #
 ##########################
@@ -628,7 +667,9 @@ I<Bugzilla::CGI> also includes additional functions.
 
 =item C<canonicalise_query(@exclude)>
 
-This returns a sorted string of the parameters, suitable for use in a url.
+This returns a sorted string of the parameters whose values are non-empty,
+suitable for use in a url.
+
 Values in C<@exclude> are not included in the result.
 
 =item C<send_cookie>
@@ -670,8 +711,35 @@ If not specified, text/html is assumed.
 
 Ends a part of the multipart document, and starts another part.
 
+=item C<set_dated_content_disp>
+
+Sets an appropriate date-dependent value for the Content Disposition header
+for a downloadable resource.
+
 =back
 
 =head1 SEE ALSO
 
 L<CGI|CGI>, L<CGI::Cookie|CGI::Cookie>
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item check_etag
+
+=item clean_search_url
+
+=item url_is_attachment_base
+
+=item should_set
+
+=item redirect_search_url
+
+=item param
+
+=item url_param
+
+=item header
+
+=back

@@ -6,15 +6,22 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Extension::MoreBugUrl;
+
+use 5.10.1;
 use strict;
-use base qw(Bugzilla::Extension);
+use warnings;
+
+use parent qw(Bugzilla::Extension);
 
 use constant MORE_SUB_CLASSES => qw(
+    Bugzilla::Extension::MoreBugUrl::BitBucket
     Bugzilla::Extension::MoreBugUrl::ReviewBoard
     Bugzilla::Extension::MoreBugUrl::Rietveld
     Bugzilla::Extension::MoreBugUrl::RT
     Bugzilla::Extension::MoreBugUrl::GetSatisfaction
     Bugzilla::Extension::MoreBugUrl::PHP
+    Bugzilla::Extension::MoreBugUrl::Redmine
+    Bugzilla::Extension::MoreBugUrl::Savane
 );
 
 # We need to update bug_see_also table because both

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,6 +7,8 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::ModPerl;
+
+use 5.10.1;
 use strict;
 use warnings;
 
@@ -108,9 +110,14 @@ foreach my $file (glob "$cgi_path/*.cgi") {
 }
 
 package Bugzilla::ModPerl::ResponseHandler;
+
+use 5.10.1;
 use strict;
-use base qw(ModPerl::Registry);
+use warnings;
+
+use parent qw(ModPerl::Registry);
 use Bugzilla;
+use Bugzilla::Constants qw(USAGE_MODE_REST);
 
 sub handler : method {
     my $class = shift;
@@ -128,12 +135,23 @@ sub handler : method {
     use warnings;
 
     Bugzilla::init_page();
-    return $class->SUPER::handler(@_);
+    my $result = $class->SUPER::handler(@_);
+
+    # When returning data from the REST api we must only return 200 or 304,
+    # which tells Apache not to append its error html documents to the
+    # response.
+    return Bugzilla->usage_mode == USAGE_MODE_REST && $result != 304
+           ? Apache2::Const::OK
+           : $result;
 }
 
 
 package Bugzilla::ModPerl::CleanupHandler;
+
+use 5.10.1;
 use strict;
+use warnings;
+
 use Apache2::Const -compile => qw(OK);
 
 sub handler {

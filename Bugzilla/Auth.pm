@@ -7,7 +7,10 @@
 
 package Bugzilla::Auth;
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use fields qw(
     _info_getter
     _verifier
@@ -29,7 +32,7 @@ sub new {
     my $self = fields::new($class);
 
     $params            ||= {};
-    $params->{Login}   ||= Bugzilla->params->{'user_info_class'} . ',Cookie';
+    $params->{Login}   ||= Bugzilla->params->{'user_info_class'} . ',Cookie,APIKey';
     $params->{Verify}  ||= Bugzilla->params->{'user_verify_class'};
 
     $self->{_info_getter} = new Bugzilla::Auth::Login::Stack($params->{Login});
@@ -43,7 +46,6 @@ sub new {
 
 sub login {
     my ($self, $type) = @_;
-    my $dbh = Bugzilla->dbh;
 
     # Get login info from the cookie, form, environment variables, etc.
     my $login_info = $self->{_info_getter}->get_login_info();
@@ -52,7 +54,7 @@ sub login {
         return $self->_handle_login_result($login_info, $type);
     }
 
-    # Now verify his username and password against the DB, LDAP, etc.
+    # Now verify their username and password against the DB, LDAP, etc.
     if ($self->{_info_getter}->{successful}->requires_verification) {
         $login_info = $self->{_verifier}->check_credentials($login_info);
         if ($login_info->{failure}) {
@@ -177,7 +179,7 @@ sub _handle_login_result {
     elsif ($fail_code == AUTH_LOGINFAILED or $fail_code == AUTH_NO_SUCH_USER) {
         my $remaining_attempts = MAX_LOGIN_ATTEMPTS 
                                  - ($result->{failure_count} || 0);
-        ThrowUserError("invalid_username_or_password", 
+        ThrowUserError("invalid_login_or_password", 
                        { remaining => $remaining_attempts });
     }
     # The account may be disabled
@@ -296,7 +298,7 @@ An incorrect username or password was given.
 The hashref may also contain a C<failure_count> element, which specifies
 how many times the account has failed to log in within the lockout
 period (see L</AUTH_LOCKOUT>). This is used to warn the user when
-he is getting close to being locked out.
+they are getting close to being locked out.
 
 =head2 C<AUTH_NO_SUCH_USER>
 

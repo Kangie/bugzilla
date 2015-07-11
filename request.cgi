@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,12 +6,9 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-################################################################################
-# Script Initialization
-################################################################################
-
-# Make it harder for us to do dangerous things in Perl.
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib qw(. lib);
 
@@ -31,16 +28,16 @@ my $cgi = Bugzilla->cgi;
 Bugzilla->switch_to_shadow_db;
 my $template = Bugzilla->template;
 my $action = $cgi->param('action') || '';
+my $format = $template->get_format('request/queue', 
+                                   scalar($cgi->param('format')),
+                                   scalar($cgi->param('ctype')));
 
-print $cgi->header();
-
-################################################################################
-# Main Body Execution
-################################################################################
+$cgi->set_dated_content_disp("inline", "requests", $format->{extension});
+print $cgi->header($format->{'ctype'});
 
 my $fields;
 $fields->{'requester'}->{'type'} = 'single';
-# If the user doesn't restrict his search to requests from the wind
+# If the user doesn't restrict their search to requests from the wind
 # (requestee ne '-'), include the requestee for completion.
 unless (defined $cgi->param('requestee')
         && $cgi->param('requestee') eq '-')
@@ -51,7 +48,7 @@ unless (defined $cgi->param('requestee')
 Bugzilla::User::match_field($fields);
 
 if ($action eq 'queue') {
-    queue();
+    queue($format);
 }
 else {
     my $flagtypes = get_flag_types();
@@ -69,7 +66,7 @@ else {
     }
     $vars->{'components'} = [ sort { $a cmp $b } keys %components ];
 
-    $template->process('request/queue.html.tmpl', $vars)
+    $template->process($format->{'template'}, $vars)
       || ThrowTemplateError($template->error());
 }
 exit;
@@ -79,6 +76,7 @@ exit;
 ################################################################################
 
 sub queue {
+    my $format = shift;
     my $cgi = Bugzilla->cgi;
     my $dbh = Bugzilla->dbh;
     my $template = Bugzilla->template;
@@ -122,20 +120,27 @@ sub queue {
                   ON bugs.product_id = products.id
           INNER JOIN components
                   ON bugs.component_id = components.id
-           LEFT JOIN bug_group_map AS bgmap
-                  ON bgmap.bug_id = bugs.bug_id
-                 AND bgmap.group_id NOT IN (" .
-                     $user->groups_as_string . ")
            LEFT JOIN bug_group_map AS privs
                   ON privs.bug_id = bugs.bug_id
            LEFT JOIN cc AS ccmap
                   ON ccmap.who = $userid
                  AND ccmap.bug_id = bugs.bug_id
-    " .
+           LEFT JOIN bug_group_map AS bgmap
+                  ON bgmap.bug_id = bugs.bug_id
+    ";
+
+    if (Bugzilla->params->{or_groups}) {
+        $query .= " AND bgmap.group_id IN (" . $user->groups_as_string . ")";
+        $query .= " WHERE     (privs.group_id IS NULL OR bgmap.group_id IS NOT NULL OR";
+    }
+    else {
+        $query .= " AND bgmap.group_id NOT IN (" . $user->groups_as_string . ")";
+        $query .= " WHERE     (bgmap.group_id IS NULL OR";
+    }
 
     # Weed out bug the user does not have access to
-    " WHERE     ((bgmap.group_id IS NULL) OR
-                 (ccmap.who IS NOT NULL AND cclist_accessible = 1) OR
+    $query .=
+    "            (ccmap.who IS NOT NULL AND cclist_accessible = 1) OR
                  (bugs.reporter = $userid AND bugs.reporter_accessible = 1) OR
                  (bugs.assigned_to = $userid) " .
                  (Bugzilla->params->{'useqacontact'} ? "OR
@@ -308,8 +313,10 @@ sub queue {
     }
     $vars->{'components'} = [ sort { $a cmp $b } keys %components ];
 
+    $vars->{'urlquerypart'} = $cgi->canonicalise_query('ctype');
+
     # Generate and return the UI (HTML page) from the appropriate template.
-    $template->process("request/queue.html.tmpl", $vars)
+    $template->process($format->{'template'}, $vars)
       || ThrowTemplateError($template->error());
 }
 

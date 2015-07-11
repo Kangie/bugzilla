@@ -6,14 +6,20 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Support::Systemexec;
-require Exporter;
-@ISA = qw(Exporter);
-@EXPORT = qw(system exec);
-@EXPORT_OK = qw();
+
+use 5.10.1;
+use strict;
+use warnings;
+
+use parent qw(Exporter);
+@Support::Systemexec::EXPORT = qw(system exec);
+
 sub system($$@) {
   1;
 }
+
 sub exec($$@) {
   1;
 }
+
 1;
