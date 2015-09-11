@@ -363,6 +363,25 @@
     Comment tags must be at least
     [%+ constants.MIN_COMMENT_TAG_LENGTH FILTER html %] characters.
 
+  [% ELSIF error == "comment_tag_disabled" %]
+    [% title = "Comment Tagging Disabled" %]
+    The comment tagging is not enabled.
+
+  [% ELSIF error == "comment_tag_invalid" %]
+    [% title = "Invalid Comment Tag" %]
+    The comment tag "[% tag FILTER html %]" contains invalid characters or
+    words.
+
+  [% ELSIF error == "comment_tag_too_long" %]
+    [% title = "Comment Tag Too Long" %]
+    Comment tags cannot be longer than
+    [%+ constants.MAX_COMMENT_TAG_LENGTH FILTER html %] characters.
+
+  [% ELSIF error == "comment_tag_too_short" %]
+    [% title = "Comment Tag Too Short" %]
+    Comment tags must be at least
+    [%+ constants.MIN_COMMENT_TAG_LENGTH FILTER html %] characters.
+
   [% ELSIF error == "auth_classification_not_enabled" %]
     [% title = "Classification Not Enabled" %]
     Sorry, classification is not enabled.

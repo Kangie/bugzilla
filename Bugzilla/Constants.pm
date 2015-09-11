@@ -314,6 +314,10 @@ use constant MAX_COMMENT_LENGTH => 16384;
 use constant MIN_COMMENT_TAG_LENGTH => 3;
 use constant MAX_COMMENT_TAG_LENGTH => 24;
 
+# The minimum and maximum length of comment tags.
+use constant MIN_COMMENT_TAG_LENGTH => 3;
+use constant MAX_COMMENT_TAG_LENGTH => 24;
+
 # The type of bug comments.
 use constant CMT_NORMAL => 0;
 use constant CMT_DUPE_OF => 1;

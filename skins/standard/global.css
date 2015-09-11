@@ -746,7 +746,6 @@ input.required, select.required, span.required_explanation {
     background-color: #FFEBEB;
 }
 
-<<<<<<< HEAD
 /* Gentoo bar */
 body {
 	margin: 1em;
@@ -811,7 +810,7 @@ body.bz_product_Gentoo_Security #add_comment:after {
 body.bz_product_Gentoo_Security #add_comment {
     margin-bottom: 2em;
 }
-=======
+
 form th {
     text-align: right;
 }
