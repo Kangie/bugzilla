@@ -120,8 +120,7 @@ sub SaveAccount {
                 ThrowUserError('restricted_email_address', {addr => $new_login_name}) if $new_login_name =~ m/[^\@]+\@gentoo\.org$/ or $user->login =~ m/[^\@]+\@gentoo\.org$/;
             }
 
-            Bugzilla::Token::IssueEmailChangeToken($user, $new_login_name);
-
+            $vars->{'email_token'} = Bugzilla::Token::IssueEmailChangeToken($new_login_name);
             $vars->{'email_changes_saved'} = 1;
         }
     }
