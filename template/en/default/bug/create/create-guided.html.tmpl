@@ -38,6 +38,8 @@ function PutDescription() {
 }
 </script>
 
+[% INCLUDE 'bug/create/user-message.html.tmpl' %]
+
 <h3 id="step1">Step 1 of 3 - has your [% terms.bug %] already been reported?</h3>
 
 <p class="warning">
@@ -144,18 +146,12 @@ function PutDescription() {
     </td>
   </tr>
 
-  [%# We override rep_platform and op_sys for simplicity. %]
-  [% rep_platform = [ "PC", "Macintosh", "All", "Other" ] %]
-
   <tr class="guided_form_field">
     <th>[% field_descs.rep_platform FILTER html %]</th>
     <td>
       [% PROCESS select sel = 'rep_platform' %]
     </td>
   </tr>
-
-  [% op_sys = [ "Windows XP", "Windows Vista", "Windows 7", "Windows 8",
-                "Mac OS X", "Linux", "All", "Other" ] %]
 
   <tr>
     <th>Operating System</th>
@@ -164,32 +160,16 @@ function PutDescription() {
     </td>
   </tr>
 
-  [%# Accept URL parameter build ID for non-browser products %]
-  [% IF cgi.param("buildid") %]
-    [% buildid = cgi.param("buildid") %]
-  [% END %]
-
-  <tr class="guided_form_field">
-    <th>Build Identifier</th>
-    <td>
-      <input type="text" size="80" name="buildid" value="[% buildid FILTER html %]">
-      <p>
-        This should identify the exact version of the product you were using.  
-        If the above field is blank or you know it is incorrect, copy the 
-        version text from the product's Help | 
-        About menu (for browsers this will begin with "Mozilla/5.0...").  
-        If the product won't start, instead paste the complete URL you downloaded 
-        it from.
-      </p>
-    </td>
-  </tr>
-
   <tr>
     <th>URL</th>
     <td>
       <input type="text" size="80" name="bug_file_loc" value="http://">
       <p>
-        URL that demonstrates the problem you are seeing (optional).
+        URL that demonstrates the problem you are seeing (optional).<br>
+		<span style="color: red">You should never use URL to point to pastebins
+		for error messages, logs, emerge --info output, screenshots or similar
+		information.<br>Instead, these should always be attached to the
+		bug.</span>
       </p>
    </td>
   </tr>
@@ -202,6 +182,7 @@ function PutDescription() {
       <p>
         A sentence which summarises the problem.
         Please be descriptive and use lots of keywords.
+		Include the <b>full</b> package atom with the version!
       </p>
       <p>
         <kbd>
@@ -210,14 +191,14 @@ function PutDescription() {
         <br>
         <kbd>
           <span class="good">Good example</span>:
-          crash if I close the mail window while checking for new POP mail
+          mail-client/evolution-2.8.3-r2: crash if I close the mail window while checking for new POP mail
         </kbd>
       </p>
     </td>
   </tr>
 
   <tr>
-    <th>Details</th>
+    <th>Description</th>
     <td>
       [% INCLUDE global/textarea.html.tmpl
         name      = 'comment'
@@ -318,22 +299,14 @@ function PutDescription() {
         cols    = constants.COMMENT_COLS
       %]
       <p>
-        Add any additional information you feel may be
-        relevant to this [% terms.bug %], such as the <b>theme</b> you were
-        using (does the [% terms.bug %] still occur
-        with the default theme?), or special
-        information about <b>your computer's configuration</b>. Any information
-        longer than a few lines, such as a <b>stack trace</b> or <b>HTML
-        testcase</b>, should be added
-        using the "Add an Attachment" link on the [% terms.bug %], after
-        it is filed. If you believe that it's relevant, please also include
-        your build configuration, obtained by typing <kbd>about:buildconfig</kbd>
-        into your URL bar.
-        <br>
-        <br>
-        If you are reporting a crash, note the module in
-        which the software crashed (e.g., <kbd>Application Violation in
-        gkhtml.dll</kbd>).
+	  Add any additional information you feel may be relevant to this
+	  [% terms.bug %], such as what other <b>programs you had running</b>,
+	  and/or
+	  information about <b>your computer's configuration</b>. Any information
+	  longer
+	  than a few lines, such as a <b>stack trace</b>, should be added using the
+	  "Create a new Attachment" link on the bug, after it is filed.<br />
+	  <b>Please paste all information from 'emerge --info' in this section!</b>
       </p>
     </td>
   </tr>
@@ -342,6 +315,9 @@ function PutDescription() {
     <th>[% field_descs.bug_severity FILTER html %]</th>
     <td>
       <select name="bug_severity">
+	  <option name="blocker" value="blocker">
+	  	Blocker: Blocks development and/or testing work of Gentoo as a whole
+	  </option>
         <option name="critical" value="critical">
           Critical: The software crashes, hangs, or causes you to
           lose data.
@@ -360,7 +336,8 @@ function PutDescription() {
           misaligned text.
         </option>
         <option name="enhancement" value="enhancement">
-          Enhancement: Request for new feature or enhancement.
+          Enhancement: Request for new feature or enhancement, including ebuild
+		  submissions.
         </option>
       </select>
       <p>

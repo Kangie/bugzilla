@@ -32,8 +32,57 @@
 [% previous_params = Bugzilla.cgi.canonicalise_query('classification', 'product') %]
 
 <h2>[% h2 FILTER html %]</h2>
+[% IF target == "enter_bug.cgi" %]
+<div class="important-message">
+	Please consult the <a href="http://www.gentoo.org/doc/en/bugzilla-howto.xml#doc_chap6">Bug Reporting Guide</a>
+	on how to choose the proper product for your issue.
+</div>
+[% END %]
 
 <table id="choose_product">
+[% IF target == "enter_bug.cgi" %]
+	<tr><td colspan="2">If you are <strong>unsure</strong>, please file your bug in this product:</td></tr>
+	<tr class="hilight">
+		<th align="right" valign="top">
+		<a href="[% target %]?product=Gentoo%20Linux
+			[%- IF cloned_bug_id %]&amp;cloned_bug_id=[% cloned_bug_id FILTER uri %][% END -%]
+			[%- IF format %]&amp;format=[% format FILTER uri %][% END %]">
+		Gentoo&nbsp;Linux</a>:&nbsp;
+		</th>
+		<td valign="top"><b>The Gentoo Linux Distribution &ndash; Ebuilds and System related issues</b></td>
+	</tr>
+	<tr class="vspace">
+		<td>&nbsp;</td>
+		<td>
+		<strong>Always attach the output of <tt>emerge --info</tt> to your bug report!</strong>
+		<br /><br />
+		Before reporting a bug, please make sure the issue you are about to file
+		is not the result of a misconfiguration on your part.<br />
+		Our other support venues (for instance the
+		<a href="http://forums.gentoo.org/">Forums</a> or
+		<a href="http://www.gentoo.org/main/en/irc.xml">IRC channels</a>)
+		can help you find out whether the issue warrants a bug report.
+		<br /><br />
+		Examples for bugs in this product:
+		<ul>
+			<li>New package and version bump requests</li>
+			<li>Compile errors (please follow the instructions contained in the error message!)</li>
+			<li>Application crashes (be sure to have a <a href="http://www.gentoo.org/proj/en/qa/backtraces.xml">backtrace</a> available)</li>
+			<li>General issues regarding your Gentoo system</li>
+		</ul>
+
+		Examples for bugs that should <span style="color: #a40000;">NOT</span> be filed here:
+		<ul>
+			<li>Security updates (use <em>Gentoo Security</em> below)</li>
+			<li>Documentation updates (use <em>Documentation</em> below)</li>
+			<li>Issues regarding our website and infrastructure (use <em>Gentoo Infrastructure</em> or <em>Website www.gentoo.org</em> below)</li>
+			<li>Issues about <em>OpenRC</em>, <em>genkernel</em>, or <em>catalyst</em> (use <em>Hosted projects</em> below)</li>
+		</ul>
+		</td></tr>
+		<tr>
+		<td colspan="2"><hr />Or, use one of the following products <strong>if you know that your choice is correct:</strong></td>
+		</tr>
+[% END %]
 
 [% FOREACH c = classifications %]
   [% IF c.object %]
