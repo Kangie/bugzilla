@@ -6,9 +6,13 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Job::Mailer;
+
+use 5.10.1;
 use strict;
+use warnings;
+
 use Bugzilla::Mailer;
-BEGIN { eval "use base qw(TheSchwartz::Worker)"; }
+BEGIN { eval "use parent qw(TheSchwartz::Worker)"; }
 
 # The longest we expect a job to possibly take, in seconds.
 use constant grab_for => 300;

@@ -6,8 +6,12 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Constants;
+
+use 5.10.1;
 use strict;
-use base qw(Exporter);
+use warnings;
+
+use parent qw(Exporter);
 
 # For bz_locations
 use File::Basename;
@@ -15,11 +19,14 @@ use Memoize;
 
 @Bugzilla::Constants::EXPORT = qw(
     BUGZILLA_VERSION
+    REST_DOC
 
     REMOTE_FILE
     LOCAL_FILE
 
     bz_locations
+
+    CONCATENATE_ASSETS
 
     IS_NULL
     NOT_NULL
@@ -66,6 +73,9 @@ use Memoize;
     COMMENT_COLS
     MAX_COMMENT_LENGTH
 
+    MIN_COMMENT_TAG_LENGTH
+    MAX_COMMENT_TAG_LENGTH
+
     CMT_NORMAL
     CMT_DUPE_OF
     CMT_HAS_DUPE
@@ -101,9 +111,12 @@ use Memoize;
     FIELD_TYPE_MULTI_SELECT
     FIELD_TYPE_TEXTAREA
     FIELD_TYPE_DATETIME
+    FIELD_TYPE_DATE
     FIELD_TYPE_BUG_ID
     FIELD_TYPE_BUG_URLS
     FIELD_TYPE_KEYWORDS
+    FIELD_TYPE_INTEGER
+    FIELD_TYPE_HIGHEST_PLUS_ONE
 
     EMPTY_DATETIME_REGEX
 
@@ -117,12 +130,14 @@ use Memoize;
     USAGE_MODE_EMAIL
     USAGE_MODE_JSON
     USAGE_MODE_TEST
+    USAGE_MODE_REST
 
     ERROR_MODE_WEBPAGE
     ERROR_MODE_DIE
     ERROR_MODE_DIE_SOAP_FAULT
     ERROR_MODE_JSON_RPC
     ERROR_MODE_TEST
+    ERROR_MODE_REST
 
     COLOR_ERROR
     COLOR_SUCCESS
@@ -162,6 +177,7 @@ use Memoize;
     MAX_POSSIBLE_DUPLICATES
     MAX_ATTACH_FILENAME_LENGTH
     MAX_QUIP_LENGTH
+    MAX_WEBDOT_BUGS
 
     PASSWORD_DIGEST_ALGORITHM
     PASSWORD_SALT_LENGTH
@@ -175,6 +191,8 @@ use Memoize;
 
     AUDIT_CREATE
     AUDIT_REMOVE
+
+    MOST_FREQUENT_THRESHOLD
 );
 
 @Bugzilla::Constants::EXPORT_OK = qw(contenttypes);
@@ -182,11 +200,20 @@ use Memoize;
 # CONSTANTS
 #
 # Bugzilla version
-use constant BUGZILLA_VERSION => "4.4.11";
+use constant BUGZILLA_VERSION => "5.0.2+";
+
+# A base link to the current REST Documentation. We place it here
+# as it will need to be updated to whatever the current release is.
+use constant REST_DOC => "http://www.bugzilla.org/docs/tip/en/html/api/";
 
 # Location of the remote and local XML files to track new releases.
 use constant REMOTE_FILE => 'http://updates.bugzilla.org/bugzilla-update.xml';
 use constant LOCAL_FILE  => 'bugzilla-update.xml'; # Relative to datadir.
+
+# When true CSS and JavaScript assets will be concatanted and minified at
+# run-time, to reduce the number of requests required to render a page.
+# Setting this to a false value can help debugging.
+use constant CONCATENATE_ASSETS => 1;
 
 # These are unique values that are unlikely to match a string or a number,
 # to be used in criteria for match() functions and other things. They start
@@ -282,6 +309,14 @@ use constant SAVE_NUM_SEARCHES => 10;
 use constant COMMENT_COLS => 80;
 # Used in _check_comment(). Gives the max length allowed for a comment.
 use constant MAX_COMMENT_LENGTH => 16384;
+
+# The minimum and maximum length of comment tags.
+use constant MIN_COMMENT_TAG_LENGTH => 3;
+use constant MAX_COMMENT_TAG_LENGTH => 24;
+
+# The minimum and maximum length of comment tags.
+use constant MIN_COMMENT_TAG_LENGTH => 3;
+use constant MAX_COMMENT_TAG_LENGTH => 24;
 
 # The type of bug comments.
 use constant CMT_NORMAL => 0;
@@ -382,6 +417,11 @@ use constant FIELD_TYPE_DATETIME  => 5;
 use constant FIELD_TYPE_BUG_ID  => 6;
 use constant FIELD_TYPE_BUG_URLS => 7;
 use constant FIELD_TYPE_KEYWORDS => 8;
+use constant FIELD_TYPE_DATE => 9;
+use constant FIELD_TYPE_INTEGER => 10;
+# Add new field types above this line, and change the below value in the
+# obvious fashion
+use constant FIELD_TYPE_HIGHEST_PLUS_ONE => 11;
 
 use constant EMPTY_DATETIME_REGEX => qr/^[0\-:\sA-Za-z]+$/; 
 
@@ -396,8 +436,7 @@ use constant ABNORMAL_SELECTS => {
 # The fields from fielddefs that are blocked from non-timetracking users.
 # work_time is sometimes called actual_time.
 use constant TIMETRACKING_FIELDS =>
-    qw(estimated_time remaining_time work_time actual_time
-       percentage_complete deadline);
+    qw(estimated_time remaining_time work_time actual_time percentage_complete);
 
 # The maximum number of days a token will remain valid.
 use constant MAX_TOKEN_AGE => 3;
@@ -412,8 +451,8 @@ use constant MAX_LOGIN_ATTEMPTS => 5;
 # account is locked.
 use constant LOGIN_LOCKOUT_INTERVAL => 30;
 
-# The time in minutes a user must wait before he can request another email to
-# create a new account or change his password.
+# The time in minutes a user must wait before they can request another email to
+# create a new account or change their password.
 use constant ACCOUNT_CHANGE_INTERVAL => 10;
 
 # The maximum number of seconds the Strict-Transport-Security header
@@ -450,6 +489,7 @@ use constant USAGE_MODE_XMLRPC     => 2;
 use constant USAGE_MODE_EMAIL      => 3;
 use constant USAGE_MODE_JSON       => 4;
 use constant USAGE_MODE_TEST       => 5;
+use constant USAGE_MODE_REST       => 6;
 
 # Error modes. Default set by Bugzilla->usage_mode (so ERROR_MODE_WEBPAGE
 # usually). Use with Bugzilla->error_mode.
@@ -458,6 +498,7 @@ use constant ERROR_MODE_DIE            => 1;
 use constant ERROR_MODE_DIE_SOAP_FAULT => 2;
 use constant ERROR_MODE_JSON_RPC       => 3;
 use constant ERROR_MODE_TEST           => 4;
+use constant ERROR_MODE_REST           => 5;
 
 # The ANSI colors of messages that command-line scripts use
 use constant COLOR_ERROR => 'red';
@@ -562,13 +603,16 @@ use constant MAX_ATTACH_FILENAME_LENGTH => 255;
 # Maximum length of a quip.
 use constant MAX_QUIP_LENGTH => 512;
 
+# Maximum number of bugs to display in a dependency graph
+use constant MAX_WEBDOT_BUGS => 2000;
+
 # This is the name of the algorithm used to hash passwords before storing
 # them in the database. This can be any string that is valid to pass to
 # Perl's "Digest" module. Note that if you change this, it won't take
-# effect until a user changes his password.
+# effect until a user logs in or changes their password.
 use constant PASSWORD_DIGEST_ALGORITHM => 'SHA-256';
-# How long of a salt should we use? Note that if you change this, none
-# of your users will be able to log in until they reset their passwords.
+# How long of a salt should we use? Note that if you change this, it
+# won't take effect until a user logs in or changes their password.
 use constant PASSWORD_SALT_LENGTH => 8;
 
 # Certain scripts redirect to GET even if the form was submitted originally
@@ -577,7 +621,7 @@ use constant PASSWORD_SALT_LENGTH => 8;
 # See http://support.microsoft.com/kb/208427 for why MSIE is different
 use constant CGI_URI_LIMIT => ($ENV{'HTTP_USER_AGENT'} || '') =~ /MSIE/ ? 2083 : 8000;
 
-# If the user isn't allowed to change a field, we must tell him who can.
+# If the user isn't allowed to change a field, we must tell them who can.
 # We store the required permission set into the $PrivilegesRequired
 # variable which gets passed to the error template.
 
@@ -590,6 +634,10 @@ use constant PRIVILEGES_REQUIRED_EMPOWERED => 3;
 # "we just created this object" or "we just deleted this object".
 use constant AUDIT_CREATE => '__create__';
 use constant AUDIT_REMOVE => '__remove__';
+
+# The minimum number of duplicates a bug needs to show up
+# on the "Most frequently reported bugs" page.
+use constant MOST_FREQUENT_THRESHOLD => 2;
 
 sub bz_locations {
     # Force memoize() to re-compute data per project, to avoid
@@ -651,6 +699,7 @@ sub _bz_locations {
         # The script should really generate these graphs directly...
         'webdotdir'   => "$datadir/webdot",
         'extensionsdir' => "$libpath/extensions",
+        'assetsdir'   => "$datadir/assets",
     };
 }
 
@@ -659,3 +708,15 @@ sub _bz_locations {
 BEGIN { memoize('_bz_locations') };
 
 1;
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item DB_MODULE
+
+=item contenttypes
+
+=item bz_locations
+
+=back

@@ -6,7 +6,10 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Search::Clause;
+
+use 5.10.1;
 use strict;
+use warnings;
 
 use Bugzilla::Error;
 use Bugzilla::Search::Condition qw(condition);
@@ -131,3 +134,27 @@ sub as_params {
 }
 
 1;
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item has_translated_conditions
+
+=item as_string
+
+=item add
+
+=item children
+
+=item negate
+
+=item update_search_args
+
+=item walk_conditions
+
+=item joiner
+
+=item as_params
+
+=back

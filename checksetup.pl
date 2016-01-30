@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,8 +12,10 @@
 # Initialization
 ######################################################################
 
+use 5.10.1;
 use strict;
-use 5.008001;
+use warnings;
+
 use File::Basename;
 BEGIN { chdir dirname($0); }
 use lib qw(. lib);
@@ -108,7 +110,7 @@ my $lc_hash = Bugzilla->localconfig;
 
 # At this point, localconfig is defined and is readable. So we know
 # everything we need to create the DB. We have to create it early,
-# because some data required to populate data/params is stored in the DB.
+# because some data required to populate data/params.json is stored in the DB.
 
 Bugzilla::DB::bz_check_requirements(!$silent);
 Bugzilla::DB::bz_create_database() if $lc_hash->{'db_check'};
@@ -206,6 +208,9 @@ Bugzilla::Hook::process('install_before_final_checks', { silent => $silent });
 ###########################################################################
 # Final checks
 ###########################################################################
+
+# Clear all keys from Memcached
+Bugzilla->memcached->clear_all();
 
 # Check if the default parameter for urlbase is still set, and if so, give
 # notification that they should go and visit editparams.cgi 
@@ -360,7 +365,7 @@ L<Bugzilla::Install::Filesystem/create_htaccess>.
 
 =item 9
 
-Updates the system parameters (stored in F<data/params>), using
+Updates the system parameters (stored in F<data/params.json>), using
 L<Bugzilla::Config/update_params>.
 
 =item 10
@@ -452,8 +457,6 @@ The format of that file is as follows:
  $answer{'ADMIN_EMAIL'} = 'myadmin@mydomain.net';
  $answer{'ADMIN_PASSWORD'} = 'fooey';
  $answer{'ADMIN_REALNAME'} = 'Joel Peshkin';
-
- $answer{'SMTP_SERVER'} = 'mail.mydomain.net';
 
  $answer{'NO_PAUSE'} = 1
 

@@ -10,12 +10,15 @@
 #Bugzilla Test 1#
 ###Compilation###
 
+use 5.10.1;
 use strict;
-use 5.008001;
+use warnings;
+
 use lib qw(. lib t);
 use Config;
 use Support::Files;
-use Test::More tests => scalar(@Support::Files::testitems);
+use Test::More tests => scalar(@Support::Files::testitems)
+                        + scalar(@Support::Files::test_files);
 
 BEGIN { 
     use_ok('Bugzilla::Constants');
@@ -51,7 +54,7 @@ sub compile_file {
        $libs = join " ", map { "-I\"$_\"" } split /$Config{path_sep}/, $ENV{PERL5LIB};
     }
     my $perl = qq{"$^X"};
-    my $output = `$perl $libs -wc$T $file 2>&1`;
+    my $output = `$perl $libs -c$T $file 2>&1`;
     chomp($output);
     my $return_val = $?;
     $output =~ s/^\Q$file\E syntax OK$//ms;
@@ -59,7 +62,7 @@ sub compile_file {
     ok(!$return_val, $file) or diag('--ERROR');
 }
 
-my @testitems = @Support::Files::testitems;
+my @testitems = (@Support::Files::testitems, @Support::Files::test_files);
 my $file_features = map_files_to_features();
 
 # Test the scripts by compiling them

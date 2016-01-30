@@ -7,7 +7,9 @@
 
 package Bugzilla::Extension::OldBugMove::Params;
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use Bugzilla::Config::Common;
 

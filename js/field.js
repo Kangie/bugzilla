@@ -42,7 +42,7 @@ function validateEnterBug(theform) {
 
     // These are checked in the reverse order that they appear on the page,
     // so that the one closest to the top of the form will be focused.
-    if (attach_data.value && YAHOO.lang.trim(attach_desc.value) == '') {
+    if (attach_data && attach_data.value && YAHOO.lang.trim(attach_desc.value) == '') {
         _errorFor(attach_desc, 'attach_desc');
         focus_me = attach_desc;
     }
@@ -218,14 +218,14 @@ function setupEditLink(id) {
 }
 
 /* Hide input/select fields and show the text with (edit) next to it */
-function hideEditableField( container, input, action, field_id, original_value, new_value ) {
+function hideEditableField( container, input, action, field_id, original_value, new_value, hide_input ) {
     YAHOO.util.Dom.removeClass(container, 'bz_default_hidden');
     YAHOO.util.Dom.addClass(input, 'bz_default_hidden');
     YAHOO.util.Event.addListener(action, 'click', showEditableField,
                                  new Array(container, input, field_id, new_value));
     if(field_id != ""){
         YAHOO.util.Event.addListener(window, 'load', checkForChangedFieldValues,
-                        new Array(container, input, field_id, original_value));
+                        new Array(container, input, field_id, original_value, hide_input ));
     }
 }
 
@@ -273,7 +273,7 @@ function showEditableField (e, ContainerInputArray) {
         }
         // focus on the first field, this makes it easier to edit
         inputs[0].focus();
-        if ( type == "input" ) {
+        if ( type == "input" || type == "textarea" ) {
             inputs[0].select();
         }
     }
@@ -297,8 +297,10 @@ function checkForChangedFieldValues(e, ContainerInputArray ) {
     var el = document.getElementById(ContainerInputArray[2]);
     var unhide = false;
     if ( el ) {
-        if ( el.value != ContainerInputArray[3] ||
-            ( el.value == "" && el.id != "alias" && el.id != 'qa_contact') ) {
+        if ( !ContainerInputArray[4]
+             && (el.value != ContainerInputArray[3]
+                 || (el.value == "" && el.id != "qa_contact")) )
+        {
             unhide = true;
         }
         else {
@@ -307,7 +309,7 @@ function checkForChangedFieldValues(e, ContainerInputArray ) {
             if ( set_default ) {
                 if(set_default.checked){
                     unhide = true;
-                }              
+                }
             }
         }
     }
@@ -316,17 +318,6 @@ function checkForChangedFieldValues(e, ContainerInputArray ) {
         YAHOO.util.Dom.removeClass(ContainerInputArray[1], 'bz_default_hidden');
     }
 
-}
-
-function hideAliasAndSummary(short_desc_value, alias_value) {
-    // check the short desc field
-    hideEditableField( 'summary_alias_container','summary_alias_input',
-                       'editme_action','short_desc', short_desc_value);  
-    // check that the alias hasn't changed
-    var bz_alias_check_array = new Array('summary_alias_container',
-                                     'summary_alias_input', 'alias', alias_value);
-    YAHOO.util.Event.addListener( window, 'load', checkForChangedFieldValues,
-                                 bz_alias_check_array);
 }
 
 function showPeopleOnChange( field_id_list ) {
@@ -515,7 +506,8 @@ function handleVisControllerValueChange(e, args) {
     var controller = args[1];
     var values = args[2];
 
-    var label_container = 
+    var field = document.getElementById(controlled_id);
+    var label_container =
         document.getElementById('field_label_' + controlled_id);
     var field_container =
         document.getElementById('field_container_' + controlled_id);
@@ -530,10 +522,45 @@ function handleVisControllerValueChange(e, args) {
     if (selected) {
         YAHOO.util.Dom.removeClass(label_container, 'bz_hidden_field');
         YAHOO.util.Dom.removeClass(field_container, 'bz_hidden_field');
+        /* If a custom field such as a textarea field contains some text, then
+         * its content is visible by default as a readonly field (assuming that
+         * the field is displayed). But if such a custom field contains no text,
+         * then it's not displayed at all and an (edit) link is displayed instead.
+         * This is problematic if the custom field is mandatory, because at least
+         * Firefox complains that you must enter a value, but is unable to point
+         * to the custom field because this one is hidden, and so the user has
+         * to guess what the web browser is talking about, which is confusing.
+         * So in that case, we display the custom field automatically instead of
+         * the (edit) link, so that the user can enter some text in it.
+         */
+        var field_readonly = document.getElementById(controlled_id + '_readonly');
+
+        if (!field_readonly) {
+            var field_input = document.getElementById(controlled_id + '_input');
+            var edit_container =
+                document.getElementById(controlled_id + '_edit_container');
+
+            if (field_input) {
+                YAHOO.util.Dom.removeClass(field_input, 'bz_default_hidden');
+            }
+            if (edit_container) {
+                YAHOO.util.Dom.addClass(edit_container, 'bz_hidden_field');
+            }
+        }
+        // Restore the 'required' attribute for mandatory fields.
+        if (field.getAttribute('data-required') == "true") {
+            field.setAttribute('required', 'true');
+            field.setAttribute('aria-required', 'true');
+        }
     }
     else {
         YAHOO.util.Dom.addClass(label_container, 'bz_hidden_field');
         YAHOO.util.Dom.addClass(field_container, 'bz_hidden_field');
+        // A hidden field must never be required, because the user cannot set it.
+        if (field.getAttribute('data-required') == "true") {
+            field.removeAttribute('required');
+            field.removeAttribute('aria-required');
+        }
     }
 }
 
@@ -827,6 +854,7 @@ YAHOO.bugzilla.userAutocomplete = {
           method : "User.get",
           id : YAHOO.bugzilla.userAutocomplete.counter,
           params : [ { 
+            Bugzilla_api_token: BUGZILLA.api_token,
             match : [ decodeURIComponent(enteredText) ],
             include_fields : [ "name", "real_name" ]
           } ]
@@ -984,4 +1012,105 @@ function initDirtyFieldTracking() {
             document.getElementById(el.name + '_dirty').value = isDirty ? '1' : '';
         });
     }
+}
+
+/**
+ * Comment preview
+ */
+
+var last_comment_text = '';
+
+function show_comment_preview(bug_id) {
+    var Dom = YAHOO.util.Dom;
+    var comment = document.getElementById('comment');
+    var preview = document.getElementById('comment_preview');
+
+    if (!comment || !preview) return;
+    if (Dom.hasClass('comment_preview_tab', 'active_comment_tab')) return;
+
+    preview.style.width = (comment.clientWidth - 4) + 'px';
+    preview.style.height = comment.offsetHeight + 'px';
+
+    var comment_tab = document.getElementById('comment_tab');
+    Dom.addClass(comment, 'bz_default_hidden');
+    Dom.removeClass(comment_tab, 'active_comment_tab');
+    comment_tab.setAttribute('aria-selected', 'false');
+
+    var preview_tab = document.getElementById('comment_preview_tab');
+    Dom.removeClass(preview, 'bz_default_hidden');
+    Dom.addClass(preview_tab, 'active_comment_tab');
+    preview_tab.setAttribute('aria-selected', 'true');
+
+    Dom.addClass('comment_preview_error', 'bz_default_hidden');
+
+    if (last_comment_text == comment.value)
+        return;
+
+    Dom.addClass('comment_preview_text', 'bz_default_hidden');
+    Dom.removeClass('comment_preview_loading', 'bz_default_hidden');
+
+    YAHOO.util.Connect.setDefaultPostHeader('application/json', true);
+    YAHOO.util.Connect.asyncRequest('POST', 'jsonrpc.cgi',
+    {
+        success: function(res) {
+            data = YAHOO.lang.JSON.parse(res.responseText);
+            if (data.error) {
+                Dom.addClass('comment_preview_loading', 'bz_default_hidden');
+                Dom.removeClass('comment_preview_error', 'bz_default_hidden');
+                Dom.get('comment_preview_error').innerHTML =
+                    YAHOO.lang.escapeHTML(data.error.message);
+            } else {
+                document.getElementById('comment_preview_text').innerHTML = data.result.html;
+                Dom.addClass('comment_preview_loading', 'bz_default_hidden');
+                Dom.removeClass('comment_preview_text', 'bz_default_hidden');
+                last_comment_text = comment.value;
+            }
+        },
+        failure: function(res) {
+            Dom.addClass('comment_preview_loading', 'bz_default_hidden');
+            Dom.removeClass('comment_preview_error', 'bz_default_hidden');
+            Dom.get('comment_preview_error').innerHTML =
+                YAHOO.lang.escapeHTML(res.responseText);
+        }
+    },
+    YAHOO.lang.JSON.stringify({
+        version: "1.1",
+        method: 'Bug.render_comment',
+        params: {
+            Bugzilla_api_token: BUGZILLA.api_token,
+            id: bug_id,
+            text: comment.value
+        }
+    })
+    );
+}
+
+function show_comment_edit() {
+    var comment = document.getElementById('comment');
+    var preview = document.getElementById('comment_preview');
+    if (!comment || !preview) return;
+    if (YAHOO.util.Dom.hasClass(comment, 'active_comment_tab')) return;
+
+    var preview_tab = document.getElementById('comment_preview_tab');
+    YAHOO.util.Dom.addClass(preview, 'bz_default_hidden');
+    YAHOO.util.Dom.removeClass(preview_tab, 'active_comment_tab');
+    preview_tab.setAttribute('aria-selected', 'false');
+
+    var comment_tab = document.getElementById('comment_tab');
+    YAHOO.util.Dom.removeClass(comment, 'bz_default_hidden');
+    YAHOO.util.Dom.addClass(comment_tab, 'active_comment_tab');
+    comment_tab.setAttribute('aria-selected', 'true');
+}
+
+function adjustRemainingTime() {
+    // subtracts time spent from remaining time
+    // prevent negative values if work_time > bz_remaining_time
+    var new_time = Math.max(bz_remaining_time - document.changeform.work_time.value, 0.0);
+    // get upto 2 decimal places
+    document.changeform.remaining_time.value = Math.round(new_time * 100)/100;
+}
+
+function updateRemainingTime() {
+    // if the remaining time is changed manually, update bz_remaining_time
+    bz_remaining_time = document.changeform.remaining_time.value;
 }

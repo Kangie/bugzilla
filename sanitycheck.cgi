@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,9 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib qw(. lib);
 
@@ -73,6 +75,7 @@ else {
     }
 }
 my $vars = {};
+my $clear_memcached = 0;
 
 print $cgi->header() unless Bugzilla->usage_mode == USAGE_MODE_CMDLINE;
 
@@ -149,6 +152,7 @@ if ($cgi->param('createmissinggroupcontrolmapentries')) {
     }
 
     Status('group_control_map_entries_repaired', {counter => $counter});
+    $clear_memcached = 1 if $counter;
 }
 
 ###########################################################################
@@ -175,6 +179,7 @@ if ($cgi->param('repair_creation_date')) {
         $sth_UpdateDate->execute($date, $bugid);
     }
     Status('bug_creation_date_fixed', {bug_count => scalar(@$bug_ids)});
+    $clear_memcached = 1 if @$bug_ids;
 }
 
 ###########################################################################
@@ -191,6 +196,7 @@ if ($cgi->param('repair_everconfirmed')) {
     $dbh->do("UPDATE bugs SET everconfirmed = 1 WHERE bug_status IN ($confirmed_open_states)");
 
     Status('everconfirmed_end');
+    $clear_memcached = 1;
 }
 
 ###########################################################################
@@ -206,11 +212,12 @@ if ($cgi->param('repair_bugs_fulltext')) {
                                             ON bugs_fulltext.bug_id = bugs.bug_id
                                             WHERE bugs_fulltext.bug_id IS NULL');
 
-   foreach my $bugid (@$bug_ids) {
-       Bugzilla::Bug->new($bugid)->_sync_fulltext( new_bug => 1 );
-   }
+    foreach my $bugid (@$bug_ids) {
+        Bugzilla::Bug->new($bugid)->_sync_fulltext( new_bug => 1 );
+    }
 
-   Status('bugs_fulltext_fixed', {bug_count => scalar(@$bug_ids)});
+    Status('bugs_fulltext_fixed', {bug_count => scalar(@$bug_ids)});
+    $clear_memcached = 1 if @$bug_ids;
 }
 
 ###########################################################################
@@ -246,7 +253,10 @@ if ($cgi->param('rescanallBugMail')) {
         Bugzilla::BugMail::Send($bugid, $vars);
     }
 
-    Status('send_bugmail_end') if scalar(@$list);
+    if (@$list) {
+        Status('send_bugmail_end');
+        Bugzilla->memcached->clear_all();
+    }
 
     unless (Bugzilla->usage_mode == USAGE_MODE_CMDLINE) {
         $template->process('global/footer.html.tmpl', $vars)
@@ -280,6 +290,7 @@ if ($cgi->param('remove_invalid_bug_references')) {
 
         if (scalar(@$bug_ids)) {
             $dbh->do("DELETE FROM $table WHERE $field IN (" . join(',', @$bug_ids) . ")");
+            $clear_memcached = 1;
         }
     }
 
@@ -310,6 +321,7 @@ if ($cgi->param('remove_invalid_attach_references')) {
 
     $dbh->bz_commit_transaction();
     Status('attachment_reference_deletion_end');
+    $clear_memcached = 1 if @$attach_ids;
 }
 
 ###########################################################################
@@ -336,11 +348,16 @@ if ($cgi->param('remove_old_whine_targets')) {
             $dbh->do("DELETE FROM whine_schedules
                        WHERE mailto_type = $type AND mailto IN (" .
                        join(',', @$old_ids) . ")");
+            $clear_memcached = 1;
         }
     }
     $dbh->bz_commit_transaction();
     Status('whines_obsolete_target_deletion_end');
 }
+
+# If any repairs were attempted or made, we need to clear memcached to ensure
+# state is consistent.
+Bugzilla->memcached->clear_all() if $clear_memcached;
 
 ###########################################################################
 # Repair hook
@@ -717,6 +734,7 @@ if (scalar(@invalid_flags)) {
         # Silently delete these flags, with no notification to requesters/setters.
         $dbh->do('DELETE FROM flags WHERE id IN (' . join(',', @flag_ids) .')');
         Status('flag_deletion_end');
+        Bugzilla->memcached->clear_all();
     }
     else {
         foreach my $flag (@$invalid_flags) {

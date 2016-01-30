@@ -23,11 +23,11 @@ function updateCommentPrivacy(checkbox, id) {
 
 function toggle_comment_display(link, comment_id) {
     var comment = document.getElementById('comment_text_' + comment_id);
-    var re = new RegExp(/\bcollapsed\b/);
-    if (comment.className.match(re))
-        expand_comment(link, comment);
-    else
-        collapse_comment(link, comment);
+    if (YAHOO.util.Dom.hasClass(comment, 'collapsed')) {
+        expand_comment(link, comment, comment_id);
+    } else {
+        collapse_comment(link, comment, comment_id);
+    }
 }
 
 function toggle_all_comments(action) {
@@ -40,24 +40,31 @@ function toggle_all_comments(action) {
         var comment = comments[i];
         if (!comment)
             continue;
-
-        var id = comments[i].id.match(/\d*$/);
+        var id = comment.id.match(/^comment_text_(\d*)$/);
+        if (!id)
+            continue;
+        id = id[1];
         var link = document.getElementById('comment_link_' + id);
-        if (action == 'collapse')
-            collapse_comment(link, comment);
-        else
-            expand_comment(link, comment);
+        if (action == 'collapse') {
+            collapse_comment(link, comment, id);
+        } else {
+            expand_comment(link, comment, id);
+        }
     }
 }
 
-function collapse_comment(link, comment) {
+function collapse_comment(link, comment, comment_id) {
     link.innerHTML = "[+]";
     YAHOO.util.Dom.addClass(comment, 'collapsed');
+    YAHOO.util.Dom.addClass('comment_tag_' + comment_id, 'collapsed');
 }
 
-function expand_comment(link, comment) {
+function expand_comment(link, comment, comment_id) {
     link.innerHTML = "[&minus;]";
+    YAHOO.util.Dom.addClass('cr' + comment_id, 'collapsed');
+    YAHOO.util.Dom.removeClass('c' + comment_id, 'bz_default_collapsed');
     YAHOO.util.Dom.removeClass(comment, 'collapsed');
+    YAHOO.util.Dom.removeClass('comment_tag_' + comment_id, 'collapsed');
 }
 
 function wrapReplyText(text) {
@@ -110,11 +117,12 @@ function wrapReplyText(text) {
 /* This way, we are sure that browsers which do not support JS
    * won't display this link  */
 
-function addCollapseLink(count, title) {
+function addCollapseLink(count, collapsed, title) {
     document.write(' <a href="#" class="bz_collapse_comment"' +
                    ' id="comment_link_' + count +
                    '" onclick="toggle_comment_display(this, ' +  count +
-                   '); return false;" title="' + title + '">[&minus;]<\/a> ');
+                   '); return false;" title="' + title + '">[' +
+                   (collapsed ? '+' : '&minus;') + ']<\/a> ');
 }
 
 function goto_add_comments( anchor ){

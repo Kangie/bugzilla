@@ -66,12 +66,6 @@ hr {
 
 /* edit */
 
-#bugzilla-body th {
-    font-weight: bold;
-    vertical-align: top;
-    white-space: nowrap;
-}
-
 #bug-form td {
     padding-top: 2px;
 }
@@ -216,6 +210,10 @@ hr {
 
 .bz_row_odd {
     background-color: #f0f0f0;
+}
+
+#page-index .outro {
+    clear:both;
 }
 
 /* Rules specific for printing */

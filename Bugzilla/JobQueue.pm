@@ -7,7 +7,9 @@
 
 package Bugzilla::JobQueue;
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use Bugzilla::Constants;
 use Bugzilla::Error;
@@ -21,12 +23,17 @@ use fields qw(_worker_pidfile);
 # If you add new types of jobs, you should add a mapping here.
 use constant JOB_MAP => {
     send_mail => 'Bugzilla::Job::Mailer',
+    bug_mail  => 'Bugzilla::Job::BugMail',
 };
 
 # Without a driver cache TheSchwartz opens a new database connection
 # for each email it sends.  This cached connection doesn't persist
 # across requests.
 use constant DRIVER_CACHE_TIME => 300; # 5 minutes
+
+# To avoid memory leak/fragmentation, a worker process won't process more than
+# MAX_MESSAGES messages.
+use constant MAX_MESSAGES => 1000;
 
 sub job_map {
     if (!defined(Bugzilla->request_cache->{job_map})) {
@@ -153,6 +160,16 @@ sub work_once {
     return $self->SUPER::work_once(@_);
 }
 
+# Never process more than MAX_MESSAGES in one batch, to avoid memory
+# leak/fragmentation issues.
+sub work_until_done {
+    my $self = shift;
+    my $count = 0;
+    while ($count++ < MAX_MESSAGES) {
+        $self->work_once or last;
+    }
+}
+
 1;
 
 __END__
@@ -178,3 +195,19 @@ Bugzilla to use some sort of service to schedule jobs to happen asyncronously.
 See the synopsis above for an easy to follow example on how to insert a
 job into the queue.  Give it a name and some arguments and the job will
 be sent away to be done later.
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item insert
+
+=item bz_databases
+
+=item job_map
+
+=item set_pidfile
+
+=item kill_worker
+
+=back

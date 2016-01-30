@@ -5,16 +5,17 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-use strict;
-
 package Bugzilla::Status;
 
-use Bugzilla::Error;
+use 5.10.1;
+use strict;
+use warnings;
+
 # This subclasses Bugzilla::Field::Choice instead of implementing 
 # ChoiceInterface, because a bug status literally is a special type
 # of Field::Choice, not just an object that happens to have the same
 # methods.
-use base qw(Bugzilla::Field::Choice Exporter);
+use parent qw(Bugzilla::Field::Choice Exporter);
 @Bugzilla::Status::EXPORT = qw(
     BUG_STATE_OPEN
     SPECIAL_STATUS_WORKFLOW_ACTIONS
@@ -22,6 +23,8 @@ use base qw(Bugzilla::Field::Choice Exporter);
     is_open_state 
     closed_bug_statuses
 );
+
+use Bugzilla::Error;
 
 ################################
 #####   Initialization     #####
@@ -106,11 +109,21 @@ sub _check_value {
 
 sub BUG_STATE_OPEN {
     my $dbh = Bugzilla->dbh;
-    my $cache = Bugzilla->request_cache;
-    $cache->{status_bug_state_open} ||=
-        $dbh->selectcol_arrayref('SELECT value FROM bug_status 
-                                   WHERE is_open = 1');
-    return @{ $cache->{status_bug_state_open} };
+    my $request_cache = Bugzilla->request_cache;
+    my $cache_key = 'status_bug_state_open';
+    return @{ $request_cache->{$cache_key} }
+        if exists $request_cache->{$cache_key};
+
+    my $rows = Bugzilla->memcached->get_config({ key => $cache_key });
+    if (!$rows) {
+        $rows = $dbh->selectcol_arrayref(
+            'SELECT value FROM bug_status WHERE is_open = 1'
+        );
+        Bugzilla->memcached->set_config({ key => $cache_key, data => $rows });
+    }
+
+    $request_cache->{$cache_key} = $rows;
+    return @$rows;
 }
 
 # Tells you whether or not the argument is a valid "open" state.
@@ -295,3 +308,27 @@ C<1> if a comment is required on this change, C<0> if not.
 =back
 
 =cut
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item create
+
+=item BUG_STATE_OPEN
+
+=item is_static
+
+=item is_open_state
+
+=item is_active
+
+=item remove_from_db
+
+=item DB_COLUMNS
+
+=item is_open
+
+=item VALIDATORS
+
+=back

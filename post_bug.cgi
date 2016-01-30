@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,10 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
 use Bugzilla;
@@ -17,13 +20,11 @@ use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Bug;
 use Bugzilla::User;
-use Bugzilla::Field;
 use Bugzilla::Hook;
-use Bugzilla::Product;
-use Bugzilla::Component;
-use Bugzilla::Keyword;
 use Bugzilla::Token;
 use Bugzilla::Flag;
+
+use List::MoreUtils qw(uniq);
 
 my $user = Bugzilla->login(LOGIN_REQUIRED);
 
@@ -62,8 +63,6 @@ if (defined $cgi->param('maketemplate')) {
       || ThrowTemplateError($template->error());
     exit;
 }
-
-umask 0;
 
 # The format of the initial comment can be structured by adding fields to the
 # enter_bug template and then referencing them in the comment template.
@@ -104,7 +103,7 @@ push(@bug_fields, qw(
     version
     target_milestone
     status_whiteboard
-
+    see_also
     estimated_time
     deadline
 ));
@@ -210,12 +209,21 @@ my $bug_sent = Bugzilla::BugMail::Send($id, $recipients);
 $bug_sent->{type} = 'created';
 $bug_sent->{id}   = $id;
 my @all_mail_results = ($bug_sent);
+
 foreach my $dep (@{$bug->dependson || []}, @{$bug->blocked || []}) {
     my $dep_sent = Bugzilla::BugMail::Send($dep, $recipients);
     $dep_sent->{type} = 'dep';
     $dep_sent->{id}   = $dep;
     push(@all_mail_results, $dep_sent);
 }
+
+# Sending emails for any referenced bugs.
+foreach my $ref_bug_id (uniq @{ $bug->{see_also_changes} || [] }) {
+    my $ref_sent = Bugzilla::BugMail::Send($ref_bug_id, $recipients);
+    $ref_sent->{id} = $ref_bug_id;
+    push(@all_mail_results, $ref_sent);
+}
+
 $vars->{sentmail} = \@all_mail_results;
 
 $format = $template->get_format("bug/create/created",

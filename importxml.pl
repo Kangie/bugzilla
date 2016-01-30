@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,9 @@
 # a new bug into bugzilla. Everything before the beginning <?xml line
 # is removed so you can pipe in email messages.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 #####################################################################
 #
@@ -1023,6 +1025,15 @@ sub process_bug {
                 push(@query, $custom_field);
                 push(@values, $value);
             }
+        } elsif ($field->type == FIELD_TYPE_DATE) {
+            eval { $value = Bugzilla::Bug->_check_date_field($value); };
+            if ($@) {
+                $err .= "Skipping illegal value \"$value\" in $custom_field.\n" ;
+            }
+            else {
+                push(@query, $custom_field);
+                push(@values, $value);
+            }
         } else {
             $err .= "Type of custom field $custom_field is an unhandled FIELD_TYPE: " .
                     $field->type . "\n";
@@ -1164,7 +1175,7 @@ sub process_bug {
         if (!$attacher) {
             if ($att->{'attacher'}) {
                 $err .= "The original submitter of attachment $att_id was\n   ";
-                $err .= $att->{'attacher'} . ", but he doesn't have an account here.\n";
+                $err .= $att->{'attacher'} . ", but they don't have an account here.\n";
             }
             else {
                 $err .= "The original submitter of attachment $att_id is unknown.\n";

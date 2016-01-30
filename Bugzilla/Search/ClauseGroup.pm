@@ -7,9 +7,11 @@
 
 package Bugzilla::Search::ClauseGroup;
 
+use 5.10.1;
 use strict;
+use warnings;
 
-use base qw(Bugzilla::Search::Clause);
+use parent qw(Bugzilla::Search::Clause);
 
 use Bugzilla::Error;
 use Bugzilla::Search::Condition qw(condition);
@@ -97,3 +99,13 @@ sub update_search_args {
 }
 
 1;
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item add
+
+=item update_search_args
+
+=back

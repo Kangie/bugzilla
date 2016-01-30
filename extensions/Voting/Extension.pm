@@ -6,8 +6,12 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Extension::Voting;
+
+use 5.10.1;
 use strict;
-use base qw(Bugzilla::Extension);
+use warnings;
+
+use parent qw(Bugzilla::Extension);
 
 use Bugzilla::Bug;
 use Bugzilla::BugMail;
@@ -389,7 +393,7 @@ sub _page_user {
     # If a bug_id is given, and we're editing, we'll add it to the votes list.
     
     my $bug_id = $input->{bug_id};
-    my $bug = Bugzilla::Bug->check($bug_id) if $bug_id;
+    my $bug = Bugzilla::Bug->check({ id => $bug_id, cache => 1 }) if $bug_id;
     my $who_id = $input->{user_id} || $user->id;
 
     # Logged-out users must specify a user_id.
@@ -606,7 +610,7 @@ sub _update_votes {
         $sth_getVotes->execute($id);
         my $v = $sth_getVotes->fetchrow_array || 0;
         $sth_updateVotes->execute($v, $id);
-
+        $bugs{$id}->{votes} = $v if $bugs{$id};
         my $confirmed = _confirm_if_vote_confirmed($bugs{$id} || $id);
         push (@updated_bugs, $id) if $confirmed;
     }
@@ -626,7 +630,7 @@ sub _update_votes {
         # Set header_done to 1 only after the first bug.
         $vars->{'header_done'} = 1;
     }
-    $vars->{'votes_recorded'} = 1;
+    $vars->{'message'} = 'votes_recorded';
 }
 
 ######################
@@ -654,8 +658,8 @@ sub _modify_bug_votes {
             # If some votes are removed, _remove_votes() returns a list
             # of messages to send to voters.
             push(@msgs, _remove_votes($id, $who, 'votes_too_many_per_bug'));
-            my $name = user_id_to_login($who);
-
+            my $name = Bugzilla::User->new($who)->login;
+            
             push(@toomanyvotes_list, {id => $id, name => $name});
         }
     }
@@ -695,12 +699,12 @@ sub _modify_bug_votes {
                         AND votes.who = ?',
                 undef, $product->id, $who);
 
+            my $name = Bugzilla::User->new($who)->login;
             foreach my $bug_id (@$bug_ids) {
                 # _remove_votes returns a list of messages to send
                 # in case some voters had too many votes.
                 push(@msgs, _remove_votes($bug_id, $who, 
                                           'votes_too_many_per_user'));
-                my $name = user_id_to_login($who);
 
                 push(@toomanytotalvotes_list, {id => $bug_id, name => $name});
             }
@@ -824,7 +828,7 @@ sub _remove_votes {
 # confirm a bug has been reduced, check if the bug is now confirmed.
 sub _confirm_if_vote_confirmed {
     my $id = shift;
-    my $bug = ref $id ? $id : new Bugzilla::Bug($id);
+    my $bug = ref $id ? $id : new Bugzilla::Bug({ id => $id, cache => 1 });
 
     my $ret = 0;
     if (!$bug->everconfirmed

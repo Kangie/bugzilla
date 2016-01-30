@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,17 +6,22 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib qw(. lib);
 
 use Bugzilla;
 use Bugzilla::BugMail;
 use Bugzilla::Constants;
+use Bugzilla::Mailer;
 use Bugzilla::Search;
 use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::User;
+use Bugzilla::User::APIKey;
+use Bugzilla::User::Setting qw(clear_settings_cache);
 use Bugzilla::Token;
 
 my $template = Bugzilla->template;
@@ -115,8 +120,7 @@ sub SaveAccount {
                 ThrowUserError('restricted_email_address', {addr => $new_login_name}) if $new_login_name =~ m/[^\@]+\@gentoo\.org$/ or $user->login =~ m/[^\@]+\@gentoo\.org$/;
             }
 
-            Bugzilla::Token::IssueEmailChangeToken($user, $new_login_name);
-
+            $vars->{'email_token'} = Bugzilla::Token::IssueEmailChangeToken($new_login_name);
             $vars->{'email_changes_saved'} = 1;
         }
     }
@@ -133,7 +137,7 @@ sub DoSettings {
     my $settings = $user->settings;
     $vars->{'settings'} = $settings;
 
-    my @setting_list = keys %$settings;
+    my @setting_list = sort keys %$settings;
     $vars->{'setting_names'} = \@setting_list;
 
     $vars->{'has_settings_enabled'} = 0;
@@ -171,6 +175,7 @@ sub SaveSettings {
         }
     }
     $vars->{'settings'} = $user->settings(1);
+    clear_settings_cache($user->id);
 }
 
 sub DoEmail {
@@ -321,6 +326,47 @@ sub SaveEmail {
 
         $dbh->bz_commit_transaction();
     }
+
+    ###########################################################################
+    # Ignore Bugs
+    ###########################################################################
+    my %ignored_bugs = map { $_->{'id'} => 1 } @{$user->bugs_ignored};
+
+    # Validate the new bugs to ignore by checking that they exist and also
+    # if the user gave an alias
+    my @add_ignored = split(/[\s,]+/, $cgi->param('add_ignored_bugs'));
+    @add_ignored = map { Bugzilla::Bug->check($_)->id } @add_ignored;
+    map { $ignored_bugs{$_} = 1 } @add_ignored;
+
+    # Remove any bug ids the user no longer wants to ignore
+    foreach my $key (grep(/^remove_ignored_bug_/, $cgi->param)) {
+        my ($bug_id) = $key =~ /(\d+)$/;
+        delete $ignored_bugs{$bug_id};
+    }
+
+    # Update the database with any changes made
+    my ($removed, $added) = diff_arrays([ map { $_->{'id'} } @{$user->bugs_ignored} ],
+                                        [ keys %ignored_bugs ]);
+
+    if (scalar @$removed || scalar @$added) {
+        $dbh->bz_start_transaction();
+
+        if (scalar @$removed) {
+            $dbh->do('DELETE FROM email_bug_ignore WHERE user_id = ? AND ' . 
+                     $dbh->sql_in('bug_id', $removed),
+                     undef, $user->id);
+        }
+        if (scalar @$added) {
+            my $sth = $dbh->prepare('INSERT INTO email_bug_ignore
+                                     (user_id, bug_id) VALUES (?, ?)');
+            $sth->execute($user->id, $_) foreach @$added;
+        }
+
+        # Reset the cache of ignored bugs if the list changed.
+        delete $user->{bugs_ignored};
+
+        $dbh->bz_commit_transaction();
+    }
 }
 
 
@@ -328,9 +374,9 @@ sub DoPermissions {
     my $dbh = Bugzilla->dbh;
     my $user = Bugzilla->user;
     my (@has_bits, @set_bits);
-    
+
     my $groups = $dbh->selectall_arrayref(
-               "SELECT DISTINCT name, description FROM groups WHERE id IN (" . 
+               "SELECT DISTINCT name, description FROM groups WHERE id IN (" .
                $user->groups_as_string . ") ORDER BY name");
     foreach my $group (@$groups) {
         my ($nam, $desc) = @$group;
@@ -346,7 +392,7 @@ sub DoPermissions {
         }
     }
 
-    # If the user has product specific privileges, inform him about that.
+    # If the user has product specific privileges, inform them about that.
     foreach my $privs (PER_PRODUCT_PRIVILEGES) {
         next if $user->in_group($privs);
         $vars->{"local_$privs"} = $user->get_products_by_permission($privs);
@@ -412,7 +458,7 @@ sub SaveSavedSearches {
         }
 
         if ($group_id) {
-            # Don't allow the user to share queries with groups he's not
+            # Don't allow the user to share queries with groups they're not
             # allowed to.
             next unless grep($_ eq $group_id, @{$user->queryshare_groups});
 
@@ -453,14 +499,68 @@ sub SaveSavedSearches {
     }
 
     $user->flush_queries_cache;
-    
+
     # Update profiles.mybugslink.
     my $showmybugslink = defined($cgi->param("showmybugslink")) ? 1 : 0;
     $dbh->do("UPDATE profiles SET mybugslink = ? WHERE userid = ?",
-             undef, ($showmybugslink, $user->id));    
+             undef, ($showmybugslink, $user->id));
     $user->{'showmybugslink'} = $showmybugslink;
+    Bugzilla->memcached->clear({ table => 'profiles', id => $user->id });
 }
 
+
+sub DoApiKey {
+    my $user = Bugzilla->user;
+
+    my $api_keys = Bugzilla::User::APIKey->match({ user_id => $user->id });
+    $vars->{api_keys} = $api_keys;
+    $vars->{any_revoked} = grep { $_->revoked } @$api_keys;
+}
+
+sub SaveApiKey {
+    my $cgi = Bugzilla->cgi;
+    my $dbh = Bugzilla->dbh;
+    my $user = Bugzilla->user;
+
+    # Do it in a transaction.
+    $dbh->bz_start_transaction;
+
+    # Update any existing keys
+    my $api_keys = Bugzilla::User::APIKey->match({ user_id => $user->id });
+    foreach my $api_key (@$api_keys) {
+        my $description = $cgi->param('description_' . $api_key->id);
+        my $revoked = $cgi->param('revoked_' . $api_key->id);
+
+        if ($description ne $api_key->description
+            || $revoked != $api_key->revoked)
+        {
+            $api_key->set_all({
+                description => $description,
+                revoked     => $revoked,
+            });
+            $api_key->update();
+        }
+    }
+
+    # Create a new API key if requested.
+    if ($cgi->param('new_key')) {
+        $vars->{new_key} = Bugzilla::User::APIKey->create({
+            user_id     => $user->id,
+            description => scalar $cgi->param('new_description'),
+        });
+
+        # As a security precaution, we always sent out an e-mail when
+        # an API key is created
+        my $template = Bugzilla->template_inner($user->setting('lang'));
+        my $message;
+        $template->process('email/new-api-key.txt.tmpl', $vars, \$message)
+          || ThrowTemplateError($template->error());
+
+        MessageToMTA($message);
+    }
+
+    $dbh->bz_commit_transaction;
+}
 
 ###############################################################################
 # Live code (not subroutine definitions) starts here
@@ -529,6 +629,11 @@ SWITCH: for ($current_tab_name) {
     /^saved-searches$/ && do {
         SaveSavedSearches() if $save_changes;
         DoSavedSearches();
+        last SWITCH;
+    };
+    /^apikey$/ && do {
+        SaveApiKey() if $save_changes;
+        DoApiKey();
         last SWITCH;
     };
 

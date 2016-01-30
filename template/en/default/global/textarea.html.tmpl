@@ -11,7 +11,6 @@
   # id:             (optional) The "id"-attribute of the textarea.
   # name:           (optional) The "name"-attribute of the textarea.
   # accesskey:      (optional) The "accesskey"-attribute of the textarea.
-  # style:          (optional) The "style"-attribute of the textarea.
   # classes:        (optional) The "class"-attribute of the textarea.
   # wrap:           (deprecated; optional) The "wrap"-attribute of the textarea.
   # disabled:       (optional) Disable the textarea.
@@ -28,12 +27,13 @@
   # defaultcontent: (optional) Default content for the textarea.
   # mandatory:      (optional) Boolean specifying whether or not the textarea
   #                 is mandatory.
+  # field_hidden:   (optional) True if the field is hidden. Only useful if
+  #                 the field is mandatory.
   #%]
 
 <textarea [% IF name %]name="[% name FILTER html %]"[% END %]
           [% IF id %] id="[% id FILTER html %]"[% END %]
           [% IF accesskey %] accesskey="[% accesskey FILTER html %]"[% END %]
-          [% IF style %] style="[% style FILTER html %]"[% END %]
           [% IF classes %] class="[% classes FILTER html %]"[% END %]
           [% IF wrap %] wrap="[% wrap FILTER html %]"[% END %]
           [% IF disabled %] disabled="disabled"[% END %]
@@ -48,7 +48,7 @@
             onFocus="this.rows=[% maxrows FILTER html %]"
           [% END %]
           [% IF mandatory %]
-            aria-required="true"
+            data-required="true" [% 'aria-required="true" required' UNLESS field_hidden %]
           [% END %]
           [% IF onchange %]
             onchange="[% onchange FILTER html %]"

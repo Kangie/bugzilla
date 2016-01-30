@@ -13,7 +13,7 @@ use Bugzilla::User::Setting;
 use Bugzilla::Constants;
 use Bugzilla::Attachment;
 
-our $VERSION = '1.5';
+our $VERSION = '1.6';
 
 # don't show inline history for bugs with lots of changes
 use constant MAXIMUM_ACTIVITY_COUNT => 500;
@@ -58,9 +58,6 @@ sub template_before_process {
         $vars->{'ih_activity_max'} = 1;
         return;
     }
-
-    # allow other extensions to alter history
-    Bugzilla::Hook::process('inline_history_activtiy', { activity => $activity });
 
     # prime caches with objects already loaded
     my %user_cache;

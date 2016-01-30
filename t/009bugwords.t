@@ -15,7 +15,9 @@
 # "[% terms.bug %]". This test makes sure the relevant words aren't used
 # bare.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib 't';
 
@@ -56,15 +58,6 @@ foreach my $file (@testitems) {
         if (grep /(a?[\s>]bugs?[\s.:;,<])/i, $text) {
             # Exclude variable assignment.
             unless (grep /bugs =/, $text) {
-                push(@errors, [$lineno, $text]);
-                next;
-            }
-        }
-
-        # "Bugzilla"
-        if (grep /(?<!X\-)Bugzilla(?!_|::|-&gt|\.pm)/, $text) {
-            # Exclude JS comments, hyperlinks, USE, and variable assignment.
-            unless (grep /(\/\/.*|org.*>|api\/|USE |= )Bugzilla/, $text) {
                 push(@errors, [$lineno, $text]);
                 next;
             }

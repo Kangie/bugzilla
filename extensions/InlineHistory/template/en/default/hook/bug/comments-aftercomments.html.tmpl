@@ -116,7 +116,7 @@
     item[3] = '<div class="bz_comment_head">'
               + '<span class="bz_comment_user">'
               + user_image
-              + ' [% user_cache.$changer_id FILTER js %]'
+              + '[% user_cache.$changer_id FILTER js %]'
               + '</span>'
               + '<span class="bz_comment_time"> ' + item[1] + ' </span>'
               + '</div>';
@@ -146,7 +146,7 @@
       [%~%]<a href="[% see_also FILTER html FILTER js %]" target="_blank">
       [%~%][% see_also FILTER html FILTER js %]</a>
       [%- ", " IF NOT loop.last %]
-    [% END -%]
+    [% END %]
   [% ELSIF change.fieldname == 'assigned_to' ||
            change.fieldname == 'reporter' ||
            change.fieldname == 'qa_contact' ||

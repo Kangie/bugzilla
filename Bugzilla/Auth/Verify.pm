@@ -7,7 +7,10 @@
 
 package Bugzilla::Auth::Verify;
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use fields qw();
 
 use Bugzilla::Constants;
@@ -88,6 +91,7 @@ sub create_or_update_user {
         if ($extern_id && $username_user_id && !$extern_user_id) {
             $dbh->do('UPDATE profiles SET extern_id = ? WHERE userid = ?',
                      undef, $extern_id, $username_user_id);
+            Bugzilla->memcached->clear({ table => 'profiles', id => $username_user_id });
         }
 
         # Finally, at this point, one of these will give us a valid user id.
@@ -102,21 +106,24 @@ sub create_or_update_user {
 
     my $user = new Bugzilla::User($user_id);
 
-    # Now that we have a valid User, we need to see if any data has to be
-    # updated.
+    # Now that we have a valid User, we need to see if any data has to be updated.
+    my $changed = 0;
+
     if ($username && lc($user->login) ne lc($username)) {
         validate_email_syntax($username)
           || return { failure => AUTH_ERROR, error => 'auth_invalid_email',
                       details => {addr => $username} };
         $user->set_login($username);
+        $changed = 1;
     }
     if ($real_name && $user->name ne $real_name) {
         # $real_name is more than likely tainted, but we only use it
         # in a placeholder and we never use it after this.
         trick_taint($real_name);
         $user->set_name($real_name);
+        $changed = 1;
     }
-    $user->update();
+    $user->update() if $changed;
 
     return { user => $user };
 }
@@ -231,5 +238,13 @@ used, users with editusers permission will be be allowed to
 edit the extern_id for all users.
 
 The default value is C<false>.
+
+=back
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item can_change_password
 
 =back

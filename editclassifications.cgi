@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,7 +7,10 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
 use Bugzilla;
@@ -31,7 +34,7 @@ sub LoadTemplate {
       if ($action eq 'select');
     # There is currently only one section about classifications,
     # so all pages point to it. Let's define it here.
-    $vars->{'doc_section'} = 'classifications.html';
+    $vars->{'doc_section'} = 'administering/categorization.html#classifications';
 
     $action =~ /(\w+)/;
     $action = $1;
@@ -187,9 +190,10 @@ if ($action eq 'update') {
 
 if ($action eq 'reclassify') {
     my $classification = Bugzilla::Classification->check($class_name);
-   
+
     my $sth = $dbh->prepare("UPDATE products SET classification_id = ?
                              WHERE name = ?");
+    my @names;
 
     if (defined $cgi->param('add_products')) {
         check_token_data($token, 'reclassify_classifications');
@@ -197,6 +201,7 @@ if ($action eq 'reclassify') {
             foreach my $prod ($cgi->param("prodlist")) {
                 trick_taint($prod);
                 $sth->execute($classification->id, $prod);
+                push @names, $prod;
             }
         }
         delete_token($token);
@@ -205,7 +210,8 @@ if ($action eq 'reclassify') {
         if (defined $cgi->param('myprodlist')) {
             foreach my $prod ($cgi->param("myprodlist")) {
                 trick_taint($prod);
-                $sth->execute(1,$prod);
+                $sth->execute(1, $prod);
+                push @names, $prod;
             }
         }
         delete_token($token);
@@ -214,6 +220,11 @@ if ($action eq 'reclassify') {
     $vars->{'classifications'} = [Bugzilla::Classification->get_all];
     $vars->{'classification'} = $classification;
     $vars->{'token'} = issue_session_token('reclassify_classifications');
+
+    foreach my $name (@names) {
+        Bugzilla->memcached->clear({ table => 'products', name => $name });
+    }
+    Bugzilla->memcached->clear_config();
 
     LoadTemplate($action);
 }

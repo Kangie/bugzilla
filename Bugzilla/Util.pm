@@ -7,21 +7,23 @@
 
 package Bugzilla::Util;
 
+use 5.10.1;
 use strict;
+use warnings;
 
-use base qw(Exporter);
+use parent qw(Exporter);
 @Bugzilla::Util::EXPORT = qw(trick_taint detaint_natural detaint_signed
                              html_quote url_quote xml_quote
                              css_class_quote html_light_quote
                              i_am_cgi i_am_webservice correct_urlbase remote_ip
                              validate_ip do_ssl_redirect_if_required use_attachbase
-                             diff_arrays on_main_db say
+                             diff_arrays on_main_db
                              trim wrap_hard wrap_comment find_wrap_point
                              format_time validate_date validate_time datetime_from
                              is_7bit_clean bz_crypt generate_random_password
                              validate_email_syntax check_email_syntax clean_text
-                             get_text template_var disable_utf8
-                             detect_encoding
+                             get_text template_var display_value disable_utf8
+                             detect_encoding email_filter
                              join_activity_entries);
 
 use Bugzilla::Constants;
@@ -34,7 +36,6 @@ use Digest;
 use Email::Address;
 use List::Util qw(first);
 use Scalar::Util qw(tainted blessed);
-use Template::Filters;
 use Text::Wrap;
 use Encode qw(encode decode resolve_alias);
 use Encode::Guess;
@@ -64,10 +65,17 @@ sub detaint_signed {
 #             visible strings.
 # Bug 319331: Handle BiDi disruptions.
 sub html_quote {
-    my ($var) = Template::Filters::html_filter(@_);
+    my $var = shift;
+    $var =~ s/&/&amp;/g;
+    $var =~ s/</&lt;/g;
+    $var =~ s/>/&gt;/g;
+    $var =~ s/"/&quot;/g;
     # Obscure '@'.
     $var =~ s/\@/\&#64;/g;
-    if (Bugzilla->params->{'utf8'}) {
+
+    state $use_utf8 = Bugzilla->params->{'utf8'};
+
+    if ($use_utf8) {
         # Remove control characters if the encoding is utf8.
         # Other multibyte encodings may be using this range; so ignore if not utf8.
         $var =~ s/(?![\t\r\n])[[:cntrl:]]//g;
@@ -93,7 +101,7 @@ sub html_quote {
         # |U+200e|Left-To-Right Mark        |0xe2 0x80 0x8e      |
         # |U+200f|Right-To-Left Mark        |0xe2 0x80 0x8f      |
         # --------------------------------------------------------
-        $var =~ s/[\x{202a}-\x{202e}]//g;
+        $var =~ tr/\x{202a}-\x{202e}//d;
     }
     return $var;
 }
@@ -237,7 +245,8 @@ sub i_am_cgi {
 sub i_am_webservice {
     my $usage_mode = Bugzilla->usage_mode;
     return $usage_mode == USAGE_MODE_XMLRPC
-           || $usage_mode == USAGE_MODE_JSON;
+           || $usage_mode == USAGE_MODE_JSON
+           || $usage_mode == USAGE_MODE_REST;
 }
 
 # This exists as a separate function from Bugzilla::CGI::redirect_to_https
@@ -418,13 +427,6 @@ sub diff_arrays {
     return (\@removed, \@added);
 }
 
-# XXX - This is a temporary subroutine till we require Perl 5.10.1.
-# This will happen before Bugzilla 5.0rc1.
-sub say (@) {
-    print @_;
-    print "\n";
-}
-
 sub trim {
     my ($str) = @_;
     if ($str) {
@@ -451,11 +453,6 @@ sub wrap_comment {
         $wrappedcomment .= ($line . "\n");
       }
       else {
-        # Due to a segfault in Text::Tabs::expand() when processing tabs with
-        # Unicode (see http://rt.perl.org/rt3/Public/Bug/Display.html?id=52104),
-        # we have to remove tabs before processing the comment. This restriction
-        # can go away when we require Perl 5.8.9 or newer.
-        $line =~ s/\t/    /g;
         $wrappedcomment .= (wrap('', '', $line) . "\n");
       }
     }
@@ -555,9 +552,14 @@ sub datetime_from {
     # In the database, this is the "0" date.
     return undef if $date =~ /^0000/;
 
-    # strptime($date) returns an empty array if $date has an invalid
-    # date format.
-    my @time = strptime($date);
+    my @time;
+    # Most dates will be in this format, avoid strptime's generic parser
+    if ($date =~ /^(\d{4})[\.-](\d{2})[\.-](\d{2})(?: (\d{2}):(\d{2}):(\d{2}))?$/) {
+        @time = ($6, $5, $4, $3, $2 - 1, $1 - 1900, undef);
+    }
+    else {
+        @time = strptime($date);
+    }
 
     unless (scalar @time) {
         # If an unknown timezone is passed (such as MSK, for Moskow),
@@ -641,20 +643,13 @@ sub bz_crypt {
     if (!$algorithm) {
         # Crypt the password.
         $crypted_password = crypt($password, $salt);
-
-        # HACK: Perl has bug where returned crypted password is considered
-        # tainted. See http://rt.perl.org/rt3/Public/Bug/Display.html?id=59998
-        unless(tainted($password) || tainted($salt)) {
-            trick_taint($crypted_password);
-        } 
     }
     else {
         my $hasher = Digest->new($algorithm);
-        # We only want to use the first characters of the salt, no
-        # matter how long of a salt we may have been passed.
-        $salt = substr($salt, 0, PASSWORD_SALT_LENGTH);
+        # Newly created salts won't yet have a comma.
+        ($salt) = $salt =~ /^([^,]+),?/;
         $hasher->add($password, $salt);
-        $crypted_password = $salt . $hasher->b64digest . "{$algorithm}";
+        $crypted_password = $salt . ',' . $hasher->b64digest . "{$algorithm}";
     }
 
     # Return the crypted password.
@@ -773,10 +768,12 @@ sub get_text {
 
 sub template_var {
     my $name = shift;
-    my $cache = Bugzilla->request_cache->{util_template_var} ||= {};
-    my $template = Bugzilla->template_inner;
-    my $lang = $template->context->{bz_language};
+    my $request_cache = Bugzilla->request_cache;
+    my $cache = $request_cache->{util_template_var} ||= {};
+    my $lang = $request_cache->{template_current_lang}->[0] || '';
     return $cache->{$lang}->{$name} if defined $cache->{$lang};
+
+    my $template = Bugzilla->template_inner($lang);
     my %vars;
     # Note: If we suddenly start needing a lot of template_var variables,
     # they should move into their own template, not field-descs.
@@ -790,11 +787,7 @@ sub template_var {
 
 sub display_value {
     my ($field, $value) = @_;
-    my $value_descs = template_var('value_descs');
-    if (defined $value_descs->{$field}->{$value}) {
-        return $value_descs->{$field}->{$value};
-    }
-    return $value;
+    return template_var('value_descs')->{$field}->{$value} // $value;
 }
 
 sub disable_utf8 {
@@ -1013,7 +1006,7 @@ in a command-line script.
 =item C<i_am_webservice()>
 
 Tells you whether or not the current usage mode is WebServices related
-such as JSONRPC or XMLRPC.
+such as JSONRPC, XMLRPC, or REST.
 
 =item C<correct_urlbase()>
 
@@ -1158,7 +1151,7 @@ template. Just pass in the name of the variable that you want the value of.
 Takes a time and converts it to the desired format and timezone.
 If no format is given, the routine guesses the correct one and returns
 an empty array if it cannot. If no timezone is given, the user's timezone
-is used, as defined in his preferences.
+is used, as defined in their preferences.
 
 This routine is mainly called from templates to filter dates, see
 "FILTER time" in L<Bugzilla::Template>.
@@ -1242,5 +1235,21 @@ if Bugzilla is currently using the shadowdb or not. Used like:
      my $dbh = Bugzilla->dbh;
      $dbh->do("INSERT ...");
  }
+
+=back
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item do_ssl_redirect_if_required
+
+=item validate_time
+
+=item is_ipv4
+
+=item is_ipv6
+
+=item display_value
 
 =back

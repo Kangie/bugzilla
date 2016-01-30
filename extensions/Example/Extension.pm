@@ -6,17 +6,22 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Extension::Example;
+
+use 5.10.1;
 use strict;
-use base qw(Bugzilla::Extension);
+use warnings;
+
+use parent qw(Bugzilla::Extension);
 
 use Bugzilla::Constants;
 use Bugzilla::Error;
 use Bugzilla::Group;
 use Bugzilla::User;
 use Bugzilla::User::Setting;
-use Bugzilla::Util qw(diff_arrays html_quote);
+use Bugzilla::Util qw(diff_arrays html_quote remote_ip);
 use Bugzilla::Status qw(is_open_state);
 use Bugzilla::Install::Filesystem;
+use Bugzilla::WebService::Constants;
 
 # This is extensions/Example/lib/Util.pm. I can load this here in my
 # Extension.pm only because I have a Config.pm.
@@ -28,6 +33,18 @@ use Data::Dumper;
 use constant REL_EXAMPLE => -127;
 
 our $VERSION = '1.0';
+
+sub user_can_administer {
+    my ($self, $args) = @_;
+    my $can_administer = $args->{can_administer};
+
+    # If you add an option to the admin pages (e.g. by using the Hooks in
+    # template/en/default/admin/admin.html.tmpl), you may want to allow
+    # users in another group view admin.cgi
+    #if (Bugzilla->user->in_group('other_group')) {
+    #    $$can_administer = 1;
+    #}
+}
 
 sub admin_editusers_action {
     my ($self, $args) = @_;
@@ -322,8 +339,8 @@ sub bugmail_recipients {
         # were on the CC list.
         #$recipients->{$user->id}->{+REL_CC} = 1;
 
-        # And this line adds the maintainer as though he had the "REL_EXAMPLE"
-        # relationship from the bugmail_relationships hook below.
+        # And this line adds the maintainer as though they had the
+        # "REL_EXAMPLE" relationship from the bugmail_relationships hook below.
         #$recipients->{$user->id}->{+REL_EXAMPLE} = 1;
     }
 }
@@ -332,6 +349,13 @@ sub bugmail_relationships {
     my ($self, $args) = @_;
     my $relationships = $args->{relationships};
     $relationships->{+REL_EXAMPLE} = 'Example';
+}
+
+sub cgi_headers {
+    my ($self, $args) = @_;
+    my $headers = $args->{'headers'};
+
+    $headers->{'-x_test_header'} = "Test header from Example extension";
 }
 
 sub config_add_panels {
@@ -397,8 +421,8 @@ sub email_in_after_parse {
     # No other check needed if this is a valid regular user.
     return if login_to_id($reporter);
 
-    # The reporter is not a regular user. We create an account for him,
-    # but he can only comment on existing bugs.
+    # The reporter is not a regular user. We create an account for them,
+    # but they can only comment on existing bugs.
     # This is useful for people who reply by email to bugmails received
     # in mailing-lists.
     if ($args->{fields}->{bug_id}) {
@@ -906,6 +930,26 @@ sub template_before_process {
     }
 }
 
+sub user_check_account_creation {
+    my ($self, $args) = @_;
+
+    my $login = $args->{login};
+    my $ip = remote_ip();
+
+    # Log all requests.
+    warn "USER ACCOUNT CREATION REQUEST FOR $login ($ip)";
+
+    # Reject requests based on their email address.
+    if ($login =~ /\@evil\.com$/) {
+        ThrowUserError('account_creation_restricted');
+    }
+
+    # Reject requests based on their IP address.
+    if ($ip =~ /^192\.168\./) {
+        ThrowUserError('account_creation_restricted');
+    }
+}
+
 sub user_preferences {
     my ($self, $args) = @_;
     my $tab = $args->{current_tab};
@@ -935,9 +979,84 @@ sub webservice {
 
 sub webservice_error_codes {
     my ($self, $args) = @_;
-    
+
     my $error_map = $args->{error_map};
     $error_map->{'example_my_error'} = 10001;
+}
+
+sub webservice_status_code_map {
+    my ($self, $args) = @_;
+
+    my $status_code_map = $args->{status_code_map};
+    # Uncomment this line to override the status code for the
+    # error 'object_does_not_exist' to STATUS_BAD_REQUEST
+    #$status_code_map->{51} = STATUS_BAD_REQUEST;
+}
+
+sub webservice_before_call {
+    my ($self, $args) = @_;
+
+    # This code doesn't actually *do* anything, it's just here to show you
+    # how to use this hook.
+    my $method      = $args->{method};
+    my $full_method = $args->{full_method};
+
+    # Uncomment this line to see a line in your webserver's error log whenever
+    # a webservice call is made
+    #warn "RPC call $full_method made by ",
+    #   Bugzilla->user->login || 'an anonymous user', "\n";
+}
+
+sub webservice_fix_credentials {
+    my ($self, $args) = @_;
+    my $rpc    = $args->{'rpc'};
+    my $params = $args->{'params'};
+    # Allow user to pass in username=foo&password=bar
+    if (exists $params->{'username'} && exists $params->{'password'}) {
+        $params->{'Bugzilla_login'}    = $params->{'username'};
+        $params->{'Bugzilla_password'} = $params->{'password'};
+    }
+}
+
+sub webservice_rest_request {
+    my ($self, $args) = @_;
+    my $rpc    = $args->{'rpc'};
+    my $params = $args->{'params'};
+    # Internally we may have a field called 'cf_test_field' but we allow users
+    # to use the shorter 'test_field' name.
+    if (exists $params->{'test_field'}) {
+        $params->{'test_field'} = delete $params->{'cf_test_field'};
+    }
+}
+
+sub webservice_rest_resources {
+    my ($self, $args) = @_;
+    my $rpc = $args->{'rpc'};
+    my $resources = $args->{'resources'};
+    # Add a new resource that allows for /rest/example/hello
+    # to call Example.hello
+    $resources->{'Bugzilla::Extension::Example::WebService'} = [
+        qr{^/example/hello$}, {
+            GET => {
+                method => 'hello',
+            }
+        }
+    ];
+}
+
+sub webservice_rest_response {
+    my ($self, $args) = @_;
+    my $rpc      = $args->{'rpc'};
+    my $result   = $args->{'result'};
+    my $response = $args->{'response'};
+    # Convert a list of bug hashes to a single bug hash if only one is
+    # being returned.
+    if (ref $$result eq 'HASH'
+        && exists $$result->{'bugs'}
+        && scalar @{ $$result->{'bugs'} } == 1)
+    {
+        $$result = $$result->{'bugs'}->[0];
+    }
 }
 
 # This must be the last line of your extension.

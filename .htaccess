@@ -2,7 +2,7 @@
 <FilesMatch (\.pm|\.pl|\.tmpl|localconfig.*)$>
   <IfModule mod_version.c>
     <IfVersion < 2.4>
-     Deny from all
+      Deny from all
     </IfVersion>
     <IfVersion >= 2.4>
       Require all denied
@@ -35,6 +35,12 @@ Options -Indexes
   SetEnv BZ_CACHE_CONTROL 1
 </IfModule>
 </IfModule>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteOptions inherit
+  RewriteRule ^rest/(.*)$ rest.cgi/$1 [NE]
 </IfModule>
 
 <FilesMatch ^custom_buglist.cgi$>

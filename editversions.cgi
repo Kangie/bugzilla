@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,10 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
 use Bugzilla;
@@ -22,7 +25,7 @@ my $template = Bugzilla->template;
 my $vars = {};
 # There is only one section about versions in the documentation,
 # so all actions point to the same page.
-$vars->{'doc_section'} = 'versions.html';
+$vars->{'doc_section'} = 'administering/categorization.html#versions';
 
 #
 # Preliminary checks:
@@ -187,8 +190,10 @@ if ($action eq 'update') {
 
     $dbh->bz_start_transaction();
 
-    $version->set_name($version_name);
-    $version->set_is_active($isactive);
+    $version->set_all({
+        value    =>  $version_name,
+        isactive =>  $isactive
+    });
     my $changes = $version->update();
 
     $dbh->bz_commit_transaction();

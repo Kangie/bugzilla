@@ -16,11 +16,8 @@
 [% PROCESS global/header.html.tmpl
    title = "Enter $terms.ABug"
    onload = "PutDescription()"
-   style = "#somebugs { width: 100%; height: 500px }"
+   style_urls = ['skins/standard/bug.css']
  %]
-
-[% style = "" %]
-[% tablecolour = "#FFFFCC" %]
 
 [%# This script displays the descriptions for selected components. %]
 <script type="text/javascript">
@@ -32,13 +29,12 @@ var descriptions = [
 ];
 
 function PutDescription() {
-    if ((document.getElementById) && (document.body.innerHTML)) {
-        var componentIndex = document.getElementById('component').selectedIndex;
-        if (componentIndex != -1) {
-            var description = document.getElementById('description');
-            description.innerHTML = descriptions[componentIndex];
-        }
-    }
+  var description = document.getElementById('description');
+  var componentIndex = document.getElementById('component').selectedIndex;
+  YAHOO.util.Dom.removeClass("description", "bz_default_hidden");
+  if (componentIndex != -1) {
+    description.innerHTML = descriptions[componentIndex];
+  }
 }
 </script>
 
@@ -46,38 +42,30 @@ function PutDescription() {
 
 <h3 id="step1">Step 1 of 3 - has your [% terms.bug %] already been reported?</h3>
 
-<p>
-  <font color="red">Please don't skip this step - half of all 
-  [% terms.bugs %] filed are
-  reported already.</font>
-    Check the two lists of frequently-reported [% terms.bugs %]:
+<p class="warning">
+  Please don't skip this step - half of all [% terms.bugs %] filed are
+  reported already.
 </p>
 
-[%# Include other products if sensible %]
-[% IF product.name == "Firefox" %]
-  [% productstring = "product=Mozilla%20Application%20Suite&amp;product=Firefox" %]
-[% ELSIF product.name == "Thunderbird" %]
-  [% productstring = "product=Mozilla%20Application%20Suite&amp;product=Thunderbird" %]
-[% ELSE %]
-  [% productstring = BLOCK %]product=[% product.name FILTER uri %][% END %]
-[% END %]
+<p>Check the two lists of frequently-reported [% terms.bugs %]:</p>
 
 <p>
-    <a href="duplicates.cgi?[% productstring %]&amp;format=simple" target="somebugs">All-time Top 100</a> (loaded initially) |
-    <a href="duplicates.cgi?[% productstring %]&amp;format=simple&amp;sortby=delta&amp;reverse=1&amp;maxrows=100&amp;changedsince=14" target="somebugs">Hot in the last two weeks</a>  
+  <a href="duplicates.cgi?product=[% product.name FILTER uri %]&amp;format=simple"
+     target="somebugs">All-time Top 100</a> (loaded initially) |
+  <a href="duplicates.cgi?product=[% product.name FILTER uri %]&amp;format=simple&amp;sortby=delta&amp;reverse=1&amp;maxrows=100&amp;changedsince=14"
+     target="somebugs">Hot in the last two weeks</a>
 </p>
 
 <iframe name="somebugs" id="somebugs"
-  style="border: 2px black solid"
-  src="duplicates.cgi?[% productstring %]&amp;format=simple">
+  src="duplicates.cgi?product=[% product.name FILTER uri %]&amp;format=simple">
 </iframe>
 
 <p>
     If your [% terms.bug %] isn't there, search [% terms.Bugzilla %] by entering
     a few key words having to do with your [% terms.bug %] in this box.
-    For example: <tt><b>pop3 mail</b></tt> or <tt><b>copy paste</b></tt>.
+    For example: <kbd><b>pop3 mail</b></kbd> or <kbd><b>copy paste</b></kbd>.
     The results will appear above.
-  </p>
+</p>
 
 [%# All bugs opened inside the past six months %]
   <form action="buglist.cgi" method="get" target="somebugs">
@@ -85,16 +73,6 @@ function PutDescription() {
     <input type="hidden" name="order" value="relevance desc">
     <input type="hidden" name="bug_status" value="__all__">
     <input type="hidden" name="product" value="[% product.name FILTER html %]">
-    [% IF product.name == "Firefox" OR 
-          product.name == "Thunderbird" OR 
-          product.name == "Mozilla Application Suite" OR
-          product.name == "Camino" %]
-      <input type="hidden" name="product" value="Core">
-      <input type="hidden" name="product" value="Toolkit">
-      <input type="hidden" name="product" value="PSM">
-      <input type="hidden" name="product" value="NSPR">
-      <input type="hidden" name="product" value="NSS">
-    [% END %]      
     <input type="hidden" name="chfieldfrom" value="-6m">
     <input type="hidden" name="chfieldto" value="Now">
     <input type="hidden" name="chfield" value="[Bug creation]">
@@ -104,7 +82,7 @@ function PutDescription() {
 
 <p>
   Look through the search results. If you get the
-  <tt><b>[% terms.zeroSearchResults %]</b></tt> message, [% terms.Bugzilla %]
+  <kbd><b>[% terms.zeroSearchResults %]</b></kbd> message, [% terms.Bugzilla %]
   found no [% terms.bugs %] that
   match. Check for typing mistakes, or try fewer or different keywords.
   If you find [% terms.abug %] that looks the same as yours, please add
@@ -119,7 +97,7 @@ function PutDescription() {
   there, tell us all about it.
 </p>
 
-<form method="post" action="post_bug.cgi">
+<form id="guided_form" method="post" action="post_bug.cgi">
   <input type="hidden" name="format" value="guided">
   <input type="hidden" name="assigned_to" value="">
   <input type="hidden" name="priority"
@@ -128,90 +106,63 @@ function PutDescription() {
          value="[% default.version FILTER html %]">
   <input type="hidden" name="token" value="[% token FILTER html %]">
 
-<table valign="top" cellpadding="5" cellspacing="5" border="0">
-
-  <tr bgcolor="[% tablecolour %]">
-    <td align="right" valign="top">
-      <b>Product</b>
-    </td>
-    <td valign="top">
+<table>
+  <tr class="guided_form_field">
+    <th>Product</th>
+    <td>
       <input type="hidden" name="product" value="[% product.name FILTER html %]">
       [% product.name FILTER html %]
     </td>
   </tr>
 
   <tr>
-    <td align="right" valign="top">
-      <b>Component</b>
-    </td>
-    <td valign="top">
-      <table border="0" cellpadding="0" cellspacing="0">
-        <tr>
-          <td valign="top">
-            <select name="component" id="component"
-                    size="5" onchange="PutDescription()">
-              [% IF NOT default.component_ %]
-                [%# Various b.m.o. products have a "General" component,
-                    which is a useful default. %]
-                [% default.component_ = "General" %]
-              [% END %]
-              [% FOREACH c = product.components %]
-                [% NEXT IF NOT c.is_active %]
-                <option value="[% c.name FILTER html %]"
-                  [% " selected=\"selected\"" IF c.name == default.component_ %]>
-                  [% c.name FILTER html %]
-                </option>
-              [% END %]
-            </select>
-          </td>
-          <td valign="top" width="100%">
-              <div id="description" style="color: green; margin-left: 10px;
-                                           height: 5em; overflow: auto;">
-                <script type="text/javascript">
-                  if ((document.getElementById) && (document.body.innerHTML)) {
-                    document.write("\
-                    Select a component to see its description here.");
-                  }
-                </script>
-              </div>
-          </td>
-        </tr>
-      </table>
-      
+    <th>Component</th>
+    <td>
+      <select name="component" id="component" size="5" onchange="PutDescription()">
+        [% IF NOT default.component_ %]
+          [% default.component_ = "General" %]
+        [% END %]
+        [% FOREACH c = product.components %]
+          [% NEXT IF NOT c.is_active %]
+          <option value="[% c.name FILTER html %]"
+                  [%+ 'selected="selected"' IF c.name == default.component_ %]>
+            [% c.name FILTER html %]
+          </option>
+        [% END %]
+      </select>
+
+      <div id="description" class="comment bz_default_hidden">
+        Select a component to see its description here.
+      </div>
+
       <p>
         The area where the problem occurs.
         To pick the right component, you could use the same one as
         similar [% terms.bugs %] you found in your search, or read the full list of
-        <a target="_blank" href="describecomponents.cgi?product=
-            [% product.name FILTER uri %]">component
-        descriptions</a> (opens in new window) if you need more help.
+        <a href="describecomponents.cgi?product=[% product.name FILTER uri %]"
+           target="_blank" >component descriptions</a> (opens in new window) if
+        you need more help.
       </p>
     </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
-    <td align="right" valign="top">
-      <b>[% field_descs.rep_platform FILTER html %]</b>
-    </td>
-    <td valign="top">
+  <tr class="guided_form_field">
+    <th>[% field_descs.rep_platform FILTER html %]</th>
+    <td>
       [% PROCESS select sel = 'rep_platform' %]
     </td>
   </tr>
 
   <tr>
-    <td align="right" valign="top">
-      <b>Operating System</b>
-    </td>
-    <td valign="top">
+    <th>Operating System</th>
+    <td>
       [% PROCESS select sel = 'op_sys' %]
     </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
-    <td align="right" valign="top">
-      <b>URL</b>
-    </td>
-    <td valign="top">
+  <tr>
+    <th>URL</th>
+    <td>
       <input type="text" size="80" name="bug_file_loc" value="http://">
       <p>
         URL that demonstrates the problem you are seeing (optional).<br>
@@ -223,11 +174,9 @@ function PutDescription() {
    </td>
   </tr>
 
-  <tr>
-    <td align="right" valign="top">
-      <b>Summary</b>
-    </td>
-    <td valign="top">
+  <tr class="guided_form_field">
+    <th>Summary</th>
+    <td>
       <input type="text" size="80" name="short_desc" id="short_desc" 
              maxlength="255" spellcheck="true">
       <p>
@@ -236,53 +185,50 @@ function PutDescription() {
 		Include the <b>full</b> package atom with the version!
       </p>
       <p>
-        <tt>
-          <font color="#990000">Bad example</font>: mail crashed
-        </tt>
+        <kbd>
+          <span class="bad">Bad example</span>: mail crashed
+        </kbd>
         <br>
-        <tt>
-          <font color="#009900">Good example</font>:
+        <kbd>
+          <span class="good">Good example</span>:
           mail-client/evolution-2.8.3-r2: crash if I close the mail window while checking for new POP mail
-        </tt>
+        </kbd>
       </p>
     </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
-    <td align="right" valign="top">
-      <b>Description</b>
-    </td>
-    <td valign="top">
+  <tr>
+    <th>Description</th>
+    <td>
       [% INCLUDE global/textarea.html.tmpl
-        name    = 'comment'
-        minrows = 6
-        cols    = constants.COMMENT_COLS
+        name      = 'comment'
+        minrows   = 6
+        cols      = constants.COMMENT_COLS
+        mandatory = 1
       %]
       <p>
         Expand on the Summary. Please be
         as specific as possible about what is wrong.
       </p>
       <p>
-        <tt>
-          <font color="#990000">Bad example</font>: Mozilla crashed.
+        <kbd>
+          <span class="bad">Bad example</span>: Mozilla crashed.
           You suck!
-        </tt>
+        </kbd>
         <br>
-        <tt>
-          <font color="#009900">Good example</font>: After a crash which
+        <kbd>
+          <span class="good">Good example</span>: After a crash which
           happened when I was sorting in the Bookmark Manager,<br> all of my
           top-level bookmark folders beginning with the letters Q to Z are 
           no longer present.
-        </tt>
+        </kbd>
       </p>
     </td>
   </tr>
 
-  <tr>
-    <td align="right" valign="top">
-      <b>Reproducibility</b>
-    </td>
-    <td valign="top">
+  <tr class="guided_form_field">
+    <th>Reproducibility</th>
+    <td>
       <select name="reproducible">
         <option name="AlwaysReproducible" value="Always">
           Happens every time.
@@ -300,11 +246,9 @@ function PutDescription() {
     </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
-    <td align="right" valign="top">
-      <b>Steps to Reproduce</b>
-    </td>
-    <td valign="top">
+  <tr>
+    <th>Steps to Reproduce</th>
+    <td>
       [% INCLUDE global/textarea.html.tmpl
         name           = 'reproduce_steps'
         minrows        = 4
@@ -318,11 +262,9 @@ function PutDescription() {
     </td>
   </tr>
 
-  <tr>
-    <td valign="top" align="right">
-      <b>Actual Results</b>
-    </td>
-    <td valign="top">
+  <tr class="guided_form_field">
+    <th>Actual Results</th>
+    <td>
       [% INCLUDE global/textarea.html.tmpl
         name    = 'actual_results'
         minrows = 4
@@ -334,11 +276,9 @@ function PutDescription() {
     </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
-    <td valign="top" align="right">
-      <b>Expected Results</b>
-    </td>
-    <td valign="top">
+  <tr>
+    <th>Expected Results</th>
+    <td>
       [% INCLUDE global/textarea.html.tmpl
         name    = 'expected_results'
         minrows = 4
@@ -350,35 +290,33 @@ function PutDescription() {
     </td>
   </tr>
 
-  <tr>
-    <td valign="top" align="right">
-      <b>Additional Information</b>
-    </td>
-    <td valign="top">
+  <tr class="guided_form_field">
+    <th>Additional Information</th>
+    <td>
       [% INCLUDE global/textarea.html.tmpl
         name    = 'additional_info'
         minrows = 8
         cols    = constants.COMMENT_COLS
       %]
       <p>
-       Add any additional information you feel may be relevant to this
-       [% terms.bug %], such as what other <b>programs you had running</b>, and/or
-       information about <b>your computer's configuration</b>. Any information longer
-       than a few lines, such as a <b>stack trace</b>, should be added using the
-       "Create a new Attachment" link on the bug, after it is filed.<br />
-       <b>Please paste all information from 'emerge --info' in this section!</b>
+	  Add any additional information you feel may be relevant to this
+	  [% terms.bug %], such as what other <b>programs you had running</b>,
+	  and/or
+	  information about <b>your computer's configuration</b>. Any information
+	  longer
+	  than a few lines, such as a <b>stack trace</b>, should be added using the
+	  "Create a new Attachment" link on the bug, after it is filed.<br />
+	  <b>Please paste all information from 'emerge --info' in this section!</b>
       </p>
     </td>
   </tr>
 
-  <tr bgcolor="[% tablecolour %]">
-    <td valign="top" align="right">
-      <b>[% field_descs.bug_severity FILTER html %]</b>
-    </td>
-    <td valign="top">
+  <tr>
+    <th>[% field_descs.bug_severity FILTER html %]</th>
+    <td>
       <select name="bug_severity">
 	  <option name="blocker" value="blocker">
-		  Blocker: Blocks development and/or testing work of Gentoo as a whole
+	  	Blocker: Blocks development and/or testing work of Gentoo as a whole
 	  </option>
         <option name="critical" value="critical">
           Critical: The software crashes, hangs, or causes you to
@@ -416,11 +354,7 @@ function PutDescription() {
 <h3 id="step3">Step 3 of 3 - submit the [% terms.bug %] report</h3>
 
 <p>
-  <input type="submit" id="report" value="    Submit [% terms.Bug %] Report    "
-   onclick="if (this.form.comment.value == '')
-   { alert('Please enter some details about this [% terms.bug %].');
-     this.form.comment.focus();
-     return false; } return true;">
+  <input type="submit" id="report" value="Submit [% terms.Bug %] Report">
 </p>
 
 <p>

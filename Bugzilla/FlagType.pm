@@ -5,9 +5,11 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-use strict;
-
 package Bugzilla::FlagType;
+
+use 5.10.1;
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -41,7 +43,7 @@ use Bugzilla::Group;
 use Email::Address;
 use List::MoreUtils qw(uniq);
 
-use base qw(Bugzilla::Object);
+use parent qw(Bugzilla::Object);
 
 ###############################
 ####    Initialization     ####
@@ -185,8 +187,16 @@ sub update {
     # Silently remove requestees from flags which are no longer
     # specifically requestable.
     if (!$self->is_requesteeble) {
-        $dbh->do('UPDATE flags SET requestee_id = NULL WHERE type_id = ?',
-                  undef, $self->id);
+        my $ids = $dbh->selectcol_arrayref(
+            'SELECT id FROM flags WHERE type_id = ? AND requestee_id IS NOT NULL',
+             undef, $self->id);
+
+        if (@$ids) {
+            $dbh->do('UPDATE flags SET requestee_id = NULL WHERE ' . $dbh->sql_in('id', $ids));
+            foreach my $id (@$ids) {
+                Bugzilla->memcached->clear({ table => 'flags', id => $id });
+            }
+        }
     }
 
     $dbh->bz_commit_transaction();
@@ -650,9 +660,19 @@ sub sqlify_criteria {
     my @criteria = ("1=1");
 
     if ($criteria->{name}) {
-        my $name = $dbh->quote($criteria->{name});
-        trick_taint($name); # Detaint data as we have quoted it.
-        push(@criteria, "flagtypes.name = $name");
+        if (ref($criteria->{name}) eq 'ARRAY') {
+            my @names = map { $dbh->quote($_) } @{$criteria->{name}};
+            # Detaint data as we have quoted it.
+            foreach my $name (@names) {
+                trick_taint($name);
+            }
+            push @criteria, $dbh->sql_in('flagtypes.name', \@names);
+        }
+        else {
+            my $name = $dbh->quote($criteria->{name});
+            trick_taint($name); # Detaint data as we have quoted it.
+            push(@criteria, "flagtypes.name = $name");
+        }
     }
     if ($criteria->{target_type}) {
         # The target type is stored in the database as a one-character string
@@ -716,3 +736,43 @@ sub sqlify_criteria {
 }
 
 1;
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item exclusions_as_hash
+
+=item request_group_id
+
+=item set_is_active
+
+=item set_is_multiplicable
+
+=item inclusions_as_hash
+
+=item set_sortkey
+
+=item grant_group_id
+
+=item set_cc_list
+
+=item set_request_group
+
+=item set_name
+
+=item set_is_specifically_requestable
+
+=item set_grant_group
+
+=item create
+
+=item set_clusions
+
+=item set_description
+
+=item set_is_requestable
+
+=item update
+
+=back

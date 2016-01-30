@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,10 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
 use Bugzilla;
@@ -172,10 +175,9 @@ my %since_dups = @{$dbh->selectcol_arrayref(
     $reso_field_id, $changedsince)};
 add_indirect_dups(\%since_dups, \%dupe_relation);
 
-# Enforce the mostfreqthreshold parameter and the "bug_id" cgi param.
-my $mostfreq = Bugzilla->params->{'mostfreqthreshold'};
+# Enforce the MOST_FREQUENT_THRESHOLD constant and the "bug_id" cgi param.
 foreach my $id (keys %total_dups) {
-    if ($total_dups{$id} < $mostfreq) {
+    if ($total_dups{$id} < MOST_FREQUENT_THRESHOLD) {
         delete $total_dups{$id};
         next;
     }

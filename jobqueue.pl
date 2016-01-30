@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,9 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use Cwd qw(abs_path);
 use File::Basename;
@@ -44,7 +46,7 @@ jobqueue.pl - Runs jobs in the background for Bugzilla.
    restart   Stops a running jobqueue if one is running, and then
              starts a new one.
    once      Checks the job queue once, executes the first item found (if
-             any) and then exits
+             any, up to a limit of 1000 items) and then exits
    onepass   Checks the job queue, executes all items found, and then exits
    check     Report the current status of the daemon.
    install   On some *nix systems, this automatically installs and

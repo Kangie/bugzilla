@@ -7,12 +7,16 @@
 
 package Bugzilla::Auth::Login::Cookie;
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use base qw(Bugzilla::Auth::Login);
 use fields qw(_login_token);
 
 use Bugzilla::Constants;
+use Bugzilla::Error;
+use Bugzilla::Token;
 use Bugzilla::Util;
 
 use List::Util qw(first);
@@ -47,6 +51,20 @@ sub get_login_info {
                                 @{$cgi->{'Bugzilla_cookie_list'}};
             $user_id = $cookie->value if $cookie;
         }
+
+        # If the call is for a web service, and an api token is provided, check
+        # it is valid.
+        if (i_am_webservice() && Bugzilla->input_params->{Bugzilla_api_token}) {
+            my $api_token = Bugzilla->input_params->{Bugzilla_api_token};
+            my ($token_user_id, undef, undef, $token_type)
+                = Bugzilla::Token::GetTokenData($api_token);
+            if (!defined $token_type
+                || $token_type ne 'api_token'
+                || $user_id != $token_user_id)
+            {
+                ThrowUserError('auth_invalid_token', { token => $api_token });
+            }
+        }
     }
 
     # If no cookies were provided, we also look for a login token
@@ -73,7 +91,9 @@ sub get_login_info {
                                         AND (ipaddr = ? OR ipaddr IS NULL)',
                                  undef, ($login_cookie, $user_id, $ip_addr));
 
-        # If the cookie is valid, return a valid username.
+        # If the cookie or token is valid, return a valid username.
+        # If they were not valid and we are using a webservice, then
+        # throw an error notifying the client.
         if (defined $db_cookie && $login_cookie eq $db_cookie) {
             # If we logged in successfully, then update the lastused 
             # time on the login cookie
@@ -81,12 +101,16 @@ sub get_login_info {
                        WHERE cookie = ?", undef, $login_cookie);
             return { user_id => $user_id };
         }
+        elsif (i_am_webservice()) {
+            ThrowUserError('invalid_cookies_or_token');
+        }
     }
 
-    # Either the he cookie is invalid, or we got no cookie. We don't want 
-    # to ever return AUTH_LOGINFAILED, because we don't want Bugzilla to 
-    # actually throw an error when it gets a bad cookie. It should just 
-    # look like there was no cookie to begin with.
+    # Either the cookie or token is invalid and we are not authenticating
+    # via a webservice, or we did not receive a cookie or token. We don't
+    # want to ever return AUTH_LOGINFAILED, because we don't want Bugzilla to
+    # actually throw an error when it gets a bad cookie or token. It should just
+    # look like there was no cookie or token to begin with.
     return { failure => AUTH_NODATA };
 }
 
@@ -97,9 +121,7 @@ sub login_token {
 
     return $self->{'_login_token'} if exists $self->{'_login_token'};
 
-    if ($usage_mode ne USAGE_MODE_XMLRPC
-        && $usage_mode ne USAGE_MODE_JSON)
-    {
+    if (!i_am_webservice()) {
         return $self->{'_login_token'} = undef;
     }
 

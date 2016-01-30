@@ -7,7 +7,9 @@
 
 package Bugzilla::Config::BugFields;
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use Bugzilla::Config::Common;
 use Bugzilla::Field;
@@ -83,7 +85,13 @@ sub get_param_list {
    choices => ['', @legal_OS],
    default => '',
    checker => \&check_opsys
-  } );
+  },
+
+  {
+   name => 'collapsed_comment_tags',
+   type => 't',
+   default => 'obsolete, spam',
+  });
   return @param_list;
 }
 

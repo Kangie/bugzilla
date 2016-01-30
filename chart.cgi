@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,7 +27,10 @@
 # Bonus:
 # Offer subscription when you get a "series already exists" error?
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
 use Bugzilla;
@@ -37,7 +40,6 @@ use Bugzilla::Error;
 use Bugzilla::Util;
 use Bugzilla::Chart;
 use Bugzilla::Series;
-use Bugzilla::User;
 use Bugzilla::Token;
 
 # For most scripts we don't make $cgi and $template global variables. But
@@ -65,7 +67,7 @@ if (grep(/^cmd-/, $cgi->param())) {
 
 my $action = $cgi->param('action');
 my $series_id = $cgi->param('series_id');
-$vars->{'doc_section'} = 'reporting.html#charts';
+$vars->{'doc_section'} = 'using/reports-and-charts.html#charts';
 
 # Because some actions are chosen by buttons, we can't encode them as the value
 # of the action param, because that value is localization-dependent. So, we
@@ -291,6 +293,7 @@ sub edit {
 
     $vars->{'category'} = Bugzilla::Chart::getVisibleSeries();
     $vars->{'default'} = $series;
+    $vars->{'message'} = 'series_updated' if $vars->{'changes_saved'};
 
     print $cgi->header();
     $template->process("reports/edit-series.html.tmpl", $vars)

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,19 +6,9 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-# Implementation notes for this file:
-#
-# 1) the 'id' form parameter is validated early on, and if it is not a valid
-# bugid an error will be reported, so it is OK for later code to simply check
-# for a defined form 'id' value, and it can assume a valid bugid.
-#
-# 2) If the 'id' form parameter is not defined (after the initial validation),
-# then we are processing multiple bugs, and @idlist will contain the ids.
-#
-# 3) If we are processing just the one id, then it is stored in @idlist for
-# later processing.
-
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib qw(. lib);
 
@@ -122,16 +112,14 @@ if ($delta_ts) {
     if ($first_delta_tz_z ne $delta_ts_z) {
         ($vars->{'operations'}) = $first_bug->get_activity(undef, $delta_ts);
 
-        my $start_at = $cgi->param('longdesclength')
-          or ThrowCodeError('undefined_field', { field => 'longdesclength' });
-
         # Always sort midair collision comments oldest to newest,
         # regardless of the user's personal preference.
-        my $comments = $first_bug->comments({ order => "oldest_to_newest" });
+        my $comments = $first_bug->comments({ order => 'oldest_to_newest',
+                                              after => $delta_ts });
 
         # Show midair if previous changes made other than CC
         # and/or one or more comments were made
-        my $do_midair = scalar @$comments > $start_at ? 1 : 0;
+        my $do_midair = scalar @$comments ? 1 : 0;
 
         if (!$do_midair) {
             foreach my $operation (@{ $vars->{'operations'} }) {
@@ -147,7 +135,6 @@ if ($delta_ts) {
 
         if ($do_midair) {
             $vars->{'title_tag'} = "mid_air";
-            $vars->{'start_at'} = $start_at;
             $vars->{'comments'} = $comments;
             $vars->{'bug'} = $first_bug;
             # The token contains the old delta_ts. We need a new one.
@@ -215,9 +202,9 @@ my @set_fields = qw(op_sys rep_platform priority bug_severity
                     bug_file_loc status_whiteboard short_desc
                     deadline remaining_time estimated_time
                     work_time set_default_assignee set_default_qa_contact
-                    cclist_accessible reporter_accessible 
+                    cclist_accessible reporter_accessible
                     product confirm_product_change
-                    bug_status resolution dup_id);
+                    bug_status resolution dup_id bug_ignored);
 push(@set_fields, 'assigned_to') if !$cgi->param('set_default_assignee');
 push(@set_fields, 'qa_contact')  if !$cgi->param('set_default_qa_contact');
 my %field_translation = (
@@ -247,13 +234,13 @@ if (should_set('keywords')) {
 }
 if (should_set('comment')) {
     $set_all_fields{comment} = {
-        body       => scalar $cgi->param('comment'),
-        is_private => scalar $cgi->param('comment_is_private'),
+        body        => scalar $cgi->param('comment'),
+        is_private  => scalar $cgi->param('comment_is_private'),
     };
 }
 if (should_set('see_also')) {
     $set_all_fields{'see_also'}->{add} = 
-        [split(/[\s,]+/, $cgi->param('see_also'))];
+        [split(/[\s]+/, $cgi->param('see_also'))];
 }
 if (should_set('remove_see_also')) {
     $set_all_fields{'see_also'}->{remove} = [$cgi->param('remove_see_also')];
@@ -302,8 +289,17 @@ if (defined $cgi->param('newcc')
 if (defined $cgi->param('id')) {
     # Since aliases are unique (like bug numbers), they can only be changed
     # for one bug at a time.
-    if (defined $cgi->param('alias')) {
-        $set_all_fields{alias} = $cgi->param('alias');
+    if (defined $cgi->param('newalias') || defined $cgi->param('removealias')) {
+        my @alias_add = split /[, ]+/, $cgi->param('newalias');
+
+        # We came from bug_form which uses a select box to determine what
+        # aliases need to be removed...
+        my @alias_remove = ();
+        if ($cgi->param('removealias') && $cgi->param('alias')) {
+            @alias_remove = $cgi->param('alias');
+        }
+
+        $set_all_fields{alias} = { add => \@alias_add, remove => \@alias_remove };
     }
 }
 
@@ -352,10 +348,21 @@ if (defined $cgi->param('id')) {
 
     # Tags can only be set to one bug at once.
     if (should_set('tag')) {
-        my @new_tags = split(/[\s,]+/, $cgi->param('tag'));
+        my @new_tags = grep { trim($_) } split(/,/, $cgi->param('tag'));
         my ($tags_removed, $tags_added) = diff_arrays($first_bug->tags, \@new_tags);
         $first_bug->remove_tag($_) foreach @$tags_removed;
         $first_bug->add_tag($_) foreach @$tags_added;
+    }
+}
+else {
+    # Update flags on multiple bugs. The cgi params are slightly different
+    # than on a single bug, so we need to call a different sub. We also
+    # need to call this per bug, since we might be updating a flag in one
+    # bug, but adding it to a second bug
+    foreach my $b (@bug_objects) {
+        my ($flags, $new_flags)
+            = Bugzilla::Flag->multi_extract_flags_from_cgi($b, $vars);
+        $b->set_flags($flags, $new_flags);
     }
 }
 
@@ -399,6 +406,10 @@ elsif ($action eq 'next_bug' or $action eq 'same_bug') {
         if ($action eq 'next_bug') {
             $vars->{'nextbug'} = $bug->id;
         }
+        # For performance reasons, preload visibility of dependencies
+        # and duplicates related to this bug.
+        Bugzilla::Bug->preload([$bug]);
+
         $template->process("bug/show.html.tmpl", $vars)
           || ThrowTemplateError($template->error());
         exit;

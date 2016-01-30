@@ -57,9 +57,11 @@ in addition to what is documented here.
 
 package Bugzilla::Field;
 
+use 5.10.1;
 use strict;
+use warnings;
 
-use base qw(Exporter Bugzilla::Object);
+use parent qw(Exporter Bugzilla::Object);
 @Bugzilla::Field::EXPORT = qw(check_field get_field_id get_legal_field_values);
 
 use Bugzilla::Constants;
@@ -72,6 +74,8 @@ use Scalar::Util qw(blessed);
 ###############################
 ####    Initialization     ####
 ###############################
+
+use constant IS_CONFIG => 1;
 
 use constant DB_TABLE   => 'fielddefs';
 use constant LIST_ORDER => 'sortkey, name';
@@ -150,7 +154,9 @@ use constant SQL_DEFINITIONS => {
     FIELD_TYPE_TEXTAREA,      { TYPE => 'MEDIUMTEXT', 
                                 NOTNULL => 1, DEFAULT => "''"},
     FIELD_TYPE_DATETIME,      { TYPE => 'DATETIME'   },
+    FIELD_TYPE_DATE,          { TYPE => 'DATE'       },
     FIELD_TYPE_BUG_ID,        { TYPE => 'INT3'       },
+    FIELD_TYPE_INTEGER,       { TYPE => 'INT4',  NOTNULL => 1, DEFAULT => 0 },
 };
 
 # Field definitions for the fields that ship with Bugzilla.
@@ -204,9 +210,9 @@ use constant DEFAULT_FIELDS => (
      in_new_bugmail => 0, buglist => 1},
     {name => 'cc',           desc => 'CC',         in_new_bugmail => 1},
     {name => 'dependson',    desc => 'Depends on', in_new_bugmail => 1,
-     is_numeric => 1},
+     is_numeric => 1, buglist => 1},
     {name => 'blocked',      desc => 'Blocks',     in_new_bugmail => 1,
-     is_numeric => 1},
+     is_numeric => 1, buglist => 1},
 
     {name => 'attachments.description', desc => 'Attachment description'},
     {name => 'attachments.filename',    desc => 'Attachment filename'},
@@ -220,7 +226,7 @@ use constant DEFAULT_FIELDS => (
     {name => 'attachments.submitter',   desc => 'Attachment creator'},
 
     {name => 'target_milestone',      desc => 'Target Milestone',
-     buglist => 1},
+     in_new_bugmail => 1, buglist => 1},
     {name => 'creation_ts',           desc => 'Creation date',
      buglist => 1},
     {name => 'delta_ts',              desc => 'Last changed date',
@@ -257,8 +263,11 @@ use constant DEFAULT_FIELDS => (
     {name => "owner_idle_time",       desc => "Time Since Assignee Touched"},
     {name => 'see_also',              desc => "See Also",
      type => FIELD_TYPE_BUG_URLS},
-    {name => 'tag',                   desc => 'Tags', buglist => 1,
+    {name => 'tag',                   desc => 'Personal Tags', buglist => 1,
      type => FIELD_TYPE_KEYWORDS},
+    {name => 'last_visit_ts',         desc => 'Last Visit', buglist => 1,
+     type => FIELD_TYPE_DATETIME},
+    {name => 'comment_tag',           desc => 'Comment Tag'},
 );
 
 ################
@@ -354,9 +363,7 @@ sub _check_sortkey {
 sub _check_type {
     my ($invocant, $type, undef, $params) = @_;
     my $saved_type = $type;
-    # The constant here should be updated every time a new,
-    # higher field type is added.
-    (detaint_natural($type) && $type <= FIELD_TYPE_KEYWORDS)
+    (detaint_natural($type) && $type < FIELD_TYPE_HIGHEST_PLUS_ONE)
       || ThrowCodeError('invalid_customfield_type', { type => $saved_type });
 
     my $custom = blessed($invocant) ? $invocant->custom : $params->{custom};
@@ -957,7 +964,10 @@ sub remove_from_db {
     }
     else {
         $bugs_query = "SELECT COUNT(*) FROM bugs WHERE $name IS NOT NULL";
-        if ($self->type != FIELD_TYPE_BUG_ID && $self->type != FIELD_TYPE_DATETIME) {
+        if ($self->type != FIELD_TYPE_BUG_ID
+            && $self->type != FIELD_TYPE_DATE
+            && $self->type != FIELD_TYPE_DATETIME)
+        {
             $bugs_query .= " AND $name != ''";
         }
         # Ignore the default single select value
@@ -1055,6 +1065,7 @@ sub create {
     $field->_update_visibility_values();
 
     $dbh->bz_commit_transaction();
+    Bugzilla->memcached->clear_config();
 
     if ($field->custom) {
         my $name = $field->name;
@@ -1077,6 +1088,9 @@ sub create {
         # Restore the original obsolete state of the custom field.
         $dbh->do('UPDATE fielddefs SET obsolete = 0 WHERE id = ?', undef, $field->id)
           unless $is_obsolete;
+
+        Bugzilla->memcached->clear({ table => 'fielddefs', id => $field->id });
+        Bugzilla->memcached->clear_config();
     }
 
     return $field;
@@ -1090,6 +1104,7 @@ sub update {
         $dbh->do("UPDATE " . $self->name . " SET visibility_value_id = NULL");
     }
     $self->_update_visibility_values();
+    Bugzilla->memcached->clear_config();
     return $changes;
 }
 
@@ -1327,7 +1342,7 @@ sub check_field {
 Description: Returns the ID of the specified field name and throws
              an error if this field does not exist.
 
-Params:      $name - a field name
+Params:      $fieldname - a field name
 
 Returns:     the corresponding field ID or an error if the field name
              does not exist.
@@ -1337,17 +1352,24 @@ Returns:     the corresponding field ID or an error if the field name
 =cut
 
 sub get_field_id {
-    my ($name) = @_;
-    my $dbh = Bugzilla->dbh;
+    my $field = Bugzilla->fields({ by_name => 1 })->{$_[0]}
+      or ThrowCodeError('invalid_field_name', {field => $_[0]});
 
-    trick_taint($name);
-    my $id = $dbh->selectrow_array('SELECT id FROM fielddefs
-                                    WHERE name = ?', undef, $name);
-
-    ThrowCodeError('invalid_field_name', {field => $name}) unless $id;
-    return $id
+    return $field->id;
 }
 
 1;
 
 __END__
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item match
+
+=item set_is_numeric
+
+=item update
+
+=back

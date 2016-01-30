@@ -10,7 +10,9 @@ package Bugzilla::Install::DB;
 # NOTE: This package may "use" any modules that it likes,
 # localconfig is available, and params are up to date. 
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use Bugzilla::Constants;
 use Bugzilla::Hook;
@@ -23,6 +25,7 @@ use Bugzilla::Field;
 
 use Date::Parse;
 use Date::Format;
+use Digest;
 use IO::File;
 use List::MoreUtils qw(uniq);
 use URI;
@@ -269,10 +272,6 @@ sub update_table_definitions {
                         {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => 'FALSE'});
     $dbh->bz_add_column('attachments', 'isprivate',
                         {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => 'FALSE'});
-
-    $dbh->bz_add_column("bugs", "alias", {TYPE => "varchar(20)"});
-    $dbh->bz_add_index('bugs', 'bugs_alias_idx',
-                       {TYPE => 'UNIQUE', FIELDS => [qw(alias)]});
 
     _move_quips_into_db();
 
@@ -700,11 +699,38 @@ sub update_table_definitions {
     # 2012-08-01 koosha.khajeh@gmail.com - Bug 187753
     _shorten_long_quips();
 
-    # 2012-12-23 LpSolit@gmail.com - Bug 824361
+    # 2012-12-29 reed@reedloden.com - Bug 785283
+    _add_password_salt_separator();
+
+    # 2013-01-02 LpSolit@gmail.com - Bug 824361
     _fix_longdescs_indexes();
 
     # 2013-02-04 dkl@mozilla.com - Bug 824346
     _fix_flagclusions_indexes();
+
+    # 2013-08-26 sgreen@redhat.com - Bug 903895
+    _fix_components_primary_key();
+
+    # 2014-06-09 dylan@mozilla.com - Bug 1022923
+    $dbh->bz_add_index('bug_user_last_visit',
+                       'bug_user_last_visit_last_visit_ts_idx',
+                       ['last_visit_ts']);
+
+    # 2014-07-14 sgreen@redhat.com - Bug 726696
+    $dbh->bz_alter_column('tokens', 'tokentype',
+                          {TYPE => 'varchar(16)', NOTNULL => 1});
+
+    # 2014-07-27 LpSolit@gmail.com - Bug 1044561
+    _fix_user_api_keys_indexes();
+
+    # 2014-08-11 sgreen@redhat.com - Bug 1012506
+     _update_alias();
+
+    # 2014-11-10 dkl@mozilla.com - Bug 1093928
+    $dbh->bz_drop_column('longdescs', 'is_markdown');
+
+    # 2015-12-16 LpSolit@gmail.com - Bug 1232578
+    _sanitize_audit_log_table();
 
     ################################################################
     # New --TABLE-- changes should go *** A B O V E *** this point #
@@ -863,8 +889,8 @@ sub _populate_longdescs {
 
                         if (!$who) {
                             # This username doesn't exist.  Maybe someone
-                            # renamed him or something.  Invent a new profile
-                            # entry disabled, just to represent him.
+                            # renamed them or something.  Invent a new profile
+                            # entry disabled, just to represent them.
                             $dbh->do("INSERT INTO profiles (login_name, 
                                       cryptpassword, disabledtext) 
                                       VALUES (?,?,?)", undef, $name, '*',
@@ -1424,9 +1450,9 @@ sub _use_ids_for_products_and_components {
         print "Updating the database to use component IDs.\n";
 
         $dbh->bz_add_column("components", "id",
-            {TYPE => 'SMALLSERIAL', NOTNULL => 1, PRIMARYKEY => 1});
+            {TYPE => 'MEDIUMSERIAL', NOTNULL => 1, PRIMARYKEY => 1});
         $dbh->bz_add_column("bugs", "component_id",
-                            {TYPE => 'INT2', NOTNULL => 1}, 0);
+                            {TYPE => 'INT3', NOTNULL => 1}, 0);
 
         my %components;
         $sth = $dbh->prepare("SELECT id, value, product_id FROM components");
@@ -2537,7 +2563,7 @@ sub _fix_whine_queries_title_and_op_sys_value {
                  undef, "Other", "other");
         if (Bugzilla->params->{'defaultopsys'} eq 'other') {
             # We can't actually fix the param here, because WriteParams() will
-            # make $datadir/params unwriteable to the webservergroup.
+            # make $datadir/params.json unwriteable to the webservergroup.
             # It's too much of an ugly hack to copy the permission-fixing code
             # down to here. (It would create more potential future bugs than
             # it would solve problems.)
@@ -3785,6 +3811,39 @@ sub _shorten_long_quips {
     $dbh->bz_alter_column('quips', 'quip', { TYPE => 'varchar(512)', NOTNULL => 1});
 }
 
+sub _add_password_salt_separator {
+    my $dbh = Bugzilla->dbh;
+
+    $dbh->bz_start_transaction();
+
+    my $profiles = $dbh->selectall_arrayref("SELECT userid, cryptpassword FROM profiles WHERE ("
+        . $dbh->sql_regexp("cryptpassword", "'^[^,]+{'") . ")");
+
+    if (@$profiles) {
+        say "Adding salt separator to password hashes...";
+
+        my $query = $dbh->prepare("UPDATE profiles SET cryptpassword = ? WHERE userid = ?");
+        my %algo_sizes;
+
+        foreach my $profile (@$profiles) {
+            my ($userid, $hash) = @$profile;
+            my ($algorithm) = $hash =~ /{([^}]+)}$/;
+
+            $algo_sizes{$algorithm} ||= length(Digest->new($algorithm)->b64digest);
+
+            # Calculate the salt length by taking the stored hash and
+            # subtracting the combined lengths of the hash size, the
+            # algorithm name, and 2 for the {} surrounding the name.
+            my $not_salt_len = $algo_sizes{$algorithm} + length($algorithm) + 2;
+            my $salt_len = length($hash) - $not_salt_len;
+
+            substr($hash, $salt_len, 0, ',');
+            $query->execute($hash, $userid);
+        }
+    }
+    $dbh->bz_commit_transaction();
+}
+
 sub _fix_flagclusions_indexes {
     my $dbh = Bugzilla->dbh;
     foreach my $table ('flaginclusions', 'flagexclusions') {
@@ -3810,6 +3869,74 @@ sub _fix_flagclusions_indexes {
             $dbh->bz_add_index($table, $index,
                 { FIELDS => [qw(type_id product_id component_id)],
                   TYPE   => 'UNIQUE' });
+        }
+    }
+}
+
+sub _fix_components_primary_key {
+    my $dbh = Bugzilla->dbh;
+    if ($dbh->bz_column_info('components', 'id')->{TYPE} ne 'MEDIUMSERIAL') {
+        $dbh->bz_drop_related_fks('components', 'id');
+        $dbh->bz_alter_column("components", "id",
+                              {TYPE => 'MEDIUMSERIAL',  NOTNULL => 1,  PRIMARYKEY => 1});
+        $dbh->bz_alter_column("flaginclusions", "component_id",
+                              {TYPE => 'INT3'});
+        $dbh->bz_alter_column("flagexclusions", "component_id",
+                              {TYPE => 'INT3'});
+        $dbh->bz_alter_column("bugs", "component_id",
+                              {TYPE => 'INT3', NOTNULL => 1});
+        $dbh->bz_alter_column("component_cc", "component_id",
+                              {TYPE => 'INT3', NOTNULL => 1});
+    }
+}
+
+sub _fix_user_api_keys_indexes {
+    my $dbh = Bugzilla->dbh;
+
+    if ($dbh->bz_index_info('user_api_keys', 'user_api_keys_key')) {
+        $dbh->bz_drop_index('user_api_keys', 'user_api_keys_key');
+        $dbh->bz_add_index('user_api_keys', 'user_api_keys_api_key_idx',
+                           { FIELDS => ['api_key'], TYPE => 'UNIQUE' });
+    }
+    if ($dbh->bz_index_info('user_api_keys', 'user_api_keys_user_id')) {
+        $dbh->bz_drop_index('user_api_keys', 'user_api_keys_user_id');
+        $dbh->bz_add_index('user_api_keys', 'user_api_keys_user_id_idx', ['user_id']);
+    }
+}
+
+sub _update_alias {
+    my $dbh = Bugzilla->dbh;
+    return unless $dbh->bz_column_info('bugs', 'alias');
+
+    # We need to move the aliases from the bugs table to the bugs_aliases table
+    $dbh->do(q{
+        INSERT INTO bugs_aliases (bug_id, alias)
+        SELECT bug_id, alias FROM bugs WHERE alias IS NOT NULL
+    });
+
+    $dbh->bz_drop_column('bugs', 'alias');
+}
+
+sub _sanitize_audit_log_table {
+    my $dbh = Bugzilla->dbh;
+
+    # Replace hashed passwords by a generic comment.
+    my $class = 'Bugzilla::User';
+    my $field = 'cryptpassword';
+
+    my $hashed_passwd =
+      $dbh->selectcol_arrayref('SELECT added FROM audit_log WHERE class = ? AND field = ?
+                                AND ' . $dbh->sql_not_ilike('hashed_with_', 'added'),
+                                undef, ($class, $field));
+    if (@$hashed_passwd) {
+        say "Sanitizing hashed passwords stored in the 'audit_log' table...";
+        my $sth = $dbh->prepare('UPDATE audit_log SET added = ?
+                                 WHERE class = ? AND field = ? AND added = ?');
+
+        foreach my $passwd (@$hashed_passwd) {
+            my (undef, $sanitized_passwd) =
+              Bugzilla::Object::_sanitize_audit_log($class, $field, [undef, $passwd]);
+            $sth->execute($sanitized_passwd, $class, $field, $passwd);
         }
     }
 }

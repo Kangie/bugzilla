@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,7 +16,9 @@
 #
 ##############################################################################
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib qw(. lib);
 
@@ -45,7 +47,7 @@ my $template = Bugzilla->template;
 my $vars = {};
 
 # All pages point to the same part of the documentation.
-$vars->{'doc_section'} = 'bugreports.html';
+$vars->{'doc_section'} = 'using/filing.html';
 
 my $product_name = trim($cgi->param('product') || '');
 # Will contain the product object the bug is created in.
@@ -75,8 +77,6 @@ if ($product_name eq '') {
             $vars->{'classifications'} = [map {$_->{'object'}} @classifications];
 
             $vars->{'target'} = "enter_bug.cgi";
-            $vars->{'format'} = $cgi->param('format');
-            $vars->{'cloned_bug_id'} = $cgi->param('cloned_bug_id');
 
             print $cgi->header();
             $template->process("global/choose-classification.html.tmpl", $vars)
@@ -107,8 +107,6 @@ if ($product_name eq '') {
     elsif (scalar(@enterable_products) > 1) {
         $vars->{'classifications'} = \@classifications;
         $vars->{'target'} = "enter_bug.cgi";
-        $vars->{'format'} = $cgi->param('format');
-        $vars->{'cloned_bug_id'} = $cgi->param('cloned_bug_id');
 
         print $cgi->header();
         $template->process("global/choose-product.html.tmpl", $vars)
@@ -149,9 +147,16 @@ if ($cloned_bug_id) {
     $cloned_bug_id = $cloned_bug->id;
 }
 
-if (scalar(@{$product->components}) == 1) {
-    # Only one component; just pick it.
-    $cgi->param('component', $product->components->[0]->name);
+# If there is only one active component, choose it
+my @active = grep { $_->is_active } @{$product->components};
+if (scalar(@active) == 1) {
+    $cgi->param('component', $active[0]->name);
+}
+
+# If there is only one active version, choose it
+@active = grep { $_->is_active } @{$product->versions};
+if (scalar(@active) == 1) {
+    $cgi->param('version', $active[0]->name);
 }
 
 my %default;
@@ -213,10 +218,14 @@ if ($cloned_bug_id) {
     } else {
         $vars->{'cc'}         = formvalue('cc');
     }
-    
-    if ($cloned_bug->reporter->id != $user->id
-        && none { $_ eq $cloned_bug->reporter->login } @{$cloned_bug->cc}) {
-        $vars->{'cc'} = join (", ", $cloned_bug->reporter->login, $vars->{'cc'}); 
+
+    foreach my $role (qw(reporter assigned_to qa_contact)) {
+        if (defined($cloned_bug->$role)
+            && $cloned_bug->$role->id != $user->id
+            && none { $_ eq $cloned_bug->$role->login } @{$cloned_bug->cc})
+        {
+            $vars->{'cc'} = join (", ", $cloned_bug->$role->login, $vars->{'cc'});
+        }
     }
 
     foreach my $field (@enter_bug_fields) {
@@ -259,6 +268,7 @@ else {
     $vars->{'blocked'}        = formvalue('blocked');
     $vars->{'deadline'}       = formvalue('deadline');
     $vars->{'estimated_time'} = formvalue('estimated_time');
+    $vars->{'see_also'}       = formvalue('see_also');
 
     $vars->{'cc'}             = join(', ', $cgi->param('cc'));
 

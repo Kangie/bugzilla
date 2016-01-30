@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,10 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
 use Bugzilla;
@@ -123,17 +126,18 @@ sub requestChangePassword {
       or ThrowUserError("login_needed_for_password_change");
 
     check_email_syntax($login_name);
-    my $user = Bugzilla::User->check($login_name);
+    my $user = new Bugzilla::User({ name => $login_name });
 
     # Make sure the user account is active.
-    if (!$user->is_enabled) {
+    if ($user && !$user->is_enabled) {
         ThrowUserError('account_disabled',
                        {disabled_reason => get_text('account_disabled', {account => $login_name})});
     }
 
-    Bugzilla::Token::IssuePasswordToken($user);
+    Bugzilla::Token::IssuePasswordToken($user) if $user;
 
     $vars->{'message'} = "password_change_request";
+    $vars->{'login_name'} = $login_name;
 
     print $cgi->header();
     $template->process("global/message.html.tmpl", $vars)
@@ -315,11 +319,11 @@ sub confirm_create_account {
     # Now delete this token.
     delete_token($token);
 
-    # Let the user know that his user account has been successfully created.
+    # Let the user know that their user account has been successfully created.
     $vars->{'message'} = 'account_created';
     $vars->{'otheruser'} = $otheruser;
 
-    # Log in the new user using credentials he just gave.
+    # Log in the new user using credentials they just gave.
     $cgi->param('Bugzilla_login', $otheruser->login);
     $cgi->param('Bugzilla_password', $password);
     Bugzilla->login(LOGIN_OPTIONAL);

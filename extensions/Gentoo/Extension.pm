@@ -59,4 +59,12 @@ sub template_before_create {
 	$constants->{GENTOO_APPEND_VERSION} = "+";
 }
 
+sub user_check_account_creation {
+    my ($self, $args) = @_;
+
+    my $login = $args->{login};
+
+	ThrowUserError('restricted_email_address', {addr => $login}) if $login =~ m/.+\@gentoo\.org$/;
+}
+
 __PACKAGE__->NAME;

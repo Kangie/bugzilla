@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,9 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
 
 use lib qw(. lib);
 
@@ -29,7 +31,8 @@ my $vars = {};
 # performance.
 my $dbh = Bugzilla->switch_to_shadow_db();
 
-local our (%seen, %edgesdone, %bugtitles);
+our (%seen, %edgesdone, %bugtitles);
+our $bug_count = 0;
 
 # CreateImagemap: This sub grabs a local filename as a parameter, reads the 
 # dot-generated image map datafile residing in that file and turns it into
@@ -76,6 +79,7 @@ sub AddLink {
     if (!exists $edgesdone{$key}) {
         $edgesdone{$key} = 1;
         print $fh "$dependson -> $blocked\n";
+        $bug_count++;
         $seen{$blocked} = 1;
         $seen{$dependson} = 1;
     }
@@ -108,10 +112,10 @@ chmod Bugzilla::Install::Filesystem::CGI_WRITE, $filename
 my $urlbase = correct_urlbase();
 
 print $fh "digraph G {";
-print $fh qq{
+print $fh qq(
 graph [URL="${urlbase}query.cgi", rankdir=$rankdir]
 node [URL="${urlbase}show_bug.cgi?id=\\N", style=filled, color=lightgrey]
-};
+);
 
 my %baselist;
 
@@ -178,12 +182,12 @@ foreach my $k (@bug_ids) {
 
     $vars->{'short_desc'} = $summary if ($k eq $cgi->param('id'));
 
-    # Resolution and summary are shown only if user can see the bug
+    # The bug summary is shown only if the user can see the bug.
     if ($user->can_see_bug($k)) {
         $summary = html_quote(clean_text($summary));
     }
     else {
-        $resolution = $summary = '';
+        $summary = '';
     }
 
     my @params;
@@ -214,7 +218,9 @@ foreach my $k (@bug_ids) {
     # Push the bug tooltip texts into a global hash so that 
     # CreateImagemap sub (used with local dot installations) can
     # use them later on.
-    $bugtitles{$k} = trim("$stat $resolution");
+    my $stat_display       = display_value('bug_status', $stat);
+    my $resolution_display = display_value('resolution', $resolution);
+    $bugtitles{$k} = trim("$stat_display $resolution_display");
 
     # Show the bug summary in tooltips only if not shown on 
     # the graph and it is non-empty (the user can see the bug)
@@ -226,6 +232,11 @@ foreach my $k (@bug_ids) {
 
 print $fh "}\n";
 close $fh;
+
+if ($bug_count > MAX_WEBDOT_BUGS) {
+    unlink($filename);
+    ThrowUserError("webdot_too_large");
+}
 
 my $webdotbase = Bugzilla->params->{'webdotbase'};
 

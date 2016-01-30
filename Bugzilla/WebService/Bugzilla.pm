@@ -7,8 +7,11 @@
 
 package Bugzilla::WebService::Bugzilla;
 
+use 5.10.1;
 use strict;
-use base qw(Bugzilla::WebService);
+use warnings;
+
+use parent qw(Bugzilla::WebService);
 use Bugzilla::Constants;
 use Bugzilla::Util qw(datetime_from);
 use Bugzilla::WebService::Util qw(validate filter_wants);
@@ -128,12 +131,12 @@ sub time {
 sub last_audit_time {
     my ($self, $params) = validate(@_, 'class');
     my $dbh = Bugzilla->dbh;
-    
+
     my $sql_statement = "SELECT MAX(at_time) FROM audit_log";
     my $class_values =  $params->{class};
     my @class_values_quoted;
     foreach my $class_value (@$class_values) {
-        push (@class_values_quoted, $dbh->quote($class_value)) 
+        push (@class_values_quoted, $dbh->quote($class_value))
             if $class_value =~ /^Bugzilla(::[a-zA-Z0-9_]+)*$/;
     }
 
@@ -142,11 +145,11 @@ sub last_audit_time {
     }
 
     my $last_audit_time = $dbh->selectrow_array("$sql_statement");
- 
+
     # All Webservices return times in UTC; Use UTC here for backwards compat.
     # Hardcode values where appropriate
     $last_audit_time = datetime_from($last_audit_time, 'UTC');
-    
+
     return {
         last_audit_time => $self->type('dateTime', $last_audit_time)
     };
@@ -188,6 +191,10 @@ This provides functions that tell you about Bugzilla in general.
 See L<Bugzilla::WebService> for a description of how parameters are passed,
 and what B<STABLE>, B<UNSTABLE>, and B<EXPERIMENTAL> mean.
 
+Although the data input and output is the same for JSONRPC, XMLRPC and REST,
+the directions for how to access the data via REST is noted in each method
+where applicable.
+
 =head2 version
 
 B<STABLE>
@@ -198,6 +205,12 @@ B<STABLE>
 
 Returns the current version of Bugzilla.
 
+=item B<REST>
+
+GET /rest/version
+
+The returned data format is the same as below.
+
 =item B<Params> (none)
 
 =item B<Returns>
@@ -206,6 +219,14 @@ A hash with a single item, C<version>, that is the version as a
 string.
 
 =item B<Errors> (none)
+
+=item B<History>
+
+=over
+
+=item REST API call added in Bugzilla B<5.0>.
+
+=back
 
 =back
 
@@ -219,6 +240,12 @@ B<EXPERIMENTAL>
 
 Gets information about the extensions that are currently installed and enabled
 in this Bugzilla.
+
+=item B<REST>
+
+GET /rest/extensions
+
+The returned data format is the same as below.
 
 =item B<Params> (none)
 
@@ -250,6 +277,8 @@ The return value looks something like this:
 that the extensions define themselves. Before 3.6, the names of the
 extensions depended on the directory they were in on the Bugzilla server.
 
+=item REST API call added in Bugzilla B<5.0>.
+
 =back
 
 =back
@@ -265,6 +294,12 @@ Use L</time> instead.
 
 Returns the timezone that Bugzilla expects dates and times in.
 
+=item B<REST>
+
+GET /rest/timezone
+
+The returned data format is the same as below.
+
 =item B<Params> (none)
 
 =item B<Returns>
@@ -278,6 +313,8 @@ string in (+/-)XXXX (RFC 2822) format.
 
 =item As of Bugzilla B<3.6>, the timezone returned is always C<+0000>
 (the UTC timezone).
+
+=item REST API call added in Bugzilla B<5.0>.
 
 =back
 
@@ -295,6 +332,12 @@ B<STABLE>
 Gets information about what time the Bugzilla server thinks it is, and
 what timezone it's running in.
 
+=item B<REST>
+
+GET /rest/time
+
+The returned data format is the same as below.
+
 =item B<Params> (none)
 
 =item B<Returns>
@@ -305,7 +348,7 @@ A struct with the following items:
 
 =item C<db_time>
 
-C<dateTime> The current time in UTC, according to the Bugzilla 
+C<dateTime> The current time in UTC, according to the Bugzilla
 I<database server>.
 
 Note that Bugzilla assumes that the database and the webserver are running
@@ -315,7 +358,7 @@ rely on for doing searches and other input to the WebService.
 
 =item C<web_time>
 
-C<dateTime> This is the current time in UTC, according to Bugzilla's 
+C<dateTime> This is the current time in UTC, according to Bugzilla's
 I<web server>.
 
 This might be different by a second from C<db_time> since this comes from
@@ -331,7 +374,7 @@ versions of Bugzilla before 3.6.)
 =item C<tz_name>
 
 C<string> The literal string C<UTC>. (Exists only for backwards-compatibility
-with versions of Bugzilla before 3.6.) 
+with versions of Bugzilla before 3.6.)
 
 =item C<tz_short_name>
 
@@ -355,6 +398,8 @@ with versions of Bugzilla before 3.6.)
 were in the UTC timezone, instead of returning information in the server's
 local timezone.
 
+=item REST API call added in Bugzilla B<5.0>.
+
 =back
 
 =back
@@ -368,6 +413,12 @@ B<UNSTABLE>
 =item B<Description>
 
 Returns parameter values currently used in this Bugzilla.
+
+=item B<REST>
+
+GET /rest/parameters
+
+The returned data format is the same as below.
 
 =item B<Params> (none)
 
@@ -426,6 +477,8 @@ never be stable.
 
 =item Added in Bugzilla B<4.4>.
 
+=item REST API call added in Bugzilla B<5.0>.
+
 =back
 
 =back
@@ -440,9 +493,15 @@ B<EXPERIMENTAL>
 
 Gets the latest time of the audit_log table.
 
+=item B<REST>
+
+GET /rest/last_audit_time
+
+The returned data format is the same as below.
+
 =item B<Params>
 
-You can pass the optional parameter C<class> to get the maximum for only 
+You can pass the optional parameter C<class> to get the maximum for only
 the listed classes.
 
 =over
@@ -466,6 +525,8 @@ at_time from the audit_log.
 =over
 
 =item Added in Bugzilla B<4.4>.
+
+=item REST API call added in Bugzilla B<5.0>.
 
 =back
 

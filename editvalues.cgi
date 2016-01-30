@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,11 +6,10 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-# This is a script to edit the values of fields that have drop-down
-# or select boxes. It is largely a copy of editmilestones.cgi, but 
-# with some cleanup.
-
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
 use Bugzilla;
@@ -48,7 +47,7 @@ my $vars = {};
 
 # Replace this entry by separate entries in templates when
 # the documentation about legal values becomes bigger.
-$vars->{'doc_section'} = 'edit-values.html';
+$vars->{'doc_section'} = 'administering/field-values.html';
 
 print $cgi->header();
 

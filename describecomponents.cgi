@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -T
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,10 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
+use 5.10.1;
 use strict;
+use warnings;
+
 use lib qw(. lib);
 
 use Bugzilla;
@@ -39,7 +42,7 @@ unless ($product && $user->can_access_product($product->name)) {
     # If there is only one product available but the user entered
     # another product name, we display a list with this single
     # product only, to not confuse the user with components of a
-    # product he didn't request.
+    # product they didn't request.
     elsif (scalar(@products) > 1 || $product_name) {
         $vars->{'classifications'} = sort_products_by_classification(\@products);
         $vars->{'target'} = "describecomponents.cgi";

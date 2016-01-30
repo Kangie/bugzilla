@@ -5,11 +5,13 @@
 # This Source Code Form is "Incompatible With Secondary Licenses", as
 # defined by the Mozilla Public License, v. 2.0.
 
-use strict;
-
 package Bugzilla::Milestone;
 
-use base qw(Bugzilla::Object);
+use 5.10.1;
+use strict;
+use warnings;
+
+use parent qw(Bugzilla::Object);
 
 use Bugzilla::Constants;
 use Bugzilla::Util;
@@ -112,8 +114,10 @@ sub update {
         $dbh->do('UPDATE products SET defaultmilestone = ?
                   WHERE id = ? AND defaultmilestone = ?',
                  undef, ($self->name, $self->product_id, $changes->{value}->[0]));
+        Bugzilla->memcached->clear({ table => 'products', id => $self->product_id });
     }
     $dbh->bz_commit_transaction();
+    Bugzilla->memcached->clear_config();
 
     return $changes;
 }
@@ -374,5 +378,15 @@ Milestone.pm represents a Product Milestone object.
               $sortkey - the sortkey of the new milestone (signed integer)
 
  Returns:     A Bugzilla::Milestone object.
+
+=back
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item set_is_active
+
+=item is_active
 
 =back

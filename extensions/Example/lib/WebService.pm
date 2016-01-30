@@ -6,9 +6,11 @@
 # defined by the Mozilla Public License, v. 2.0.
 
 package Bugzilla::Extension::Example::WebService;
+
+use 5.10.1;
 use strict;
 use warnings;
-use base qw(Bugzilla::WebService);
+use parent qw(Bugzilla::WebService);
 use Bugzilla::Error;
 
 use constant PUBLIC_METHODS => qw(

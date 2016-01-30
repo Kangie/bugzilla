@@ -13,23 +13,17 @@ package Bugzilla::Install::Requirements;
 # Subroutines may "require" and "import" from modules, but they
 # MUST NOT "use."
 
+use 5.10.1;
 use strict;
-use version;
+use warnings;
 
 use Bugzilla::Constants;
-use Bugzilla::Install::Util qw(vers_cmp install_string bin_loc 
+use Bugzilla::Install::Util qw(install_string bin_loc
                                extension_requirement_packages);
 use List::Util qw(max);
 use Term::ANSIColor;
 
-# Return::Value 1.666002 pollutes the error log with warnings about this
-# deprecated module. We have to set NO_CLUCK = 1 before loading Email::Send
-# in have_vers() to disable these warnings.
-BEGIN {
-    $Return::Value::NO_CLUCK = 1;
-}
-
-use base qw(Exporter);
+use parent qw(Exporter);
 our @EXPORT = qw(
     REQUIRED_MODULES
     OPTIONAL_MODULES
@@ -55,6 +49,8 @@ use constant APACHE_MODULES => {
     mod_headers => 'headers_module',
     mod_env     => 'env_module',
     mod_expires => 'expires_module',
+    mod_rewrite => 'rewrite_module',
+    mod_version => 'version_module'
 };
 
 # These are all of the binaries that we could possibly use that can
@@ -86,7 +82,6 @@ use constant APACHE_PATH => [qw(
 # are 'blacklisted'--that is, even if the version is high enough, Bugzilla
 # will refuse to say that it's OK to run with that version.
 sub REQUIRED_MODULES {
-    my $perl_ver = sprintf('%vd', $^V);
     my @modules = (
     {
         package => 'CGI.pm',
@@ -106,40 +101,36 @@ sub REQUIRED_MODULES {
         module  => 'Date::Format',
         version => '2.23'
     },
-    # 0.28 fixed some important bugs in DateTime.
+    # 0.75 fixes a warning thrown with Perl 5.17 and newer.
     {
         package => 'DateTime',
         module  => 'DateTime',
-        version => '0.28'
+        version => '0.75'
     },
-    # 0.79 is required to work on Windows Vista and Windows Server 2008.
-    # As correctly detecting the flavor of Windows is not easy,
-    # we require this version for all Windows installations.
-    # 0.71 fixes a major bug affecting all platforms.
+    # 1.64 fixes a taint issue preventing the local timezone from
+    # being determined on some systems.
     {
         package => 'DateTime-TimeZone',
         module  => 'DateTime::TimeZone',
-        version => ON_WINDOWS ? '0.79' : '0.71'
+        version => '1.64'
     },
     # 1.54 is required for Perl 5.10+. It also makes DBD::Oracle happy.
     {
         package => 'DBI',
         module  => 'DBI',
-        version => (vers_cmp($perl_ver, '5.13.3') > -1) ? '1.614' : '1.54'
+        version => ($^V >= v5.13.3) ? '1.614' : '1.54'
     },
-    # 2.22 fixes various problems related to UTF8 strings in hash keys,
-    # as well as line endings on Windows.
+    # 2.24 contains several useful text virtual methods.
     {
         package => 'Template-Toolkit',
         module  => 'Template',
-        version => '2.22'
+        version => '2.24'
     },
-    # 2.04 implement the "Test" method (to write to data/mailer.testfile).
+    # 1.300011 has a debug mode for SMTP and automatically pass -i to sendmail.
     {
-        package => 'Email-Send',
-        module  => 'Email::Send',
-        version => ON_WINDOWS ? '2.16' : '2.04',
-        blacklist => ['^2\.196$']
+        package => 'Email-Sender',
+        module  => 'Email::Sender',
+        version => '1.300011',
     },
     {
         package => 'Email-MIME',
@@ -150,9 +141,8 @@ sub REQUIRED_MODULES {
     {
         package => 'URI',
         module  => 'URI',
-        # This version properly handles a semicolon as the delimiter
-        # in a URL query string.
-        version => '1.37',
+        # Follows RFC 3986 to escape characters in URI::Escape.
+        version => '1.55',
     },
     # 0.32 fixes several memory leaks in the XS version of some functions.
     {
@@ -164,6 +154,17 @@ sub REQUIRED_MODULES {
         package => 'Math-Random-ISAAC',
         module  => 'Math::Random::ISAAC',
         version => '1.0.1',
+    },
+    {
+        package => 'File-Slurp',
+        module  => 'File::Slurp',
+        version => '9999.13',
+    },
+    {
+        package => 'JSON-XS',
+        module  => 'JSON::XS',
+        # 2.0 is the first version that will work with JSON::RPC.
+        version => '2.01',
     },
     );
 
@@ -184,8 +185,8 @@ sub REQUIRED_MODULES {
         {
             package => 'DateTime-TimeZone-Local-Win32',
             module  => 'DateTime::TimeZone::Local::Win32',
-            # We require DateTime::TimeZone 0.79, so this version must match.
-            version => '0.79',
+            # We require DateTime::TimeZone 1.64, so this version must match.
+            version => '1.64',
         }
         );
     }
@@ -196,7 +197,6 @@ sub REQUIRED_MODULES {
 };
 
 sub OPTIONAL_MODULES {
-    my $perl_ver = sprintf('%vd', $^V);
     my @modules = (
     {
         package => 'GD',
@@ -207,10 +207,9 @@ sub OPTIONAL_MODULES {
     {
         package => 'Chart',
         module  => 'Chart::Lines',
-        # Versions below 2.1 cannot be detected accurately.
-        # There is no 2.1.0 release (it was 2.1), but .0 is required to fix
+        # Versions below 2.4.1 cannot be compared accurately, see
         # https://rt.cpan.org/Public/Bug/Display.html?id=28218.
-        version => '2.1.0',
+        version => '2.4.1',
         feature => [qw(new_charts old_charts)],
     },
     {
@@ -291,6 +290,8 @@ sub OPTIONAL_MODULES {
         # Fixes various bugs, including 542931 and 552353 + stops
         # throwing warnings with Perl 5.12.
         version => '0.712',
+        # SOAP::Transport::HTTP 1.12 is bogus.
+        blacklist => ['^1\.12$'],
         feature => ['xmlrpc'],
     },
     # Since SOAP::Lite 1.0, XMLRPC::Lite is no longer included
@@ -305,26 +306,20 @@ sub OPTIONAL_MODULES {
         package => 'JSON-RPC',
         module  => 'JSON::RPC',
         version => 0,
-        feature => ['jsonrpc'],
-    },
-    {
-        package => 'JSON-XS',
-        module  => 'JSON::XS',
-        # 2.0 is the first version that will work with JSON::RPC.
-        version => '2.0',
-        feature => ['jsonrpc_faster'],
+        feature => ['jsonrpc', 'rest'],
     },
     {
         package => 'Test-Taint',
         module  => 'Test::Taint',
-        version => 0,
-        feature => ['jsonrpc', 'xmlrpc'],
+        # 1.06 no longer throws warnings with Perl 5.10+.
+        version => 1.06,
+        feature => ['jsonrpc', 'xmlrpc', 'rest'],
     },
     {
         # We need the 'utf8_mode' method of HTML::Parser, for HTML::Scrubber.
         package => 'HTML-Parser',
         module  => 'HTML::Parser',
-        version => (vers_cmp($perl_ver, '5.13.3') > -1) ? '3.67' : '3.40',
+        version => ($^V >= v5.13.3) ? '3.67' : '3.40',
         feature => ['html_desc'],
     },
     {
@@ -376,12 +371,6 @@ sub OPTIONAL_MODULES {
         version => 0,
         feature => ['jobqueue'],
     },
-    {
-        package => 'File-Slurp',
-        module  => 'File::Slurp',
-        version => '9999.13',
-        feature => ['jobqueue'],
-    },
 
     # mod_perl
     {
@@ -411,6 +400,28 @@ sub OPTIONAL_MODULES {
         version => '0',
         feature => ['typesniffer'],
     },
+
+    # memcached
+    {
+        package => 'Cache-Memcached',
+        module  => 'Cache::Memcached',
+        version => '0',
+        feature => ['memcached'],
+    },
+
+    # Documentation
+    {
+        package => 'File-Copy-Recursive',
+        module  => 'File::Copy::Recursive',
+        version => 0,
+        feature => ['documentation'],
+    },
+    {
+        package => 'File-Which',
+        module  => 'File::Which',
+        version => 0,
+        feature => ['documentation'],
+    },
     );
 
     my $extra_modules = _get_extension_requirements('OPTIONAL_MODULES');
@@ -424,14 +435,18 @@ use constant FEATURE_FILES => (
     jsonrpc       => ['Bugzilla/WebService/Server/JSONRPC.pm', 'jsonrpc.cgi'],
     xmlrpc        => ['Bugzilla/WebService/Server/XMLRPC.pm', 'xmlrpc.cgi',
                       'Bugzilla/WebService.pm', 'Bugzilla/WebService/*.pm'],
+    rest          => ['Bugzilla/WebService/Server/REST.pm', 'rest.cgi',
+                      'Bugzilla/WebService/Server/REST/Resources/*.pm'],
     moving        => ['importxml.pl'],
     auth_ldap     => ['Bugzilla/Auth/Verify/LDAP.pm'],
     auth_radius   => ['Bugzilla/Auth/Verify/RADIUS.pm'],
+    documentation => ['docs/makedocs.pl'],
     inbound_email => ['email_in.pl'],
     jobqueue      => ['Bugzilla/Job/*', 'Bugzilla/JobQueue.pm',
                       'Bugzilla/JobQueue/*', 'jobqueue.pl'],
     patch_viewer  => ['Bugzilla/Attachment/PatchReader.pm'],
     updates       => ['Bugzilla/Update.pm'],
+    memcached     => ['Bugzilla/Memcache.pm'],
 );
 
 # This implements the REQUIRED_MODULES and OPTIONAL_MODULES stuff
@@ -514,7 +529,7 @@ sub _missing_apache_modules {
         return [];
     }
     my @missing;
-    foreach my $module (keys %$modules) {
+    foreach my $module (sort keys %$modules) {
         my $ok = _check_apache_module($module, $modules->{$module}, 
                                       $cmd_info, $output);
         push(@missing, $module) if !$ok;
@@ -946,5 +961,13 @@ Returns:     C<1> if the check was successful, C<0> otherwise.
 
 Returns a hashref where file names are the keys and the value is the feature
 that must be enabled in order to compile that file.
+
+=back
+
+=head1 B<Methods in need of POD>
+
+=over
+
+=item print_module_instructions
 
 =back

@@ -7,8 +7,11 @@
 
 package Bugzilla::UserAgent;
 
+use 5.10.1;
 use strict;
-use base qw(Exporter);
+use warnings;
+
+use parent qw(Exporter);
 our @EXPORT = qw(detect_platform detect_op_sys);
 
 use Bugzilla::Field;
@@ -103,6 +106,7 @@ use constant OS_MAP => (
     qr/\(.*Android.*\)/ => ["Android"],
     # Windows
     qr/\(.*Windows XP.*\)/ => ["Windows XP"],
+    qr/\(.*Windows NT 10\.0.*\)/ => ["Windows 10"],
     qr/\(.*Windows NT 6\.4.*\)/ => ["Windows 10"],
     qr/\(.*Windows NT 6\.3.*\)/ => ["Windows 8.1"],
     qr/\(.*Windows NT 6\.2.*\)/ => ["Windows 8"],
