@@ -20,6 +20,10 @@ print $cgi->header();
 
 my $matchstr = $cgi->param('matchstr');
 my $userid = $cgi->param('userid');
+if(!defined($matchstr) and !defined($userid)) {
+	print "No search parameters specified!<br/>";
+	exit(0);
+}
 exit 0 if !defined($matchstr) and !defined($userid);
 
 my $limit = $cgi->param('limit');
