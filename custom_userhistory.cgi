@@ -14,19 +14,19 @@ my $vars      = {};
 my $myuser = Bugzilla->login(LOGIN_REQUIRED);
 my $dbh       = Bugzilla->switch_to_shadow_db();
 my @bindValues;
-my $query;
+my ($query, $matchstr, $userid, $limit);
 
 print $cgi->header();
 
-my $matchstr = $cgi->param('matchstr');
-my $userid = $cgi->param('userid');
+$matchstr = $cgi->param('matchstr');
+$userid = $cgi->param('userid');
 if(!defined($matchstr) and !defined($userid)) {
 	print "No search parameters specified!<br/>";
 	exit(0);
 }
 exit 0 if !defined($matchstr) and !defined($userid);
 
-my $limit = $cgi->param('limit');
+$limit = $cgi->param('limit');
 $limit = 50 unless defined($limit) and $limit =~ /^\d+$/;
 
 trick_taint($matchstr) if defined($matchstr);
@@ -34,7 +34,7 @@ trick_taint($userid) if defined($userid);
 trick_taint($limit);
 
 $userid = $matchstr ? login_to_id($matchstr) : $userid;
-my $login_name = $matchstr ? $matchstr : Bugzilla::User->new($matchstr)->login;
+$login_name = $matchstr ? $matchstr : Bugzilla::User->new($userid)->login;
 
 if(!$userid || !$login_name) {
 	print "Bad user!<br/>";
