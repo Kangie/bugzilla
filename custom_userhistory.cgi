@@ -30,7 +30,7 @@ trick_taint($userid) if defined($userid);
 trick_taint($limit);
 
 $userid = $matchstr ? login_to_id($matchstr) : $userid;
-my $login_name = $matchstr ? $matchstr : user_id_to_login($userid);
+my $login_name = $matchstr ? $matchstr : Bugzilla::User->new($matchstr)->login;
 
 if(!$userid || !$login_name) {
 	print "Bad user!<br>";
