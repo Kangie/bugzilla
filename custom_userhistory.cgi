@@ -37,7 +37,7 @@ $userid = $matchstr ? login_to_id($matchstr) : $userid;
 my $login_name = $matchstr ? $matchstr : Bugzilla::User->new($matchstr)->login;
 
 if(!$userid || !$login_name) {
-	print "Bad user!<br>";
+	print "Bad user!<br/>";
 	exit(0);
 }
 
@@ -69,7 +69,7 @@ push(@bindValues2, $userid);
 push(@bindValues2, $userid);
 
 #print Dumper($vars);
-printf "%s<br>",$login_name;
+printf "%s<br/>",$login_name;
 my $actions = $dbh->selectall_arrayref(
     $query,
     { Slice => {} },
@@ -78,10 +78,10 @@ my $actions = $dbh->selectall_arrayref(
 
 my $counter = 0;
 foreach my $row (@$actions) {
-	printf "<a href=\"%9d\">%9d</a>: %s %s<br>", $row->{'bug_id'}, $row->{'bug_id'}, $row->{'bug_when'}, $row->{'field'};
+	printf "<a href=\"%9d\">%9d</a>: %s %s<br/>", $row->{'bug_id'}, $row->{'bug_id'}, $row->{'bug_when'}, $row->{'field'};
 	$counter++;
 }
-printf "History Done. Limit=%d Count=%d<br><br>",$limit,$counter;
+printf "History Done. Limit=%d Count=%d<br/><br/>",$limit,$counter;
 
 $query = 'SELECT
 p2.userid AS grantor_id, p1.userid AS grantee_id,
@@ -100,17 +100,17 @@ $actions = $dbh->selectall_arrayref(
 	@bindValues3
 );
 
-printf "Applied to %s:<br>",$login_name;
+printf "Applied to %s:<br/>",$login_name;
 foreach my $row (@$actions) {
-	printf "%s: by %s: %s%s %s%s<br>", $row->{'profiles_when'}, $row->{'grantor'}, $row->{'oldvalue'} ? '-' : '', $row->{'oldvalue'}, $row->{'newvalue'}? '+' : '', $row->{'newvalue'} if $row->{'grantee_id'} == $userid;
+	printf "%s: by %s: %s%s %s%s<br/>", $row->{'profiles_when'}, $row->{'grantor'}, $row->{'oldvalue'} ? '-' : '', $row->{'oldvalue'}, $row->{'newvalue'}? '+' : '', $row->{'newvalue'} if $row->{'grantee_id'} == $userid;
 }
-printf "<br>";
+printf "<br/>";
 
-printf "Applied by %s:<br>",$login_name;
+printf "Applied by %s:<br/>",$login_name;
 foreach my $row (@$actions) {
-	printf "%s: to %s: %s%s %s%s<br>", $row->{'profiles_when'}, $row->{'grantee'}, $row->{'oldvalue'} ? '-' : '', $row->{'oldvalue'}, $row->{'newvalue'}? '+' : '', $row->{'newvalue'} if $row->{'grantor_id'} == $userid;
+	printf "%s: to %s: %s%s %s%s<br/>", $row->{'profiles_when'}, $row->{'grantee'}, $row->{'oldvalue'} ? '-' : '', $row->{'oldvalue'}, $row->{'newvalue'}? '+' : '', $row->{'newvalue'} if $row->{'grantor_id'} == $userid;
 }
-printf "<br>";
+printf "<br/>";
 
 $query = 'SELECT
 p1.userid AS watcher_id, p2.userid AS watched_id,
@@ -124,16 +124,16 @@ $actions = $dbh->selectall_arrayref(
     $query,
     { Slice => {} },
 );
-printf "Watchers of %s:<br>", $login_name;
+printf "Watchers of %s:<br/>", $login_name;
 foreach my $row (@$actions) {
-printf "%s<br>", $row->{'watcher'} if $row->{'watched_id'} == $userid;
+printf "%s<br/>", $row->{'watcher'} if $row->{'watched_id'} == $userid;
 }
-printf "<br>";
+printf "<br/>";
 
-printf "Watched by %s:<br>", $login_name;
+printf "Watched by %s:<br/>", $login_name;
 foreach my $row (@$actions) {
-printf "%s<br>", $row->{'watched'} if $row->{'watcher_id'} == $userid;
+printf "%s<br/>", $row->{'watched'} if $row->{'watcher_id'} == $userid;
 }
-printf "<br>";
+printf "<br/>";
 
-printf "Done.<br>";
+printf "Done.<br/>";
