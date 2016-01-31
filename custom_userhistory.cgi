@@ -14,7 +14,7 @@ my $vars      = {};
 my $myuser = Bugzilla->login(LOGIN_REQUIRED);
 my $dbh       = Bugzilla->switch_to_shadow_db();
 my @bindValues;
-my ($query, $matchstr, $userid, $limit);
+my ($query, $matchstr, $userid, $limit, $login_name);
 
 print $cgi->header();
 
