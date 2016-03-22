@@ -4,6 +4,7 @@ use base qw(Bugzilla::Extension);
 
 #use Bugzilla::Install::Filesystem qw(CGI_READ OWNER_EXECUTE WS_SERVE DIR_WS_SERVE);
 use Bugzilla::Constants qw(bz_locations);
+use Bugzilla::Error qw(ThrowUserError);
 
 use POSIX qw(uname);
 
