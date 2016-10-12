@@ -47,7 +47,11 @@ sub _rest_resources {
           return {$param => [$_[0]]};
         }
       }
-    }
+    },
+    qr{^/whoami$},
+    {
+      GET  => {method => 'whoami'}
+    },
   ];
   return $rest_resources;
 }
