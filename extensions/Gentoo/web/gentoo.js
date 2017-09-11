@@ -29,3 +29,22 @@ function add_arches_create() {
         }
     }
 }
+
+function shorten_addressbar_url() {
+    if (history.state === null) {
+        var url = window.location;
+        if (url.pathname == '/show_bug.cgi') {
+            var searchRegex = /^[?]id=(\d+)(&(.*))?$/;
+            var m = url.search.match(searchRegex);
+            if (m !== null) {
+                var newUrl = m[1];
+                if (m[2])
+                    newUrl += '?' + m[3];
+                newUrl += url.hash;
+                history.replaceState('1', '', newUrl);
+            }
+        }
+    }
+}
+
+shorten_addressbar_url();
