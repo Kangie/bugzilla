@@ -9,19 +9,20 @@
 <h3>What URLs are bots and automated scripts allowed to hit?</h3>
 <p>Unless you have a listed exception, the URLs below are the ONLY ones you are allowed to hit with bots.</p>
 <p><tt>robots.txt</tt> is your friend. It reflects these rules in a more detailed manner.</p>
+<p>HTTPS should always be used, non-HTTP requests will be redirected to upgrade.</p>
 <ul>
 <li>
         Any direct bug page (more parameters eg for RSS/XML forms are fine):<br />
-        http://bugs.gentoo.org/&lt;BUGID&gt;<br />
-        http://bugs.gentoo.org/show_bug.cgi?id=&lt;BUGID&gt;
+        https://bugs.gentoo.org/&lt;BUGID&gt;<br />
+        https://bugs.gentoo.org/show_bug.cgi?id=&lt;BUGID&gt;
 </li>
 <li>
         Any direct attachment:<br />
-        http://bugs.gentoo.org/attachment.cgi?id=&lt;ATTACHID&gt;
+        https://bugs.gentoo.org/attachment.cgi?id=&lt;ATTACHID&gt;
 </li>
 <li>
         Duplicates report:<br />
-        http://bugs.gentoo.org/data/duplicates.rdf
+        https://bugs.gentoo.org/data/duplicates.rdf
 </li>
 <li>
         Any URL in the "Bug listing links" section of this page.
