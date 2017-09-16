@@ -456,8 +456,8 @@ use constant LOGIN_LOCKOUT_INTERVAL => 30;
 use constant ACCOUNT_CHANGE_INTERVAL => 10;
 
 # The maximum number of seconds the Strict-Transport-Security header
-# will remain valid. Default is one week.
-use constant MAX_STS_AGE => 604800;
+# will remain valid. Default is one month.
+use constant MAX_STS_AGE => 15768000;
 
 # Protocols which are considered as safe.
 use constant SAFE_PROTOCOLS => ('afs', 'cid', 'ftp', 'gopher', 'http', 'https',
