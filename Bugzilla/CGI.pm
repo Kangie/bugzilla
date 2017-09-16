@@ -339,10 +339,11 @@ sub header {
         $headers{'-strict_transport_security'} = $sts_opts;
     }
 
-    # Add X-Frame-Options header to prevent framing and subsequent
+    # Add X-Frame-Options & CSP headers to prevent framing and subsequent
     # possible clickjacking problems.
     unless ($self->url_is_attachment_base) {
         $headers{'-x_frame_options'} = 'SAMEORIGIN';
+        $headers{'-content_security_policy'} = "frame-ancestors 'self'";
     }
 
     # Add X-XSS-Protection header to prevent simple XSS attacks
