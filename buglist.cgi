@@ -831,6 +831,7 @@ foreach my $row (@$data) {
     push(@bugs, $bug);
 
     # Add id to list for checking for bug privacy later
+    detaint_natural($bug->{'bug_id'});
     push(@bugidlist, $bug->{'bug_id'});
 
     # Compute time tracking info.
