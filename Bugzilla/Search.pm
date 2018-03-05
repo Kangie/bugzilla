@@ -2169,7 +2169,9 @@ sub _timestamp_translate {
     my $value = $args->{value};
     my $dbh = Bugzilla->dbh;
 
-    return if $value !~ /^(?:[\+\-]?\d+[hdwmy]s?|now)$/i;
+    # Force parsing of all dates & times, so that we filter weird values out
+    # from users.
+    #return if $value !~ /^(?:[\+\-]?\d+[hdwmy]s?|now)$/i;
 
     $value = SqlifyDate($value);
     # By default, the time is appended to the date, which we don't always want.
