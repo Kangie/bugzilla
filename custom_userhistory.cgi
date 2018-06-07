@@ -121,7 +121,12 @@ foreach my $row (@$actions) {
 	}) =~ s/^\t{1}//mg;
 	print $message;
 }
-printf "</table>.\nHistory Done.\nLimit=%d Count=%d<br/><br/>",$limit,$counter;
+print qq{
+</table>
+History Done<br />
+Limit=${limit}<br />
+Count=${counter}<br />
+};
 
 $query = q{
 SELECT
@@ -148,9 +153,10 @@ $actions = $dbh->selectall_arrayref(
 	($userid, $userid),
 );
 
-print "<hr/><h2>Profile Activity</h2>\n";
-printf "<h3>Applied to %s:</h3>\n",$login_name;
-print q{
+print qq{
+<hr/>
+<h2>Profile Activity</h2>
+<h3>Applied to ${login_name}:</h3>
 <table>
 	<tr>
 		<th>Timestamp</th>
@@ -173,10 +179,11 @@ foreach my $row (@$actions) {
 	}) =~ s/^\t{1}//mg;
 	print $message;
 }
-print "</table>\n";
 
-printf "<h3>Applied by %s:</h3>\n",$login_name;
-print q{
+print qq{
+</table>
+
+<h3>Applied by ${login_name}:</h3>
 <table>
 	<tr>
 		<th>Timestamp</th>
@@ -237,20 +244,21 @@ printf "%s<br/>\n", $row->{'watched'} if $row->{'watcher_id'} == $userid;
 printf "<br/>\n";
 
 
-
 $query = q{
 SELECT
+	at_time,
 	user_id,
+	profiles.login_name AS login_name,
 	class,
 	object_id,
-	field,
-	at_time
+	field
 FROM
 	audit_log
+	LEFT JOIN profiles ON profiles.userid=audit_log.user_id
 WHERE
 	FALSE
-	OR user_id=?
-	OR (class = 'Bugzilla::User' AND object_id=?)
+	OR audit_log.user_id=?
+	OR (audit_log.class = 'Bugzilla::User' AND audit_log.object_id=?)
 ORDER BY
 	at_time
 };
@@ -260,13 +268,13 @@ my $audits = $dbh->selectall_arrayref(
 	($userid, $userid),
 );
 
-print "<hr/><h2>Audit log</h2>";
-printf "<h3>Changes by %s:</h3>\n", $login_name;
-print q{
+print qq{<hr/>
+<h2>Audit log</h2>
+<h3>Changes by ${login_name}:</h3>
 <table>
 	<tr>
 		<th>Timestamp</th>
-		<th>UserID</th>
+		<th>User</th>
 		<th>Class/ID</th>
 		<th>Field</th>
 	</tr>
@@ -275,30 +283,41 @@ foreach my $row (@$audits) {
 	next unless $row->{'user_id'} == $userid;
 	(my $message = qq{
 		<tr>
-			<td>$row->{'at_time'}</td>
-			<td>$row->{'user_id'}</td>
-			<td>$row->{'class'}/$row->{'object_id'}</td>
-			<td>$row->{'field'}</td>
+			<td><tt>$row->{'at_time'}</tt></td>
+			<td><tt>$row->{'login_name'}</tt> ($row->{'user_id'})</td>
+			<td><tt>$row->{'class'}/$row->{'object_id'}</tt></td>
+			<td><tt>$row->{'field'}</tt></td>
 		</tr>
 	}) =~ s/^\t{1}//mg;
 	print $message;
 }
-print "</table>\n";
 
-printf "<h3>Changes to %s:</h3>", $login_name;
-print "<table>\n";
-print "<tr><th>Timestamp</th><th>UserID</th><th>Class/ID</th><th>Field</th></tr>\n";
+print qq{
+</table>
+
+<h3>Changes to ${login_name}:</h3>
+<table>
+	<tr>
+		<th>Timestamp</th>
+		<th>User</th>
+		<th>Class/ID</th>
+		<th>Field</th>
+	</tr>
+};
 foreach my $row (@$audits) {
 	next unless $row->{'object_id'} == $userid && $row->{'class'} eq 'Bugzilla::User';
 	(my $message = qq{
 		<tr>
-			<td>$row->{'at_time'}</td>
-			<td>$row->{'user_id'}</td>
-			<td>$row->{'class'}/$row->{'object_id'}</td>
-			<td>$row->{'field'}</td>
+			<td><tt>$row->{'at_time'}</tt></td>
+			<td><tt>$row->{'login_name'}</tt> ($row->{'user_id'})</td>
+			<td><tt>$row->{'class'}/$row->{'object_id'}</tt></td>
+			<td><tt>$row->{'field'}</tt></td>
 		</tr>
-	}) =~ s/^\t{2}//mg;
+	}) =~ s/^\t{1}//mg;
 	print $message;
 }
-print "</table>\n";
-printf "<hr/>Done.<br/>\n";
+print qq{
+</table>
+<hr/>
+Done.<br/>
+};
