@@ -75,7 +75,8 @@ function toggle_display(link) {
 
           <span class="bz_attach_extra_info">
             [% IF attachment.datasize %]
-              ([% attachment.datasize FILTER unitconvert %],
+              ([% attachment.filename FILTER html %],
+              [% attachment.datasize FILTER unitconvert %],
               [% IF attachment.ispatch %]
                 patch)
               [% ELSE %]
