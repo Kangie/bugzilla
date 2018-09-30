@@ -260,13 +260,6 @@
           editable = bug.check_can_change_field('component', 0, 1)
       %]
     </tr>
-    <tr>
-      [% INCLUDE "bug/field-label.html.tmpl"
-          field = bug_fields.version
-          editable = bug.check_can_change_field('version', 0, 1) %]
-
-      [% PROCESS select selname => "version" %]
-    </tr>
     [%############%]    
     [%# PLATFORM #%]
     [%############%]    
