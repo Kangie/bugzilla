@@ -60,19 +60,6 @@
 <table>
   <tr>
     <td>
-      <b>Version:</b><br>
-      [% IF versions.size == 1 %]
-        [% SET default_version = versions.0 %]
-      [% ELSE %]
-        [% SET default_version = defaults.version %]
-      [% END %]
-      [% PROCESS "global/select-menu.html.tmpl" 
-                 name="version"
-                 options=versions
-                 default=default_version
-                 size=10 %]
-    </td>
-    <td>
       <b>Component:</b><br>
       [% IF components.size == 1 %]
         [% SET default_component = components.0 %]

@@ -82,6 +82,8 @@ TUI_hide_default('attachment_text_field');
       onsubmit="return validateEnterBug(this)">
 <input type="hidden" name="product" value="[% product.name FILTER html %]">
 <input type="hidden" name="token" value="[% token FILTER html %]">
+<input type="hidden" name="version"
+         value="[% default.version FILTER html %]">
 
 <table>
 <tbody>
@@ -184,21 +186,6 @@ TUI_hide_default('attachment_text_field');
   </tr>
 
   <tr>
-    [% INCLUDE "bug/field-label.html.tmpl"
-      field = bug_fields.version editable = 1 rowspan = 4
-    %]
-    <td rowspan="4">
-      <select name="version" id="version" size="5" aria-required="true"
-              class="required">
-        [%- FOREACH v = version %]
-          [% NEXT IF NOT v.is_active %]
-          <option value="[% v.name FILTER html %]"
-            [% ' selected="selected"' IF v.name == default.version %]>[% v.name FILTER html -%]
-          </option>
-        [%- END %]
-      </select>
-    </td>
-
     [% INCLUDE bug/field.html.tmpl
       bug = default, field = bug_fields.bug_severity, editable = 1, 
       value = default.bug_severity %]
