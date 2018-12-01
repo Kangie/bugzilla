@@ -355,13 +355,7 @@ sub view {
     if ($contenttype !~ /\bcharset=/i) {
         # In order to prevent Apache from adding a charset, we have to send a
         # charset that's a single space.
-        $cgi->charset(' ');
-        if (Bugzilla->feature('detect_charset') && $contenttype =~ /^text\//) {
-            my $encoding = detect_encoding($attachment->data);
-            if ($encoding) {
-                $cgi->charset(find_encoding($encoding)->mime_name);
-            }
-        }
+        $cgi->charset('UTF-8');
     }
     print $cgi->header(-type=>"$contenttype; name=\"$filename\"",
                        -content_disposition=> "$disposition; filename=\"$filename\"",
