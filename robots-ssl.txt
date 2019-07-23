@@ -1,11 +1,10 @@
 User-agent: *
-Disallow: *
-Disallow: /
-Disallow: /index.cgi
-Disallow: /show_bug.cgi
-Disallow: /attachment.cgi
-Disallow: /data/duplicates.rdf
-Disallow: /data/cached/
+Allow: /
+Allow: /index.cgi
+Allow: /show_bug.cgi
+Allow: /attachment.cgi
+Allow: /data/duplicates.rdf
+Allow: /data/cached/
 Disallow: /query.cgi
 Disallow: /enter_bug.cgi
 Disallow: /userprefs.cgi
