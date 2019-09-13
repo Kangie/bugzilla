@@ -457,11 +457,6 @@ TUI_hide_default('attachment_text_field');
     <td colspan="3">
 
       [% defaultcontent = BLOCK %]
-        [% IF cloned_bug_id %]
-+++ This [% terms.bug %] was initially created as a clone of [% terms.Bug %] #[% cloned_bug_id %] +++
-
-
-        [% END %]
         [%-# We are within a BLOCK. The comment will be correctly HTML-escaped
           # by global/textarea.html.tmpl. So we must not escape the comment here. %]
         [% comment FILTER none %]
