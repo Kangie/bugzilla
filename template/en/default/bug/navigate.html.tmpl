@@ -17,6 +17,10 @@
     <li>&nbsp;-&nbsp;<a href="enter_bug.cgi?cloned_bug_id=
                         [% bug.bug_id  FILTER uri %]">Clone This 
                         [% terms.Bug %]</a></li>
+    <li>&nbsp;-&nbsp;<a href="enter_bug.cgi?cloned_bug_id=
+                        [% bug.bug_id  FILTER uri %]&product=
+                        [% bug.product FILTER uri %]">Clone In The Same 
+                        Product</a></li>
     [%# Links to more things users can do with this bug. %]
     [% Hook.process("links") %]
     <li>&nbsp;-&nbsp;<a href="#">Top of page </a></li>
