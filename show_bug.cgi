@@ -102,7 +102,7 @@ else {
 
 Bugzilla::Bug->preload(\@bugs);
 
-$vars->{'bugs'} = [@bugs, @illegal_bugs];
+$vars->{'bugs'}  = [@bugs, @illegal_bugs];
 $vars->{'marks'} = \%marks;
 
 my @bugids = map { $_->bug_id } grep { !$_->error } @bugs;

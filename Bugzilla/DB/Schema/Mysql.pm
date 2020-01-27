@@ -85,7 +85,7 @@ use constant REVERSE_MAPPING => {
   # as in their db-specific version, so no reverse mapping is needed.
 };
 
-use constant MYISAM_TABLES => qw(bugs_fulltext);
+use constant MYISAM_TABLES => qw();
 
 #------------------------------------------------------------------------------
 sub _initialize {
@@ -135,8 +135,12 @@ sub _get_create_table_ddl {
 
   my $charset = Bugzilla->dbh->bz_db_is_utf8 ? "CHARACTER SET utf8" : '';
   my $type = grep($_ eq $table, MYISAM_TABLES) ? 'MYISAM' : 'InnoDB';
-  return (
-    $self->SUPER::_get_create_table_ddl($table) . " ENGINE = $type $charset");
+
+  my $ddl = $self->SUPER::_get_create_table_ddl($table);
+  $ddl =~ s/CREATE TABLE (.*) \(/CREATE TABLE `$1` (/;
+  $ddl .= " ENGINE = $type $charset";
+
+  return $ddl;
 
 }    #eosub--_get_create_table_ddl
 
@@ -151,7 +155,7 @@ sub _get_create_index_ddl {
   my $sql = "CREATE ";
   $sql .= "$index_type "
     if ($index_type eq 'UNIQUE' || $index_type eq 'FULLTEXT');
-  $sql .= "INDEX \`$index_name\` ON $table_name \("
+  $sql .= "INDEX \`$index_name\` ON \`$table_name\` \("
     . join(", ", @$index_fields) . "\)";
 
   return ($sql);
@@ -174,7 +178,7 @@ sub get_create_database_sql {
 # MySQL has a simpler ALTER TABLE syntax than ANSI.
 sub get_alter_column_ddl {
   my ($self, $table, $column, $new_def, $set_nulls_to) = @_;
-  my $old_def = $self->get_column($table, $column);
+  my $old_def      = $self->get_column($table, $column);
   my %new_def_copy = %$new_def;
   if ($old_def->{PRIMARYKEY} && $new_def->{PRIMARYKEY}) {
 
