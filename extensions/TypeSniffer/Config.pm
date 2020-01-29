@@ -25,16 +25,8 @@ use strict;
 use constant NAME => 'TypeSniffer';
 
 use constant REQUIRED_MODULES => [
-    {
-        package => 'File-MimeInfo',
-        module  => 'File::MimeInfo::Magic',
-        version => '0'
-    },
-    {
-        package => 'IO-stringy',
-        module  => 'IO::Scalar',
-        version => '0'
-    },
+  {package => 'File-MimeInfo', module => 'File::MimeInfo::Magic', version => '0'},
+  {package => 'IO-stringy',    module => 'IO::Scalar',            version => '0'},
 ];
 
 __PACKAGE__->NAME;

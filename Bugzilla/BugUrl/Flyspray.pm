@@ -14,23 +14,23 @@ use base qw(Bugzilla::BugUrl);
 ###############################
 
 sub should_handle {
-    my ($class, $uri) = @_;
+  my ($class, $uri) = @_;
 
-    # Flyspray URLs look like the following:
-    #   https://bugs.flyspray.org/task/1237
-    #   https://bugs.archlinux.org/task/44825
-    return ($uri->path_query =~ m|/task/\d+$|) ? 1 : 0;
+  # Flyspray URLs look like the following:
+  #   https://bugs.flyspray.org/task/1237
+  #   https://bugs.archlinux.org/task/44825
+  return ($uri->path_query =~ m|/task/\d+$|) ? 1 : 0;
 }
 
 sub _check_value {
-    my $class = shift;
+  my $class = shift;
 
-    my $uri = $class->SUPER::_check_value(@_);
+  my $uri = $class->SUPER::_check_value(@_);
 
-    # Remove any # part if there is one.
-    $uri->fragment(undef);
+  # Remove any # part if there is one.
+  $uri->fragment(undef);
 
-    return $uri;
+  return $uri;
 }
 
 1;
