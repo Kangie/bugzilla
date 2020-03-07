@@ -9,21 +9,21 @@ use Bugzilla::Constants;
 use Bugzilla::Util;
 use Bugzilla::User;
 
-my $cgi       = Bugzilla->cgi;
-my $vars      = {};
+my $cgi    = Bugzilla->cgi;
+my $vars   = {};
 my $myuser = Bugzilla->login(LOGIN_REQUIRED);
-my $dbh       = Bugzilla->switch_to_shadow_db();
+my $dbh    = Bugzilla->switch_to_shadow_db();
 my ($query, $matchstr, $userid, $limit, $login_name);
 
 print $cgi->header();
 
 $matchstr = $cgi->param('matchstr');
-$userid = $cgi->param('userid');
-$userid = undef unless defined($userid) and $userid =~ /^\d+$/;
-if(!defined($matchstr) and !defined($userid)) {
-	print "No search parameters specified!<br/>\n";
-	print "Put <tt>matchstr</tt> or <tt>userid</tt> in the URL parameters.<br/>\n";
-	exit(0);
+$userid   = $cgi->param('userid');
+$userid   = undef unless defined($userid) and $userid =~ /^\d+$/;
+if (!defined($matchstr) and !defined($userid)) {
+  print "No search parameters specified!<br/>\n";
+  print "Put <tt>matchstr</tt> or <tt>userid</tt> in the URL parameters.<br/>\n";
+  exit(0);
 }
 exit 0 if !defined($matchstr) and !defined($userid);
 
@@ -31,15 +31,15 @@ $limit = $cgi->param('limit');
 $limit = 50 unless defined($limit) and $limit =~ /^\d+$/;
 
 trick_taint($matchstr) if defined($matchstr);
-trick_taint($userid) if defined($userid);
+trick_taint($userid)   if defined($userid);
 trick_taint($limit);
 
 $userid = $matchstr ? login_to_id($matchstr) : $userid;
 $login_name = $matchstr ? $matchstr : Bugzilla::User->new($userid)->login;
 
-if(!$userid || !$login_name) {
-	print "Bad user!<br/>";
-	exit(0);
+if (!$userid || !$login_name) {
+  print "Bad user!<br/>";
+  exit(0);
 }
 
 $query = qq{
@@ -81,21 +81,18 @@ UNION
 	LIMIT $limit)
 ORDER BY bug_when DESC
 LIMIT $limit};
-my $actions = $dbh->selectall_arrayref(
-    $query,
-    { Slice => {} },
-	($userid, $userid, $userid),
-);
+my $actions = $dbh->selectall_arrayref($query, {Slice => {}},
+  ($userid, $userid, $userid),);
 
 #print Dumper($vars);
 printf "<h1>Custom User History: %s</h1>\n", $login_name;
 print "<table>\n";
-printf "<tr><th>login_name</th><td>%s</td></tr>\n",$login_name;
-printf "<tr><th>userid</th><td>%s</td></tr>\n",$userid;
+printf "<tr><th>login_name</th><td>%s</td></tr>\n", $login_name;
+printf "<tr><th>userid</th><td>%s</td></tr>\n",     $userid;
 print "</table>\n";
 
 sub show_bug_url {
-	return "/show_bug.cgi?id=".shift;
+  return "/show_bug.cgi?id=" . shift;
 }
 
 print q{
@@ -110,16 +107,18 @@ print q{
 };
 my $counter = 0;
 foreach my $row (@$actions) {
-	$counter++;
-	my $url = show_bug_url($row->{'bug_id'});
-	(my $message = qq{
+  $counter++;
+  my $url = show_bug_url($row->{'bug_id'});
+  (
+    my $message = qq{
 		<tr>
 			<td>$row->{'bug_when'}</td>
 			<td><a href="${url}">$row->{'bug_id'}</a></td>
 			<td>$row->{'field'}</td>
 		</tr>
-	}) =~ s/^\t{1}//mg;
-	print $message;
+	}
+  ) =~ s/^\t{1}//mg;
+  print $message;
 }
 print qq{
 </table>
@@ -147,11 +146,7 @@ WHERE
 	OR p2.userid = ?
 ORDER BY
 	profiles_when};
-$actions = $dbh->selectall_arrayref(
-    $query,
-    { Slice => {} },
-	($userid, $userid),
-);
+$actions = $dbh->selectall_arrayref($query, {Slice => {}}, ($userid, $userid),);
 
 print qq{
 <hr/>
@@ -167,8 +162,9 @@ print qq{
 	</tr>
 };
 foreach my $row (@$actions) {
-    next unless $row->{'grantee_id'} == $userid;
-	(my $message = qq{
+  next unless $row->{'grantee_id'} == $userid;
+  (
+    my $message = qq{
 		<tr>
 			<td>$row->{'profiles_when'}</td>
 			<td>$row->{'grantor'}</td>
@@ -176,8 +172,9 @@ foreach my $row (@$actions) {
 			<td>$row->{'oldvalue'}</td>
 			<td>$row->{'newvalue'}</td>
 		</tr>
-	}) =~ s/^\t{1}//mg;
-	print $message;
+	}
+  ) =~ s/^\t{1}//mg;
+  print $message;
 }
 
 print qq{
@@ -194,8 +191,9 @@ print qq{
 	</tr>
 };
 foreach my $row (@$actions) {
-    next unless $row->{'grantor_id'} == $userid;
-	(my $message = qq{
+  next unless $row->{'grantor_id'} == $userid;
+  (
+    my $message = qq{
 		<tr>
 			<td>$row->{'profiles_when'}</td>
 			<td>$row->{'grantor'}</td>
@@ -203,8 +201,9 @@ foreach my $row (@$actions) {
 			<td>$row->{'oldvalue'}</td>
 			<td>$row->{'newvalue'}</td>
 		</tr>
-	}) =~ s/^\t{1}//mg;
-	print $message;
+	}
+  ) =~ s/^\t{1}//mg;
+  print $message;
 }
 print "</table>\n";
 
@@ -225,21 +224,17 @@ WHERE
 ORDER BY
 	watcher,watched
 };
-$actions = $dbh->selectall_arrayref(
-    $query,
-    { Slice => {} },
-	($userid, $userid),
-);
+$actions = $dbh->selectall_arrayref($query, {Slice => {}}, ($userid, $userid),);
 print "<hr/><h2>Watch status</h2>\n";
 printf "<h3>Watchers of %s:</h3>\n", $login_name;
 foreach my $row (@$actions) {
-printf "%s<br/>\n", $row->{'watcher'} if $row->{'watched_id'} == $userid;
+  printf "%s<br/>\n", $row->{'watcher'} if $row->{'watched_id'} == $userid;
 }
 printf "<br/>\n";
 
 printf "<h3>Watched by %s:</h3>", $login_name;
 foreach my $row (@$actions) {
-printf "%s<br/>\n", $row->{'watched'} if $row->{'watcher_id'} == $userid;
+  printf "%s<br/>\n", $row->{'watched'} if $row->{'watcher_id'} == $userid;
 }
 printf "<br/>\n";
 
@@ -262,11 +257,8 @@ WHERE
 ORDER BY
 	at_time
 };
-my $audits = $dbh->selectall_arrayref(
-    $query,
-    { Slice => {} },
-	($userid, $userid),
-);
+my $audits
+  = $dbh->selectall_arrayref($query, {Slice => {}}, ($userid, $userid),);
 
 print qq{<hr/>
 <h2>Audit log</h2>
@@ -280,16 +272,18 @@ print qq{<hr/>
 	</tr>
 };
 foreach my $row (@$audits) {
-	next unless $row->{'user_id'} == $userid;
-	(my $message = qq{
+  next unless $row->{'user_id'} == $userid;
+  (
+    my $message = qq{
 		<tr>
 			<td><tt>$row->{'at_time'}</tt></td>
 			<td><tt>$row->{'login_name'}</tt> ($row->{'user_id'})</td>
 			<td><tt>$row->{'class'}/$row->{'object_id'}</tt></td>
 			<td><tt>$row->{'field'}</tt></td>
 		</tr>
-	}) =~ s/^\t{1}//mg;
-	print $message;
+	}
+  ) =~ s/^\t{1}//mg;
+  print $message;
 }
 
 print qq{
@@ -305,16 +299,19 @@ print qq{
 	</tr>
 };
 foreach my $row (@$audits) {
-	next unless $row->{'object_id'} == $userid && $row->{'class'} eq 'Bugzilla::User';
-	(my $message = qq{
+  next
+    unless $row->{'object_id'} == $userid && $row->{'class'} eq 'Bugzilla::User';
+  (
+    my $message = qq{
 		<tr>
 			<td><tt>$row->{'at_time'}</tt></td>
 			<td><tt>$row->{'login_name'}</tt> ($row->{'user_id'})</td>
 			<td><tt>$row->{'class'}/$row->{'object_id'}</tt></td>
 			<td><tt>$row->{'field'}</tt></td>
 		</tr>
-	}) =~ s/^\t{1}//mg;
-	print $message;
+	}
+  ) =~ s/^\t{1}//mg;
+  print $message;
 }
 print qq{
 </table>
