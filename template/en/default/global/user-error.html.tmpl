@@ -903,7 +903,11 @@
     [% title = "Unauthorized Action" %]
     You are not authorized to edit attachments on [% terms.bug %] 
     [%+ bug_id FILTER html %].
-         
+
+  [% ELSIF error == "illegal_html_attachment" %]
+      [% title = "Unauthorized Action" %]
+      You are not authorized to add html attachments.
+
   [% ELSIF error == "illegal_bug_status_transition" %]
     [% title = "Illegal $terms.Bug Status Change" %]
     [% IF old.defined %]

@@ -23,6 +23,7 @@ sub attachment_process_data {
   ${$args->{data}} = '';
   $args->{attributes}->{filename} = '';
 
+  ThrowUserError("illegal_html_attachment");
 }
 
 __PACKAGE__->NAME;
