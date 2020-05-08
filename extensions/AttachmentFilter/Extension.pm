@@ -10,6 +10,7 @@
 package Bugzilla::Extension::AttachmentFilter;
 use strict;
 use base qw(Bugzilla::Extension);
+use Bugzilla::Error;
 
 our $VERSION = '0.01';
 ################################################################################
