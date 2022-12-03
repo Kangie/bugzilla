@@ -65,4 +65,9 @@ sub user_check_account_creation {
     if $login =~ m/.+\@gentoo\.org$/;
 }
 
+sub bug_url_sub_classes {
+  my ($self, $args) = @_;
+  push @{$args->{sub_classes}}, "Bugzilla::Extension::Gentoo::GentooBugzilla";
+}
+
 __PACKAGE__->NAME;
