@@ -11,7 +11,9 @@ use 5.10.1;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::BugUrl);
+use parent qw(Bugzilla::BugUrl::Bugzilla::Local);
+
+use URI ();
 
 ###############################
 ####        Methods        ####
@@ -23,21 +25,15 @@ sub should_handle {
   # Gentoo Bugzilla issues have the form of
   # bugs.gentoo.org/123456
   return (lc($uri->authority) eq "bugs.gentoo.org"
-      && $uri->path =~ m|\d+$|) ? 1 : 0;
+      && $uri->path =~ m|^/\d+$|) ? 1 : 0;
 }
 
 sub _check_value {
-  my $class = shift;
+  my ($class, $uri, undef, $params) = @_;
 
-  my $uri = $class->SUPER::_check_value(@_);
+  my $local_uri = URI->new(substr($uri->path, 1));
 
-  # Gentoo Bugzilla redirects to HTTPS, so just use the HTTPS scheme.
-  $uri->scheme('https');
-
-  # And remove any # part if there is one.
-  $uri->fragment(undef);
-
-  return $uri;
+  return $class->SUPER::_check_value($local_uri, undef, $params);
 }
 
 1;
