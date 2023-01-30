@@ -68,6 +68,7 @@ use constant SUB_CLASSES => qw(
   Bugzilla::BugUrl::GitHub
   Bugzilla::BugUrl::GitLab
   Bugzilla::BugUrl::Phabricator
+  Bugzilla::BugUrl::Gerrit
 );
 
 ###############################
