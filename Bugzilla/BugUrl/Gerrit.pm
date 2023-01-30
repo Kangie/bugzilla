@@ -20,6 +20,13 @@ use parent qw(Bugzilla::BugUrl);
 sub should_handle {
   my ($class, $uri) = @_;
 
+  # https://codereview.qt-project.org/c/qt/qtlocation/+/123
+  # https://chromium-review.googlesource.com/c/chromium/src/+/123
+  # https://gerrit.libreoffice.org/c/core/+/123
+  if ($uri->path =~ /c\/[[:alnum:]]+\/(([[:alnum:]]+)\/)?\+\/([[:digit:]]+)/) {
+    return 1;
+  }
+
   # Gerrit Change URL: https://git.eclipse.org/r/#/c/26613/
   # Gerrit Change URL, specific patch set: https://git.eclipse.org/r/#/c/26613/4
   # https://git.eclipse.org/r/40031
