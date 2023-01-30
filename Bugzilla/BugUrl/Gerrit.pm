@@ -7,12 +7,11 @@
 
 package Bugzilla::BugUrl::Gerrit;
 
-use 5.10.0;
+use 5.10.1;
 use strict;
 use warnings;
 
 use parent qw(Bugzilla::BugUrl);
-
 
 ###############################
 ####        Methods        ####
