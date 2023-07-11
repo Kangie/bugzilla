@@ -1,5 +1,12 @@
 # Allow access to .html/.htmlgz/.json/.yaml/.csv files
 <FilesMatch \.(html|htmlgz|json|yaml|csv)?$>
+  # These pages are very large and change a lot, they should be followed, but
+  # not indexed themselves. Ideally we should generate better sitemaps as well,
+  # with only the bugs that are changing.
+  # https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag#apache_1
+  Header set X-Robots-Tag "noindex,follow"
+
+  # Set access
   <IfModule mod_version.c>
     <IfVersion < 2.4>
       Allow from all
@@ -11,8 +18,10 @@
   <IfModule !mod_version.c>
      Allow from all
   </IfModule>
+
 </FilesMatch>
 
+# This is for files that don't match.
 # And no directory listings, either.
 <IfModule mod_version.c>
   <IfVersion < 2.4>
