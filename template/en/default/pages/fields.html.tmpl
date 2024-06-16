@@ -223,6 +223,13 @@
           the newer versions rewrote (implicitly fixing) the related code, or
           perhaps support was dropped entirely.
         </dd>
+        <dt class="pkgremoved">
+          [% display_value("resolution", "PKGREMOVED") FILTER html %]
+        </dt>
+        <dd class="pkgremoved">
+          The [% terms.bug %] is no longer relevant because the affected
+          package was removed from the tree.
+        </dd>
 
         [% Hook.process('resolution') %]
       </dl>
