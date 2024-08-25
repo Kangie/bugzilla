@@ -39,4 +39,11 @@ sub get_param_list {
   return @param_list;
 }
 
+# Copied from Bugzilla/Config/GroupSecurity.pm for older BZ
+sub _get_all_group_names {
+  my @group_names = map { $_->name } Bugzilla::Group->get_all;
+  unshift(@group_names, '');
+  return \@group_names;
+}
+
 1;
