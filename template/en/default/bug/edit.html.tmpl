@@ -1154,9 +1154,8 @@
         [% ELSE %]
           [% INCLUDE global/textarea.html.tmpl
                      minrows   = 10
-                     maxrows   = 25
                      cols      = constants.COMMENT_COLS
-                     disabled  = true
+                     disabled  = 1
                      defaultcontent = "You are not allowed to make an additional comment on this bug."
           %]
         [% END %]
