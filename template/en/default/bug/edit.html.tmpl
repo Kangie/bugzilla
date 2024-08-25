@@ -1152,11 +1152,12 @@
           [% END %]
           [% Hook.process("after_comment_textarea", 'bug/edit.html.tmpl') %]
         [% ELSE %]
-          [% INCLUDE bug/comment.html.tmpl
+          [% INCLUDE global/textarea.html.tmpl
                      minrows   = 10
                      maxrows   = 25
-                     disabled  = You are not allowed to make an additional comment on this bug.
                      cols      = constants.COMMENT_COLS
+                     disabled  = true
+                     defaultcontent = You are not allowed to make an additional comment on this bug.
           %]
         [% END %]
         <br>
