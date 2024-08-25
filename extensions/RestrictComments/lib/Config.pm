@@ -30,7 +30,6 @@ sub get_param_list {
     {
       name    => 'restrict_comments_enable_group',
       type    => 's',
-
       choices => \&_get_all_group_names,
       default => '',
       checker => \&check_group
