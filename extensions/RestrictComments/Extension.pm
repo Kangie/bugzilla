@@ -97,11 +97,11 @@ sub install_update_db {
     Bugzilla::Field->create({
       name        => 'restrict_comments',
       description => 'Restrict Comments',
-      type        => FIELD_TYPE_BOOLEAN,
+      type        => FIELD_TYPE_INTEGER,
     });
   }
 
-  $dbh->bz_add_column('bugs', 'restrict_comments', {TYPE => 'BOOLEAN'});
+  $dbh->bz_add_column('bugs', 'restrict_comments', {TYPE => 'INT2'});
 }
 
 __PACKAGE__->NAME;
