@@ -70,4 +70,13 @@ sub bug_url_sub_classes {
   push @{$args->{sub_classes}}, "Bugzilla::Extension::Gentoo::GentooBugzilla";
 }
 
+sub buglist_columns {
+  my ($self, $args) = @_;
+  my $columns = $args->{columns};
+  $columns->{'cc_count'} = {
+    name => '(SELECT COUNT(*) FROM cc WHERE cc.bug_id = bugs.bug_id)',
+    title => 'CC Count',
+  };
+}
+
 __PACKAGE__->NAME;
