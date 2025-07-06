@@ -1,4 +1,5 @@
 User-agent: *
+Crawl-delay: 30
 Allow: /
 Allow: /index.cgi
 Allow: /show_bug.cgi
