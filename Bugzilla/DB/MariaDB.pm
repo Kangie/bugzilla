@@ -958,7 +958,7 @@ sub _alter_db_charset_to_utf8 {
   my $db_name = Bugzilla->localconfig->{db_name};
   my $charset = $self->utf8_charset;
   my $collate = $self->utf8_collate;
-  $self->do("ALTER DATABASE $db_name CHARACTER SET $charset COLLATE $collate");
+  $self->do("ALTER DATABASE " . $self->quote_identifier($db_name) . " CHARACTER SET $charset COLLATE $collate");
 }
 
 sub bz_db_is_utf8 {
