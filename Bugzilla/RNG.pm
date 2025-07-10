@@ -7,11 +7,11 @@
 
 package Bugzilla::RNG;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Exporter);
+use base qw(Exporter);
 use Bugzilla::Constants qw(ON_WINDOWS);
 
 use Math::Random::ISAAC;

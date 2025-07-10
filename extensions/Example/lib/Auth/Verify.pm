@@ -7,11 +7,11 @@
 
 package Bugzilla::Extension::Example::Auth::Verify;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::Auth::Verify);
+use base qw(Bugzilla::Auth::Verify);
 use Bugzilla::Constants;
 
 # A verifier that always fails.

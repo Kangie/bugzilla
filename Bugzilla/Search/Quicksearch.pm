@@ -7,7 +7,7 @@
 
 package Bugzilla::Search::Quicksearch;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -22,7 +22,7 @@ use List::Util qw(min max);
 use List::MoreUtils qw(firstidx);
 use Text::ParseWords qw(parse_line);
 
-use parent qw(Exporter);
+use base qw(Exporter);
 @Bugzilla::Search::Quicksearch::EXPORT = qw(quicksearch);
 
 # Custom mappings for some fields.
@@ -73,7 +73,7 @@ sub FIELD_MAP {
   # Get all the fields whose names don't contain periods. (Fields that
   # contain periods are always handled in MAPPINGS.)
   my @db_fields = grep { $_->name !~ /\./ } @{Bugzilla->fields({obsolete => 0})};
-  my %full_map = (%{MAPPINGS()}, map { $_->name => $_->name } @db_fields);
+  my %full_map  = (%{MAPPINGS()}, map { $_->name => $_->name } @db_fields);
 
   # Eliminate the fields that start with bug_ or rep_, because those are
   # handled by the MAPPINGS instead, and we don't want too many names
@@ -86,9 +86,9 @@ sub FIELD_MAP {
   # (both because it's unnecessary and because otherwise
   # "reporter_accessible" and "reporter" both match "rep".
   delete @full_map{qw(rep_platform bug_status bug_file_loc bug_group
-      bug_severity bug_status
-      status_whiteboard
-      cclist_accessible reporter_accessible)};
+    bug_severity bug_status
+    status_whiteboard
+  cclist_accessible reporter_accessible)};
 
   Bugzilla::Hook::process('quicksearch_map', {'map' => \%full_map});
 

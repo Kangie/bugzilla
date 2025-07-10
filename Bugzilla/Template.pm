@@ -8,7 +8,7 @@
 
 package Bugzilla::Template;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -37,7 +37,7 @@ use IO::Dir;
 use List::MoreUtils qw(firstidx);
 use Scalar::Util qw(blessed);
 
-use parent qw(Template);
+use base qw(Template);
 
 use constant FORMAT_TRIPLE => '%19s|%-28s|%-28s';
 use constant FORMAT_3_SIZE => [19, 28, 28];

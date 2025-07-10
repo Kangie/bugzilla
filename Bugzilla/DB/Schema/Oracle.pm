@@ -13,11 +13,10 @@ package Bugzilla::DB::Schema::Oracle;
 #
 ###############################################################################
 
-use 5.10.1;
-use strict;
-use warnings;
+use 5.14.0;
+use Moo;
 
-use parent qw(Bugzilla::DB::Schema);
+extends qw(Bugzilla::DB::Schema);
 use Carp qw(confess);
 use Bugzilla::Util;
 
@@ -34,7 +33,7 @@ sub _initialize {
 
   my $self = shift;
 
-  $self = $self->SUPER::_initialize(@_);
+  $self = $self->SUPER::_initialize();
 
   $self->{db_specific} = {
 

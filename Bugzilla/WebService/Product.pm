@@ -7,11 +7,11 @@
 
 package Bugzilla::WebService::Product;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::WebService);
+use base qw(Bugzilla::WebService);
 use Bugzilla::Product;
 use Bugzilla::User;
 use Bugzilla::Error;

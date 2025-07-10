@@ -7,11 +7,11 @@
 
 package Bugzilla::User::APIKey;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::Object);
+use base qw(Bugzilla::Object);
 
 use Bugzilla::User;
 use Bugzilla::Util qw(generate_random_password trim);
@@ -75,7 +75,7 @@ sub set_description { $_[0]->set('description', $_[1]); }
 sub set_revoked     { $_[0]->set('revoked',     $_[1]); }
 
 # Validators
-sub _check_api_key { return generate_random_password(40); }
+sub _check_api_key     { return generate_random_password(40); }
 sub _check_description { return trim($_[1]) || ''; }
 1;
 

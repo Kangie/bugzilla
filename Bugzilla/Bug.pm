@@ -7,7 +7,7 @@
 
 package Bugzilla::Bug;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -36,7 +36,7 @@ use List::Util qw(min max first);
 use Storable qw(dclone);
 use Scalar::Util qw(blessed);
 
-use parent qw(Bugzilla::Object Exporter);
+use base qw(Bugzilla::Object Exporter);
 @Bugzilla::Bug::EXPORT = qw(
   bug_alias_to_id
   LogActivityEntry
@@ -620,7 +620,7 @@ sub possible_duplicates {
     foreach my $word (@words) {
       my ($term, $rel_term)
         = $dbh->sql_fulltext_search('bugs_fulltext.short_desc', $word);
-      push(@where, $term);
+      push(@where,     $term);
       push(@relevance, $rel_term || $term);
     }
 
@@ -1554,8 +1554,8 @@ sub _check_bug_status {
     ThrowUserError(
       'comment_required',
       {
-        old => $old_status ? $old_status->name : undef,
-        new => $new_status->name,
+        old   => $old_status ? $old_status->name : undef,
+        new   => $new_status->name,
         field => 'bug_status'
       }
     );
@@ -3755,17 +3755,6 @@ sub comments {
     foreach my $comment (@{$self->{'comments'}}) {
       $comment->{count} = $count++;
       $comment->{bug}   = $self;
-
-      # XXX - hack for MySQL. Convert [U+....] back into its Unicode
-      # equivalent for characters above U+FFFF as MySQL older than 5.5.3
-      # cannot store them, see Bugzilla::Comment::_check_thetext().
-      if ($is_mysql) {
-
-        # Perl 5.13.8 and older complain about non-characters.
-        no warnings 'utf8';
-        $comment->{thetext}
-          =~ s/\x{FDD0}\[U\+((?:[1-9A-F]|10)[0-9A-F]{4})\]\x{FDD1}/chr(hex $1)/eg;
-      }
     }
 
     # Some bugs may have no comments when upgrading old installations.
@@ -3993,7 +3982,7 @@ sub groups {
       . " THEN 1 ELSE 0 END,"
       . " CASE WHEN groups.id IN($grouplist) THEN 1 ELSE 0 END,"
       . " isactive, membercontrol, othercontrol"
-      . " FROM groups"
+      . " FROM " . $dbh->quote_identifier('groups')
       . " LEFT JOIN bug_group_map"
       . " ON bug_group_map.group_id = groups.id"
       . " AND bug_id = ?"

@@ -7,11 +7,11 @@
 
 package Bugzilla::Search::Condition;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Exporter);
+use base qw(Exporter);
 our @EXPORT_OK = qw(condition);
 
 sub new {

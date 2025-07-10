@@ -7,14 +7,18 @@
 
 package Bugzilla::WebService::Group;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::WebService);
+use base qw(Bugzilla::WebService);
 use Bugzilla::Constants;
 use Bugzilla::Error;
 use Bugzilla::WebService::Util qw(validate translate params_to_objects);
+
+use constant READ_ONLY => qw(
+  get
+);
 
 use constant PUBLIC_METHODS => qw(
   create

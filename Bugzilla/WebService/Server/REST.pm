@@ -7,11 +7,11 @@
 
 package Bugzilla::WebService::Server::REST;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::WebService::Server::JSONRPC);
+use base qw(Bugzilla::WebService::Server::JSONRPC);
 
 use Bugzilla::Constants;
 use Bugzilla::Error;

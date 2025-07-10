@@ -7,7 +7,7 @@
 
 package Bugzilla::User;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -31,7 +31,7 @@ use Storable qw(dclone);
 use URI;
 use URI::QueryParam;
 
-use parent qw(Bugzilla::Object Exporter);
+use base qw(Bugzilla::Object Exporter);
 @Bugzilla::User::EXPORT = qw(is_available_username
   login_to_id validate_password validate_password_check
   USER_MATCH_MULTIPLE USER_MATCH_FAILED USER_MATCH_SUCCESS
@@ -131,7 +131,19 @@ sub new {
       $_[0] = $param;
     }
   }
-  return $class->SUPER::new(@_);
+
+  $user = $class->SUPER::new(@_);
+
+  # MySQL considers some non-ascii characters such as umlauts to equal
+  # ascii characters returning a user when it should not.
+  if ($user && ref $param eq 'HASH' && exists $param->{name}) {
+    my $login = $param->{name};
+    if (lc $login ne lc $user->login) {
+      $user = undef;
+    }
+  }
+
+  return $user;
 }
 
 sub super_user {
@@ -331,7 +343,7 @@ sub set_password { $_[0]->set('cryptpassword', $_[1]); }
 
 sub set_disabledtext {
   $_[0]->set('disabledtext', $_[1]);
-  $_[0]->set('is_enabled', $_[1] ? 0 : 1);
+  $_[0]->set('is_enabled',   $_[1] ? 0 : 1);
 }
 
 sub set_groups {
@@ -425,7 +437,7 @@ sub _set_groups_to_object {
     # Go through the array, and turn items into group objects
     my @groups = ();
     foreach my $value (@{$changes->{$key}}) {
-      my $type = $value =~ /^\d+$/ ? 'id' : 'name';
+      my $type  = $value =~ /^\d+$/ ? 'id' : 'name';
       my $group = Bugzilla::Group->new({$type => $value});
 
       if (!$group || !$user->can_bless($group->id)) {
@@ -554,7 +566,7 @@ sub queries_subscribed {
   return [] unless $self->id;
 
   # Exclude the user's own queries.
-  my @my_query_ids = map($_->id, @{$self->queries});
+  my @my_query_ids    = map($_->id, @{$self->queries});
   my $query_id_string = join(',', @my_query_ids) || '-1';
 
   # Only show subscriptions that we can still actually see. If a
@@ -581,7 +593,7 @@ sub queries_available {
   return [] unless $self->id;
 
   # Exclude the user's own queries.
-  my @my_query_ids = map($_->id, @{$self->queries});
+  my @my_query_ids    = map($_->id, @{$self->queries});
   my $query_id_string = join(',', @my_query_ids) || '-1';
 
   my $avail_query_ids = Bugzilla->dbh->selectcol_arrayref(
@@ -1626,7 +1638,7 @@ sub visible_groups_direct {
   }
   else {
     # All groups are visible if usevisibilitygroups is off.
-    $sth = $dbh->prepare('SELECT id FROM groups');
+    $sth = $dbh->prepare('SELECT id FROM ' . $dbh->quote_identifier('groups'));
   }
   $sth->execute();
 
@@ -1690,7 +1702,7 @@ sub derive_regexp_groups {
 
   $sth = $dbh->prepare(
     "SELECT id, userregexp, user_group_map.group_id
-                            FROM groups
+                            FROM " . $dbh->quote_identifier('groups') . "
                        LEFT JOIN user_group_map
                               ON groups.id = user_group_map.group_id
                              AND user_group_map.user_id = ?

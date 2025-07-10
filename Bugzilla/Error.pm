@@ -7,11 +7,11 @@
 
 package Bugzilla::Error;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Exporter);
+use base qw(Exporter);
 
 @Bugzilla::Error::EXPORT = qw(ThrowCodeError ThrowTemplateError ThrowUserError);
 

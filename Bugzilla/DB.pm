@@ -7,14 +7,14 @@
 
 package Bugzilla::DB;
 
-use 5.10.1;
-use strict;
-use warnings;
+use 5.14.0;
+use Moo;
 
 use DBI;
+use DBIx::Connector;
+our %Connector;
 
-# Inherit the DB class from DBI::db.
-use parent -norequire, qw(DBI::db);
+has 'connector' => (is => 'lazy', handles => [qw( dbh )],);
 
 use Bugzilla::Constants;
 use Bugzilla::Mailer;
@@ -24,10 +24,48 @@ use Bugzilla::Install::Localconfig;
 use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::DB::Schema;
+use Bugzilla::DB::QuoteIdentifier;
 use Bugzilla::Version;
 
+use Scalar::Util qw(blessed);
 use List::Util qw(max);
 use Storable qw(dclone);
+
+has [qw(dsn user pass attrs)] => (is => 'ro', required => 1,);
+
+
+has 'qi' => (is => 'lazy');
+
+sub _build_qi {
+  my ($self) = @_;
+  my %q;
+  tie %q, 'Bugzilla::DB::QuoteIdentifier', db => $self;
+
+  return \%q;
+}
+
+# Install proxy methods to the DBI object.
+# We can't use handles() as DBIx::Connector->dbh has to be called each
+# time we need a DBI handle to ensure the connection is alive.
+{
+  my @DBI_METHODS = qw(
+    begin_work column_info commit disconnect do errstr get_info last_insert_id
+    ping prepare prepare_cached primary_key quote_identifier rollback
+    selectall_arrayref selectall_hashref selectcol_arrayref selectrow_array
+    selectrow_arrayref selectrow_hashref table_info
+  );
+  my $stash = Package::Stash->new(__PACKAGE__);
+
+  foreach my $method (@DBI_METHODS) {
+    my $symbol = '&' . $method;
+    $stash->add_symbol(
+      $symbol => sub {
+        my $self = shift;
+        return $self->dbh->$method(@_);
+      }
+    );
+  }
+}
 
 #####################################################################
 # Constants
@@ -88,7 +126,7 @@ use constant INDEX_DROPS_REQUIRE_FK_DROPS => 1;
 
 sub quote {
   my $self   = shift;
-  my $retval = $self->SUPER::quote(@_);
+  my $retval = $self->dbh->quote(@_);
   trick_taint($retval) if defined $retval;
   return $retval;
 }
@@ -130,9 +168,7 @@ sub _connect {
     "'$driver' is not a valid choice for \$db_driver in " . " localconfig: " . $@);
 
   # instantiate the correct DB specific module
-  my $dbh = $pkg_module->new($params);
-
-  return $dbh;
+  return $pkg_module->new($params);
 }
 
 sub _handle_error {
@@ -200,10 +236,34 @@ sub bz_check_server_version {
   my ($self, $db, $output) = @_;
 
   my $sql_vers = $self->bz_server_version;
-  $self->disconnect;
+  if (((lc($db->{name}) eq 'mysql') || (lc($db->{name}) eq "mariadb"))
+    && ($sql_vers =~ s/^5\.5\.5-// || $sql_vers =~ /-MariaDB/)) {
+    # Version 5.5.5 of MySQL never existed. MariaDB = 10 always puts '5.5.5-'
+    # at the front of its version string to get around a limitation in the
+    # replication protocol it shares with MySQL.  So if the version starts with
+    # '5.5.5-' then we can assume this is MariaDB and the real version number
+    # will immediately follow that.  This was removed in MariaDB-11.0.  The
+    # version should always contain "MariaDB" if it is indeed MariaDB.
+    if (lc($db->{name}) eq 'mysql') {
+      if ($output) {
+        Bugzilla::Install::Requirements::_checking_for({
+          package => $db->{name},
+          wanted  => $db->{version},
+          ok      => 0,
+        });
+      }
+      die install_string('db_maria_on_mysql', {vers => $sql_vers});
+    }
 
+  }
+  my $sql_dontwant = exists $db->{db_blocklist} ? $db->{db_blocklist} : [];
   my $sql_want   = $db->{db_version};
   my $version_ok = vers_cmp($sql_vers, $sql_want) > -1 ? 1 : 0;
+  my $blocklisted;
+  if ($version_ok) {
+    $blocklisted = grep($sql_vers =~ /$_/, @$sql_dontwant);
+    $version_ok = 0 if $blocklisted;
+  }
 
   my $sql_server = $db->{name};
   if ($output) {
@@ -211,20 +271,22 @@ sub bz_check_server_version {
       package => $sql_server,
       wanted  => $sql_want,
       found   => $sql_vers,
-      ok      => $version_ok
+      ok      => $version_ok,
+      blocklisted => $blocklisted
     });
   }
 
   # Check what version of the database server is installed and let
   # the user know if the version is too old to be used with Bugzilla.
+  if ($blocklisted) {
+    die install_string('db_blocklisted', {server=>$sql_server, vers=>$sql_vers});
+  }
   if (!$version_ok) {
-    die <<EOT;
-
-Your $sql_server v$sql_vers is too old. Bugzilla requires version
-$sql_want or later of $sql_server. Please download and install a
-newer version.
-
-EOT
+    die install_string('db_too_old', {
+      server => $sql_server,
+      vers   => $sql_vers,
+      want   => $sql_want,
+    });
   }
 
   # This is used by subclasses.
@@ -237,7 +299,7 @@ sub bz_create_database {
   my $dbh;
 
   # See if we can connect to the actual Bugzilla database.
-  my $conn_success = eval { $dbh = connect_main() };
+  my $conn_success = eval { $dbh = connect_main(); $dbh->ping(); };
   my $db_name      = Bugzilla->localconfig->{db_name};
 
   if (!$conn_success) {
@@ -261,7 +323,6 @@ sub bz_create_database {
     }
   }
 
-  $dbh->disconnect;
 }
 
 # A helper for bz_create_database and bz_check_requirements.
@@ -270,6 +331,7 @@ sub _get_no_db_connection {
   my $dbh;
   my %connect_params = %{Bugzilla->localconfig};
   $connect_params{db_name} = '';
+  local %Connector = ();
   my $conn_success = eval { $dbh = _connect(\%connect_params); };
   if (!$conn_success) {
     my $driver     = $connect_params{db_driver};
@@ -546,7 +608,7 @@ sub bz_setup_foreign_keys {
   # so if it doesn't have them, then we're setting up FKs
   # for the first time, and should be quieter about it.
   my $activity_fk = $self->bz_fk_info('profiles_activity', 'userid');
-  my $any_fks = $activity_fk && $activity_fk->{created};
+  my $any_fks     = $activity_fk && $activity_fk->{created};
   if (!$any_fks) {
     say get_text('install_fk_setup');
   }
@@ -1132,12 +1194,21 @@ sub bz_set_next_serial_value {
 # Schema Information Methods
 #####################################################################
 
+sub _bz_schema_class {
+  my ($self) = @_;
+  my $class = blessed($self) // $self;
+  my @class_parts = split(/::/, $class);
+  splice(@class_parts, -1, 0, 'Schema');
+
+  return join('::', @class_parts);
+}
+
 sub _bz_schema {
   my ($self) = @_;
   return $self->{private_bz_schema} if exists $self->{private_bz_schema};
-  my @module_parts = split('::', ref $self);
-  my $module_name  = pop @module_parts;
-  $self->{private_bz_schema} = Bugzilla::DB::Schema->new($module_name);
+  my $schema_class = $self->_bz_schema_class;
+  eval "require $schema_class";
+  $self->{private_bz_schema} = $schema_class->new(db => $self);
   return $self->{private_bz_schema};
 }
 
@@ -1299,14 +1370,15 @@ sub bz_rollback_transaction {
 # Subclass Helpers
 #####################################################################
 
-sub db_new {
-  my ($class, $params) = @_;
-  my ($dsn, $user, $pass, $override_attrs) = @$params{qw(dsn user pass attrs)};
+sub _build_connector {
+  my ($self) = @_;
+  my ($dsn, $user, $pass, $override_attrs)
+    = map { $self->$_ } qw(dsn user pass attrs);
 
   # set up default attributes used to connect to the database
   # (may be overridden by DB driver implementations)
   my $attributes = {
-    RaiseError         => 0,
+    RaiseError         => 1,
     AutoCommit         => 1,
     PrintError         => 0,
     ShowErrorStatement => 1,
@@ -1323,20 +1395,14 @@ sub db_new {
       $attributes->{$key} = $override_attrs->{$key};
     }
   }
+  my $class = ref $self;
+  if ($class->can('on_dbi_connected')) {
+    $attributes->{Callbacks}
+      = {connected => sub { $class->on_dbi_connected(@_); return },};
+  }
 
-  # connect using our known info to the specified db
-  my $self = DBI->connect($dsn, $user, $pass, $attributes)
-    or die "\nCan't connect to the database.\nError: $DBI::errstr\n"
-    . "  Is your database installed and up and running?\n  Do you have"
-    . " the correct username and password selected in localconfig?\n\n";
-
-  # RaiseError was only set to 0 so that we could catch the
-  # above "die" condition.
-  $self->{RaiseError} = 1;
-
-  bless($self, $class);
-
-  return $self;
+  return $Connector{"$user.$dsn"}
+    //= DBIx::Connector->new($dsn, $user, $pass, $attributes);
 }
 
 #####################################################################
@@ -1520,7 +1586,11 @@ sub _check_references {
   # reserved words.
   my $bad_values = $self->selectcol_arrayref(
     "SELECT DISTINCT tabl.$column 
-           FROM $table AS tabl LEFT JOIN $foreign_table AS forn
+           FROM "
+      . $self->quote_identifier($table)
+      . " AS tabl LEFT JOIN "
+      . $self->quote_identifier($foreign_table)
+      . " AS forn
                 ON tabl.$column = forn.$foreign_column
           WHERE forn.$foreign_column IS NULL
                 AND tabl.$column IS NOT NULL"
@@ -1530,7 +1600,10 @@ sub _check_references {
     my $delete_action = $fk->{DELETE} || '';
     if ($delete_action eq 'CASCADE') {
       $self->do(
-        "DELETE FROM $table WHERE $column IN (" . join(',', ('?') x @$bad_values) . ")",
+        "DELETE FROM "
+          . $self->quote_identifier($table)
+          . " WHERE $column IN ("
+          . join(',', ('?') x @$bad_values) . ")",
         undef, @$bad_values
       );
       if (Bugzilla->usage_mode == USAGE_MODE_CMDLINE) {
@@ -1551,7 +1624,9 @@ sub _check_references {
     }
     elsif ($delete_action eq 'SET NULL') {
       $self->do(
-        "UPDATE $table SET $column = NULL
+            "UPDATE "
+          . $self->quote_identifier($table)
+          . " SET $column = NULL
                         WHERE $column IN ("
           . join(',', ('?') x @$bad_values) . ")", undef, @$bad_values
       );
@@ -2371,6 +2446,32 @@ Formatted SQL for the C<IN> operator.
 
 =back
 
+=head1 ATTRIBUTES
+
+=over 4
+
+=item C<dsn>
+
+The data source name for the database. This is a string that is passed to
+the DBI to connect to the database. It is usually of the form:
+
+  dbi:DriverName:database_name
+
+=item C<user>
+
+The user name to use when connecting to the database.
+
+=item C<pass>
+
+The password to use when connecting to the database.
+
+=item C<attrs>
+
+A hashref of attributes to pass to the DBI when connecting to the database.
+It is usually used to set the C<RaiseError> and C<PrintError> attributes,
+but can be used to set any attribute that the DBI supports.
+
+=back
 
 =head1 IMPLEMENTED METHODS
 

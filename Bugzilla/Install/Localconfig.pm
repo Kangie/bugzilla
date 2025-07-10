@@ -15,7 +15,7 @@ package Bugzilla::Install::Localconfig;
 # * Files do not have the correct permissions
 # * The database is not up to date
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -28,7 +28,7 @@ use File::Basename qw(dirname);
 use Safe;
 use Term::ANSIColor;
 
-use parent qw(Exporter);
+use base qw(Exporter);
 
 our @EXPORT_OK = qw(
   read_localconfig

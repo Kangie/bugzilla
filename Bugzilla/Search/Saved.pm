@@ -7,11 +7,11 @@
 
 package Bugzilla::Search::Saved;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::Object);
+use base qw(Bugzilla::Object);
 
 use Bugzilla::CGI;
 use Bugzilla::Constants;

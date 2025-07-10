@@ -8,11 +8,11 @@
 
 package Bugzilla::User::Setting::Skin;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::User::Setting);
+use base qw(Bugzilla::User::Setting);
 
 use Bugzilla::Constants;
 use File::Spec::Functions;

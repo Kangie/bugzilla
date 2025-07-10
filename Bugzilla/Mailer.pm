@@ -7,11 +7,11 @@
 
 package Bugzilla::Mailer;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Exporter);
+use base qw(Exporter);
 @Bugzilla::Mailer::EXPORT = qw(MessageToMTA build_thread_marker generate_email);
 
 use Bugzilla::Constants;
@@ -21,6 +21,7 @@ use Bugzilla::MIME;
 use Bugzilla::Util;
 use Bugzilla::User;
 
+use Encode qw();
 use Date::Format qw(time2str);
 
 use Email::Sender::Simple qw(sendmail);
@@ -62,6 +63,7 @@ sub generate_email {
       encoding     => 'quoted-printable',
     },
     body_str => $msg_text,
+    encode_check => Encode::FB_DEFAULT
   ));
   if ($templates->{html} && $email_format eq 'html') {
     $template->process($templates->{html}, $vars, \$msg_html)
@@ -74,6 +76,7 @@ sub generate_email {
         encoding     => 'quoted-printable',
       },
       body_str => $msg_html,
+      encode_check => Encode::FB_DEFAULT
       );
   }
 

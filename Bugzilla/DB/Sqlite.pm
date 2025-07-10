@@ -7,11 +7,10 @@
 
 package Bugzilla::DB::Sqlite;
 
-use 5.10.1;
-use strict;
-use warnings;
+use 5.14.0;
+use Moo;
 
-use parent qw(Bugzilla::DB);
+extends qw(Bugzilla::DB);
 
 use Bugzilla::Constants;
 use Bugzilla::Error;
@@ -69,7 +68,7 @@ sub _sqlite_position_ci {
 # Constructor #
 ###############
 
-sub new {
+sub BUILDARGS {
   my ($class, $params) = @_;
   my $db_name = $params->{db_name};
 
@@ -99,11 +98,11 @@ sub new {
     sqlite_unicode => Bugzilla->params->{'utf8'},
   };
 
-  my $self
-    = $class->db_new({dsn => $dsn, user => '', pass => '', attrs => $attrs});
+  return {dsn => $dsn, user => '', pass => '', attrs => $attrs};
+}
 
-  # Needed by TheSchwartz
-  $self->{private_bz_dsn} = $dsn;
+sub on_dbi_connected {
+  my ($class, $dbh) = @_;
 
   my %pragmas = (
 
@@ -129,25 +128,22 @@ sub new {
   );
 
   while (my ($name, $value) = each %pragmas) {
-    $self->do("PRAGMA $name = $value");
+    $dbh->do("PRAGMA $name = $value");
   }
 
-  $self->sqlite_create_collation('bugzilla', \&_sqlite_collate_ci);
-  $self->sqlite_create_function('position',  2, \&_sqlite_position);
-  $self->sqlite_create_function('iposition', 2, \&_sqlite_position_ci);
+  $dbh->sqlite_create_collation('bugzilla', \&_sqlite_collate_ci);
+  $dbh->sqlite_create_function('position',  2, \&_sqlite_position);
+  $dbh->sqlite_create_function('iposition', 2, \&_sqlite_position_ci);
 
   # SQLite has a "substr" function, but other DBs call it "SUBSTRING"
   # so that's what we use, and I don't know of any way in SQLite to
   # alias the SQL "substr" function to be called "SUBSTRING".
-  $self->sqlite_create_function('substring',      3, \&CORE::substr);
-  $self->sqlite_create_function('char_length',    1, sub { length($_[0]) });
-  $self->sqlite_create_function('mod',            2, \&_sqlite_mod);
-  $self->sqlite_create_function('now',            0, \&_sqlite_now);
-  $self->sqlite_create_function('localtimestamp', 1, \&_sqlite_now);
-  $self->sqlite_create_function('floor',          1, \&POSIX::floor);
-
-  bless($self, $class);
-  return $self;
+  $dbh->sqlite_create_function('substring',      3, \&CORE::substr);
+  $dbh->sqlite_create_function('char_length',    1, sub { length($_[0]) });
+  $dbh->sqlite_create_function('mod',            2, \&_sqlite_mod);
+  $dbh->sqlite_create_function('now',            0, \&_sqlite_now);
+  $dbh->sqlite_create_function('localtimestamp', 1, \&_sqlite_now);
+  $dbh->sqlite_create_function('floor',          1, \&POSIX::floor);
 }
 
 ###############
@@ -347,5 +343,9 @@ For interface details see L<Bugzilla::DB> and L<DBI>.
 =item sql_istring
 
 =item bz_setup_database
+
+=item BUILDARGS
+
+=item on_dbi_connected
 
 =back

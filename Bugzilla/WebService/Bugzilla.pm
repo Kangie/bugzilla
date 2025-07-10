@@ -7,11 +7,11 @@
 
 package Bugzilla::WebService::Bugzilla;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::WebService);
+use base qw(Bugzilla::WebService);
 use Bugzilla::Constants;
 use Bugzilla::Util qw(datetime_from);
 use Bugzilla::WebService::Util qw(validate filter_wants);

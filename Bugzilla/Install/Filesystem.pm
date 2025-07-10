@@ -15,7 +15,7 @@ package Bugzilla::Install::Filesystem;
 # * Files do not have the correct permissions.
 # * The database does not exist.
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -34,7 +34,7 @@ use File::Spec;
 use IO::File;
 use POSIX ();
 
-use parent qw(Exporter);
+use base qw(Exporter);
 our @EXPORT = qw(
   update_filesystem
   create_htaccess

@@ -7,11 +7,11 @@
 
 package Bugzilla::Extension::MoreBugUrl;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::Extension);
+use base qw(Bugzilla::Extension);
 
 use constant MORE_SUB_CLASSES => qw(
   Bugzilla::Extension::MoreBugUrl::BitBucket
@@ -23,6 +23,7 @@ use constant MORE_SUB_CLASSES => qw(
   Bugzilla::Extension::MoreBugUrl::Redmine
   Bugzilla::Extension::MoreBugUrl::Savane
   Bugzilla::Extension::MoreBugUrl::Phabricator
+  Bugzilla::Extension::MoreBugUrl::WineHQForums
 );
 
 # We need to update bug_see_also table because both

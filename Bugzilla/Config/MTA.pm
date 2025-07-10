@@ -7,7 +7,7 @@
 
 package Bugzilla::Config::MTA;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -50,7 +50,7 @@ sub get_param_list {
     {name => 'smtp_password', type => 'p', default => ''},
     {name => 'smtp_ssl',   type => 'b', default => 0, checker => \&check_smtp_ssl},
     {name => 'smtp_debug', type => 'b', default => 0},
-    {name => 'whinedays',  type => 't', default => 7, checker => \&check_numeric},
+    {name => 'whinedays', type => 't', default => 7, checker => \&check_numeric},
     {name => 'globalwatchers', type => 't', default => '',},
   );
   return @param_list;

@@ -13,11 +13,10 @@ package Bugzilla::DB::Schema::Pg;
 #
 ###############################################################################
 
-use 5.10.1;
-use strict;
-use warnings;
+use 5.14.0;
+use Moo;
 
-use parent qw(Bugzilla::DB::Schema);
+extends qw(Bugzilla::DB::Schema);
 use Storable qw(dclone);
 
 #------------------------------------------------------------------------------
@@ -25,7 +24,7 @@ sub _initialize {
 
   my $self = shift;
 
-  $self = $self->SUPER::_initialize(@_);
+  $self = $self->SUPER::_initialize();
 
   # Remove FULLTEXT index types from the schemas.
   foreach my $table (keys %{$self->{schema}}) {

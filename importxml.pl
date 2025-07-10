@@ -10,7 +10,7 @@
 # a new bug into bugzilla. Everything before the beginning <?xml line
 # is removed so you can pipe in email messages.
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -595,10 +595,10 @@ sub process_bug {
     format_time($bug_fields{'delta_ts'}, "%Y-%m-%d %T") || $timestamp);
 
   # Bug Access
-  push(@query, "cclist_accessible");
+  push(@query,  "cclist_accessible");
   push(@values, $bug_fields{'cclist_accessible'} ? 1 : 0);
 
-  push(@query, "reporter_accessible");
+  push(@query,  "reporter_accessible");
   push(@values, $bug_fields{'reporter_accessible'} ? 1 : 0);
 
   my $product = new Bugzilla::Product({name => $bug_fields{'product'} || ''});

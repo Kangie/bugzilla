@@ -7,11 +7,11 @@
 
 package Bugzilla::Extension::OldBugMove;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::Extension);
+use base qw(Bugzilla::Extension);
 use Bugzilla::Constants;
 use Bugzilla::Error;
 use Bugzilla::Field::Choice;
@@ -183,7 +183,7 @@ sub _move_bug {
   my @fieldlist = (Bugzilla::Bug->fields, 'group', 'long_desc', 'attachment',
     'attachmentdata');
   my %displayfields = map { $_ => 1 } @fieldlist;
-  my $vars = {bugs => [$export_me], displayfields => \%displayfields};
+  my $vars          = {bugs => [$export_me], displayfields => \%displayfields};
   $template->process("bug/show.xml.tmpl", $vars, \$msg)
     || ThrowTemplateError($template->error());
   $msg .= "\n";

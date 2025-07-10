@@ -7,11 +7,11 @@
 
 package Bugzilla::WebService::Classification;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw (Bugzilla::WebService);
+use base qw (Bugzilla::WebService);
 
 use Bugzilla::Classification;
 use Bugzilla::Error;
@@ -70,11 +70,11 @@ sub _classification_to_hash {
 
   return filter $params,
     {
-    id          => $self->type('int',    $classification->id),
-    name        => $self->type('string', $classification->name),
-    description => $self->type('string', $classification->description),
-    sort_key    => $self->type('int',    $classification->sortkey),
-    products => [map { $self->_product_to_hash($_, $params) } @$products],
+    id          => $self->type('int',                 $classification->id),
+    name        => $self->type('string',              $classification->name),
+    description => $self->type('string',              $classification->description),
+    sort_key    => $self->type('int',                 $classification->sortkey),
+    products    => [map { $self->_product_to_hash($_, $params) } @$products],
     };
 }
 

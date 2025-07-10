@@ -7,7 +7,7 @@
 
 package Bugzilla::Config::General;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -24,7 +24,21 @@ use constant get_param_list => (
     checker  => \&check_email
   },
 
-  {name => 'utf8', type => 'b', default => '0', checker => \&check_utf8},
+  {
+    name    => 'utf8',
+    type    => 's',
+    choices => ['1', 'utf8', 'utf8mb3', 'utf8mb4'],
+    default => 'utf8mb4',
+    checker => \&check_utf8
+  },
+
+  {
+    name     => 'utf8_collate',
+    type     => 'r',
+    no_reset => '1',
+    default  => 'utf8mb4_unicode_520_ci',
+  },
+
 
   {name => 'shutdownhtml', type => 'l', default => ''},
 

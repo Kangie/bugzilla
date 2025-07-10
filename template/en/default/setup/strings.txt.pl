@@ -23,7 +23,7 @@ happens when you are not running checksetup.pl as ##root##. To see the
 problem we ran into, run: ##command##
 END
   bad_executable              => 'not a valid executable: ##bin##',
-  blacklisted                 => '(blacklisted)',
+  blocklisted                 => '(blocklisted)',
   bz_schema_exists_before_220 => <<'END',
 You are upgrading from a version before 2.20, but the bz_schema table
 already exists. This means that you restored a mysqldump into the Bugzilla
@@ -56,10 +56,37 @@ Re-run checksetup.pl in interactive mode (without an 'answers' file)
 to continue.
 END
   cpan_bugzilla_home => "WARNING: Using the Bugzilla directory as the CPAN home.",
+  db_blocklisted     => <<END,
+
+Your ##server## v##vers## is blocklisted. Please check the
+release notes for details or try a different database engine
+or version.
+END
   db_enum_setup      => "Setting up choices for standard drop-down fields:",
+  db_maria_on_mysql  => <<END,
+
+You appear to be using the 'mysql' database driver but the
+database engine Bugzilla connected to identifies as
+ MariaDB ##vers##
+MariaDB 10.6 and newer are no longer compatible with the mysql
+database driver. Bugzilla now uses a separate driver for all
+versions of MariaDB.
+
+Please edit localconfig and set:
+
+\$db_driver = 'mariadb';
+
+then re-run checksetup.pl.
+END
   db_schema_init     => "Initializing bz_schema...",
   db_table_new       => "Adding new table ##table##...",
   db_table_setup     => "Creating tables...",
+  db_too_old         => <<END,
+
+Your ##server## v##vers## is too old. Bugzilla requires version
+##want## or later of ##server##. Please download and install a
+newer version.
+END
   done               => 'done.',
   enter_or_ctrl_c    => "Press Enter to continue or Ctrl-C to exit...",
   error_localconfig_read => <<'END',
@@ -336,20 +363,27 @@ InnoDB is disabled in your MySQL installation.
 Bugzilla requires InnoDB to be enabled.
 Please enable it and then re-run checksetup.pl.
 END
+  mysql_innodb_settings => <<'END',
+Bugzilla requires the following MySQL InnoDB settings:
+innodb_file_format = Barracuda
+innodb_file_per_table = ON
+innodb_large_prefix = ON
+END
   mysql_index_renaming => <<'END',
 We are about to rename old indexes. The estimated time to complete
 renaming is ##minutes## minutes. You cannot interrupt this action once
 it has begun. If you would like to cancel, press Ctrl-C now...
 (Waiting 45 seconds...)
 END
-  mysql_utf8_conversion => <<'END',
+  mysql_row_format_conversion => "Converting ##table## to row format ##format##.",
+  mysql_utf8_conversion       => <<'END',
 WARNING: We are about to convert your table storage format to UTF-8. This
          allows Bugzilla to correctly store and sort international characters.
          However, if you have any non-UTF-8 data in your database,
          it ***WILL BE DELETED*** by this process. So, before
          you continue with checksetup.pl, if you have any non-UTF-8
          data (or even if you're not sure) you should press Ctrl-C now
-         to interrupt checksetup.pl, and run contrib/recode.pl to make all
+         to interrupt checksetup.pl, and run contrib/recode.pl to convert 
          the data in your database into UTF-8. You should also back up your
          database before continuing. This will affect every single table
          in the database, even non-Bugzilla tables.

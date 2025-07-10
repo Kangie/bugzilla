@@ -7,11 +7,11 @@
 
 package Bugzilla::Search;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Exporter);
+use base qw(Exporter);
 @Bugzilla::Search::EXPORT = qw(
   IsValidQueryType
   split_order_term
@@ -1261,8 +1261,9 @@ sub _translate_join {
   if ($extra_condition) {
     $extra_condition = " AND $extra_condition";
   }
-
-  my @join_sql = "$join JOIN $table AS $name"
+  my $sql_table
+    = $table eq 'groups' ? Bugzilla->dbh->quote_identifier($table) : $table;
+  my @join_sql  = "$join JOIN $sql_table AS $name "
     . " ON $from_table.$from = $name.$to$extra_condition";
   return @join_sql;
 }
@@ -1429,7 +1430,7 @@ sub _parse_basic_fields {
     my @values = $self->_param_array($param_name);
     next if !@values;
     my $default_op = $param_name eq 'content' ? 'matches' : 'anyexact';
-    my $operator = $params->{"${param_name}_type"} || $default_op;
+    my $operator   = $params->{"${param_name}_type"} || $default_op;
 
     # Fields that are displayed as multi-selects are passed as arrays,
     # so that they can properly search values that contain commas.
@@ -1683,19 +1684,19 @@ sub _boolean_charts {
   my @param_list = keys %$params;
 
   my @all_field_params = grep {/^field-?\d+/} @param_list;
-  my @chart_ids        = map { /^field(-?\d+)/; $1 } @all_field_params;
+  my @chart_ids        = map  { /^field(-?\d+)/; $1 } @all_field_params;
   @chart_ids = sort { $a <=> $b } uniq @chart_ids;
 
   my $clause = new Bugzilla::Search::Clause();
   foreach my $chart_id (@chart_ids) {
     my @all_and = grep {/^field$chart_id-\d+/} @param_list;
-    my @and_ids = map { /^field$chart_id-(\d+)/; $1 } @all_and;
+    my @and_ids = map  { /^field$chart_id-(\d+)/; $1 } @all_and;
     @and_ids = sort { $a <=> $b } uniq @and_ids;
 
     my $and_clause = new Bugzilla::Search::Clause();
     foreach my $and_id (@and_ids) {
       my @all_or = grep {/^field$chart_id-$and_id-\d+/} @param_list;
-      my @or_ids = map { /^field$chart_id-$and_id-(\d+)/; $1 } @all_or;
+      my @or_ids = map  { /^field$chart_id-$and_id-(\d+)/; $1 } @all_or;
       @or_ids = sort { $a <=> $b } uniq @or_ids;
 
       my $or_clause = new Bugzilla::Search::Clause('OR');
@@ -1774,7 +1775,7 @@ sub _field_ids {
   my @param_list = keys %$params;
 
   my @field_params = grep {/^f\d+$/} @param_list;
-  my @field_ids    = map { /(\d+)/; $1 } @field_params;
+  my @field_ids    = map  { /(\d+)/; $1 } @field_params;
   @field_ids = sort { $a <=> $b } @field_ids;
   return @field_ids;
 }
@@ -1788,26 +1789,19 @@ sub _handle_chart {
   $field = FIELD_MAP->{$field} || $field;
 
   my ($string_value, $orig_value);
-  state $is_mysql = $dbh->isa('Bugzilla::DB::Mysql') ? 1 : 0;
 
   if (ref $value eq 'ARRAY') {
 
     # Trim input and ignore blank values.
-    @$value = map { trim($_) } @$value;
+    @$value = map  { trim($_) } @$value;
     @$value = grep { defined $_ and $_ ne '' } @$value;
     return if !@$value;
-    $orig_value = join(',', @$value);
-    if ($field eq 'longdesc' && $is_mysql) {
-      @$value = map { _convert_unicode_characters($_) } @$value;
-    }
+    $orig_value   = join(',', @$value);
     $string_value = join(',', @$value);
   }
   else {
     return if $value eq '';
-    $orig_value = $value;
-    if ($field eq 'longdesc' && $is_mysql) {
-      $value = _convert_unicode_characters($value);
-    }
+    $orig_value   = $value;
     $string_value = $value;
   }
 
@@ -1866,19 +1860,6 @@ sub _handle_chart {
   }
 
   $condition->translated(\%search_args);
-}
-
-# XXX - This is a hack for MySQL which doesn't understand Unicode characters
-# above U+FFFF, see Bugzilla::Comment::_check_thetext(). This hack can go away
-# once we require MySQL 5.5.3 and use utf8mb4.
-sub _convert_unicode_characters {
-  my $string = shift;
-
-  # Perl 5.13.8 and older complain about non-characters.
-  no warnings 'utf8';
-  $string
-    =~ s/([\x{10000}-\x{10FFFF}])/"\x{FDD0}[" . uc(sprintf('U+%04x', ord($1))) . "]\x{FDD1}"/eg;
-  return $string;
 }
 
 ##################################
@@ -2957,7 +2938,7 @@ sub _multiselect_table {
   }
   elsif ($field eq 'bug_group') {
     $args->{full_field} = 'groups.name';
-    return "bug_group_map INNER JOIN groups
+    return "bug_group_map INNER JOIN " . $dbh->quote_identifier('groups') . "
                                       ON bug_group_map.group_id = groups.id";
   }
   elsif ($field eq 'blocked' or $field eq 'dependson') {
@@ -3027,7 +3008,7 @@ sub _multiselect_isempty {
     = @$args{qw(field operator joins chart_id)};
   my $dbh = Bugzilla->dbh;
   $operator = $self->_reverse_operator($operator) if $not;
-  $not = $operator eq 'isnotempty' ? 'NOT' : '';
+  $not      = $operator eq 'isnotempty' ? 'NOT' : '';
 
   if ($field eq 'keywords') {
     push @$joins,

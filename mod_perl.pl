@@ -8,7 +8,7 @@
 
 package Bugzilla::ModPerl;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -114,7 +114,7 @@ foreach my $file (glob "$cgi_path/*.cgi") {
 
 package Bugzilla::ModPerl::ResponseHandler;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -150,7 +150,7 @@ sub handler : method {
 
 package Bugzilla::ModPerl::CleanupHandler;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 

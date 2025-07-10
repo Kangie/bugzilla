@@ -7,7 +7,7 @@
 
 package Bugzilla::Flag;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -51,7 +51,7 @@ use Bugzilla::Mailer;
 use Bugzilla::Constants;
 use Bugzilla::Field;
 
-use parent qw(Bugzilla::Object Exporter);
+use base qw(Bugzilla::Object Exporter);
 @Bugzilla::Flag::EXPORT = qw(SKIP_REQUESTEE_ON_ERROR);
 
 ###############################

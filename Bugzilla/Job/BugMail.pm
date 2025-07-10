@@ -7,12 +7,12 @@
 
 package Bugzilla::Job::BugMail;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
 use Bugzilla::BugMail;
-BEGIN { eval "use parent qw(Bugzilla::Job::Mailer)"; }
+BEGIN { eval "use base qw(Bugzilla::Job::Mailer)"; }
 
 sub work {
   my ($class, $job) = @_;

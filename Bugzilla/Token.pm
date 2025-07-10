@@ -7,7 +7,7 @@
 
 package Bugzilla::Token;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -22,7 +22,7 @@ use Date::Parse;
 use File::Basename;
 use Digest::SHA qw(hmac_sha256_base64);
 
-use parent qw(Exporter);
+use base qw(Exporter);
 
 @Bugzilla::Token::EXPORT = qw(issue_api_token issue_session_token
   check_token_data delete_token
@@ -237,7 +237,7 @@ sub check_hash_token {
     $vars->{'script_name'} = basename($0);
     $vars->{'token'}       = issue_hash_token($data);
     $vars->{'reason'}
-      = (!$token) ? 'missing_token'
+      = (!$token)                   ? 'missing_token'
       : ($expected_token ne $token) ? 'invalid_token'
       :                               'expired_token';
     print Bugzilla->cgi->header();

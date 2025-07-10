@@ -7,11 +7,11 @@
 
 package Bugzilla::Extension::MoreBugUrl::Redmine;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::BugUrl);
+use base qw(Bugzilla::BugUrl);
 
 ###############################
 ####        Methods        ####

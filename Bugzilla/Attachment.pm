@@ -7,7 +7,7 @@
 
 package Bugzilla::Attachment;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -48,7 +48,7 @@ use File::Copy;
 use List::Util qw(max);
 use Storable qw(dclone);
 
-use parent qw(Bugzilla::Object);
+use base qw(Bugzilla::Object);
 
 ###############################
 ####    Initialization     ####
@@ -619,7 +619,7 @@ sub _check_is_private {
   if (
     (
          (!ref $invocant && $is_private)
-      || (ref $invocant && $invocant->isprivate != $is_private)
+      || (ref $invocant  && $invocant->isprivate != $is_private)
     )
     && !Bugzilla->user->is_insider
     )

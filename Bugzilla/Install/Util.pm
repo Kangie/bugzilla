@@ -11,7 +11,7 @@ package Bugzilla::Install::Util;
 # module may require *only* Bugzilla::Constants and built-in
 # perl modules.
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -25,7 +25,7 @@ use Scalar::Util qw(tainted);
 use Term::ANSIColor qw(colored);
 use PerlIO;
 
-use parent qw(Exporter);
+use base qw(Exporter);
 our @EXPORT_OK = qw(
   bin_loc
   get_version_and_os
@@ -267,7 +267,7 @@ sub indicate_progress {
   my ($params) = @_;
   my $current  = $params->{current};
   my $total    = $params->{total};
-  my $every = $params->{every} || 1;
+  my $every    = $params->{every} || 1;
 
   print "." if !($current % $every);
   if ($current == $total || $current % ($every * 60) == 0) {

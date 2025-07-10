@@ -12,13 +12,14 @@
 # Check the Bugzilla database schema to ensure no field names conflict
 # with SQL reserved words.
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
 use lib qw(. t lib);
 use Bugzilla;
 use Bugzilla::DB::Schema;
+use Bugzilla::DB::Schema::Mysql;
 
 
 # SQL reserved words
@@ -57,7 +58,8 @@ our $schema;
 our @tables;
 
 BEGIN {
-  $schema = Bugzilla::DB::Schema->new("Mysql");
+  our $fake_db = bless {}, 'Bugzilla::DB';
+  $schema = Bugzilla::DB::Schema::Mysql->new(db => $fake_db);
   @tables = $schema->get_table_list();
 }
 

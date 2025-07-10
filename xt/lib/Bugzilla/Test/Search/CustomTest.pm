@@ -9,7 +9,7 @@
 # Tests like this are specified in CUSTOM_SEARCH_TESTS in
 # Bugzilla::Test::Search::Constants.
 package Bugzilla::Test::Search::CustomTest;
-use parent qw(Bugzilla::Test::Search::FieldTest);
+use base qw(Bugzilla::Test::Search::FieldTest);
 use strict;
 use warnings;
 
@@ -55,7 +55,7 @@ sub debug_value {
 }
 
 # The tests we know are broken for this operator/field combination.
-sub _known_broken { return {} }
+sub _known_broken                      { return {} }
 sub contains_known_broken              { return undef }
 sub search_known_broken                { return undef }
 sub field_not_yet_implemented          { return undef }

@@ -7,7 +7,7 @@
 
 package Bugzilla::Classification;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -17,7 +17,7 @@ use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Product;
 
-use parent qw(Bugzilla::Field::ChoiceInterface Bugzilla::Object Exporter);
+use base qw(Bugzilla::Field::ChoiceInterface Bugzilla::Object Exporter);
 @Bugzilla::Classification::EXPORT = qw(sort_products_by_classification);
 
 ###############################

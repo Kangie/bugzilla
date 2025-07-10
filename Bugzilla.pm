@@ -7,9 +7,11 @@
 
 package Bugzilla;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
+
+BEGIN { eval { utf8->import; require 'utf8_heavy.pl' }; }
 
 # We want any compile errors to get to the browser, if possible.
 BEGIN {
@@ -459,7 +461,6 @@ sub error_mode {
     $class->request_cache->{error_mode} = $newval;
   }
 
-  # XXX - Once we require Perl 5.10.1, this test can be replaced by //.
   if (exists $class->request_cache->{error_mode}) {
     return $class->request_cache->{error_mode};
   }
@@ -507,7 +508,6 @@ sub usage_mode {
     $class->request_cache->{usage_mode} = $newval;
   }
 
-  # XXX - Once we require Perl 5.10.1, this test can be replaced by //.
   if (exists $class->request_cache->{usage_mode}) {
     return $class->request_cache->{usage_mode};
   }
@@ -596,7 +596,7 @@ sub fields {
   my $fields = $cache->{fields};
   my %requested;
   if (my $types = delete $criteria->{type}) {
-    $types = ref($types) ? $types : [$types];
+    $types     = ref($types) ? $types : [$types];
     %requested = map { %{$fields->{by_type}->{$_} || {}} } @$types;
   }
   else {
@@ -701,7 +701,6 @@ sub _cleanup {
   foreach my $dbh ($main, $shadow) {
     next if !$dbh;
     $dbh->bz_rollback_transaction() if $dbh->bz_in_transaction;
-    $dbh->disconnect;
   }
   my $smtp = $cache->{smtp};
   $smtp->disconnect if $smtp;

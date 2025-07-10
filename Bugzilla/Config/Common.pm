@@ -7,11 +7,11 @@
 
 package Bugzilla::Config::Common;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use Email::Address;
+use Email::Address::XS;
 use Socket;
 
 use Bugzilla::Util;
@@ -20,7 +20,7 @@ use Bugzilla::Field;
 use Bugzilla::Group;
 use Bugzilla::Status;
 
-use parent qw(Exporter);
+use base qw(Exporter);
 @Bugzilla::Config::Common::EXPORT
   = qw(check_multi check_numeric check_regexp check_url check_group
   check_sslbase check_priority check_severity check_platform
@@ -80,7 +80,8 @@ sub check_regexp {
 
 sub check_email {
   my ($value) = @_;
-  if ($value !~ $Email::Address::mailbox) {
+  my ($mbox) = Email::Address::XS->parse($value);
+  if (!$mbox->is_valid) {
     return "must be a valid email address.";
   }
   return "";
@@ -123,15 +124,19 @@ sub check_ip {
 }
 
 sub check_utf8 {
-  my $utf8 = shift;
-
-  # You cannot turn off the UTF-8 parameter if you've already converted
-  # your tables to utf-8.
-  my $dbh = Bugzilla->dbh;
-  if ($dbh->isa('Bugzilla::DB::Mysql') && $dbh->bz_db_is_utf8 && !$utf8) {
-    return "You cannot disable UTF-8 support, because your MySQL database"
-      . " is encoded in UTF-8";
+  my ($utf8, $entry) = @_;
+  # You cannot turn off the UTF-8 parameter.
+  my $current_utf8 = Bugzilla->params->{'utf8'};
+  if (!$utf8) {
+    return "You cannot disable UTF-8 support.";
   }
+  elsif ($current_utf8 eq 'utf8mb3' && $utf8 ne 'utf8mb3' && $utf8 ne 'utf8mb4') {
+    return "You cannot downgrade from utf8mb3 support, only keep it or change to utf8mb4.";
+  }
+  elsif ($current_utf8 eq 'utf8mb4' && $utf8 ne 'utf8mb4') {
+    return "You cannot disable UTF8-MB4 support.";
+  }
+
   return "";
 }
 

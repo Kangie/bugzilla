@@ -7,11 +7,11 @@
 
 package Bugzilla::Config;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
-use parent qw(Exporter);
+use base qw(Exporter);
 use autodie qw(:default);
 
 use Bugzilla::Constants;
@@ -341,6 +341,7 @@ sub read_param_file {
     die "The $file file does not exist."
       . ' You probably need to run checksetup.pl.',;
   }
+
   return \%params;
 }
 

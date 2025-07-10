@@ -11,7 +11,7 @@
 
 package Bugzilla::JobQueue::Runner;
 
-use 5.10.1;
+use 5.14.0;
 use strict;
 use warnings;
 
@@ -23,7 +23,7 @@ use Pod::Usage;
 use Bugzilla::Constants;
 use Bugzilla::JobQueue;
 use Bugzilla::Util qw(get_text);
-BEGIN { eval "use parent qw(Daemon::Generic)"; }
+BEGIN { eval "use base qw(Daemon::Generic)"; }
 
 our $VERSION = BUGZILLA_VERSION;
 
