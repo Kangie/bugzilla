@@ -106,14 +106,7 @@ sub html_quote {
     # |U+200e|Left-To-Right Mark        |0xe2 0x80 0x8e      |
     # |U+200f|Right-To-Left Mark        |0xe2 0x80 0x8f      |
     # --------------------------------------------------------
-	#
-	# Perl Safe.pm and 5.30 don't interact well, the following expression is
-	# disabled. This introduces a small risk of BiDi characters being added to
-	# bugs.
-	# https://bugzilla.mozilla.org/show_bug.cgi?id=1588175
-	# https://rt.perl.org/Public/Bug/Display.html?id=72942
-	# https://github.com/Perl/perl5/issues/17271
-	#$var =~ tr/\x{202a}-\x{202e}//d;
+    $var =~ tr/\x{202a}-\x{202e}//d;
   }
   return $var;
 }
