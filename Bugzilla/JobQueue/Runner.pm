@@ -80,6 +80,7 @@ sub gd_more_opt {
   return (
     'pidfile=s' => \$self->{gd_args}{pidfile},
     'n=s'       => \$self->{gd_args}{progname},
+    'scoreboard-dir=s' => \$self->{gd_args}{scoreboarddir},
   );
 }
 
@@ -214,6 +215,7 @@ sub _do_work {
   my $jq = Bugzilla->job_queue();
   $jq->set_verbose($self->{debug});
   $jq->set_pidfile($self->{gd_pidfile});
+  $jq->set_scoreboard($self->{scoreboard_dir}) if $self->{scoreboard_dir};
   foreach my $module (values %{Bugzilla::JobQueue->job_map()}) {
     eval "use $module";
     $jq->can_do($module);
