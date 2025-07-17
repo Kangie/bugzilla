@@ -17,7 +17,7 @@ use Bugzilla::Install::Util qw(install_string);
 use Bugzilla::Util qw(read_text);
 use File::Basename;
 use base qw(TheSchwartz);
-use fields qw(_worker_pidfile);
+use fields qw(_worker_pidfile _work_on_job);
 
 # This maps job names for Bugzilla::JobQueue to the appropriate modules.
 # If you add new types of jobs, you should add a mapping here.
