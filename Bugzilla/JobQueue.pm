@@ -172,6 +172,14 @@ sub work_until_done {
   }
 }
 
+# Work on a specific job
+sub work_on {
+  my $self  = shift;
+  Bugzilla->clear_request_cache();
+  my $jobid = $self->{_work_on_job};
+  return $self->SUPER::work_on($jobid);
+}
+
 1;
 
 __END__

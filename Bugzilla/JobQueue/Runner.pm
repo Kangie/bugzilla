@@ -199,6 +199,10 @@ sub gd_other_cmd {
   elsif ($do eq "onepass") {
     $self->{_run_command} = 'work_until_done';
   }
+  elsif ($do =~ /^\d+$/) {
+    $self->{_run_command} = 'work_on';
+    $self->{_work_on_job} = $do;
+  }
   else {
     $self->SUPER::gd_other_cmd($do, $locked);
   }
