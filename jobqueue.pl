@@ -57,6 +57,7 @@ jobqueue.pl - Runs jobs in the background for Bugzilla.
    uninstall Removes the system service for jobqueue.pl.
    help      Display this usage info
    version   Display the version of jobqueue.pl
+   NNNNN     Run job with numeric ID NNNNN from job queue and then exits.
 
 =head1 DESCRIPTION
 
