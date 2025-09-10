@@ -119,6 +119,9 @@ my $serverpush
 
 my $order = $cgi->param('order') || "";
 
+# gentoo: If there is no searchstring at this point; require authentication to reduce load
+Bugzilla->login(LOGIN_REQUIRED) if(!defined($searchstring));
+
 # The params object to use for the actual query itself
 my $params;
 
