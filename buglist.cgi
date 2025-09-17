@@ -120,7 +120,15 @@ my $serverpush
 my $order = $cgi->param('order') || "";
 
 # gentoo: If there is no searchstring at this point; require authentication to reduce load
-Bugzilla->login(LOGIN_REQUIRED) if(!defined($searchstring));
+# but non-browser clients cannot auth, so go a bit easier on them.
+my $require_login = 0;
+$require_login = 1 if !defined($searchstring);
+$require_login = 0 if $cgi->param('ctype') eq "atom";
+$require_login = 0 if $cgi->param('ctype') eq "csv";
+$require_login = 0 if $cgi->param('ctype') eq "ics";
+$require_login = 0 if $cgi->param('ctype') eq "rdf";
+$require_login = 0 if $cgi->param('ctype') eq "rss";
+Bugzilla->login(LOGIN_REQUIRED) if $require_login == 1;
 
 # The params object to use for the actual query itself
 my $params;
