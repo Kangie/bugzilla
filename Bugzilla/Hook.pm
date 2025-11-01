@@ -459,7 +459,8 @@ The hash of changed fields. C<< $changes->{field} = [old, new] >>
 
 Allows you to add more L<Bugzilla::BugUrl> sub-classes.
 
-See the C<MoreBugUrl> extension to see how things work.
+This hook can be used by extensions to add support for additional bug
+tracker types beyond the built-in Local and External classes.
 
 Params:
 

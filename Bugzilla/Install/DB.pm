@@ -732,6 +732,9 @@ sub update_table_definitions {
   # 2015-12-16 LpSolit@gmail.com - Bug 1232578
   _sanitize_audit_log_table();
 
+  # 2025-11-02 - https://bugs.gentoo.org/964700 - kangie@gentoo.org
+  _update_see_also_any_url();
+
   ################################################################
   # New --TABLE-- changes should go *** A B O V E *** this point #
   ################################################################
@@ -4245,6 +4248,22 @@ sub _sanitize_audit_log_table {
         = Bugzilla::Object::_sanitize_audit_log($class, $field, [undef, $passwd]);
       $sth->execute($sanitized_passwd, $class, $field, $passwd);
     }
+  }
+}
+
+sub _update_see_also_any_url {
+  my $dbh = Bugzilla->dbh;
+  my $count
+    = $dbh->selectrow_array(
+    "SELECT COUNT(id) FROM bug_see_also WHERE class NOT IN ('Bugzilla::BugUrl::Local', 'Bugzilla::BugUrl::External')"
+    );
+  if ($count) {
+    $dbh->do(
+      "UPDATE bug_see_also SET class = 'Bugzilla::BugUrl::External' WHERE class != 'Bugzilla::BugUrl::Bugzilla::Local'"
+    );
+    $dbh->do(
+      "UPDATE bug_see_also SET class = 'Bugzilla::BugUrl::Local' WHERE class = 'Bugzilla::BugUrl::Bugzilla::Local'"
+    );
   }
 }
 

@@ -11,7 +11,7 @@ use 5.10.1;
 use strict;
 use warnings;
 
-use parent qw(Bugzilla::BugUrl::Bugzilla::Local);
+use parent qw(Bugzilla::BugUrl::Local);
 
 use URI ();
 
@@ -37,4 +37,3 @@ sub _check_value {
 }
 
 1;
-

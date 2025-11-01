@@ -54,21 +54,8 @@ use constant VALIDATORS => {
 # pick the first one that should handle the url. New
 # subclasses should be added at the end of the list.
 use constant SUB_CLASSES => qw(
-  Bugzilla::BugUrl::Bugzilla::Local
-  Bugzilla::BugUrl::Bugzilla
-  Bugzilla::BugUrl::Launchpad
-  Bugzilla::BugUrl::Chromium
-  Bugzilla::BugUrl::Flyspray
-  Bugzilla::BugUrl::Google
-  Bugzilla::BugUrl::Debian
-  Bugzilla::BugUrl::JIRA
-  Bugzilla::BugUrl::Trac
-  Bugzilla::BugUrl::MantisBT
-  Bugzilla::BugUrl::SourceForge
-  Bugzilla::BugUrl::GitHub
-  Bugzilla::BugUrl::GitLab
-  Bugzilla::BugUrl::Phabricator
-  Bugzilla::BugUrl::Gerrit
+  Bugzilla::BugUrl::Local
+  Bugzilla::BugUrl::External
 );
 
 ###############################
@@ -178,32 +165,13 @@ sub _check_value {
       {function => 'add_see_also', param => '$value'});
   }
 
-  # We assume that the URL is an HTTP URL if there is no (something)://
-  # in front.
-  if (!$uri->scheme) {
-
-    # This works better than setting $uri->scheme('http'), because
-    # that creates URLs like "http:domain.com" and doesn't properly
-    # differentiate the path from the domain.
-    $uri = new URI("http://$value");
-  }
-  elsif ($uri->scheme ne 'http' && $uri->scheme ne 'https') {
-    ThrowUserError('bug_url_invalid', {url => $value, reason => 'http'});
-  }
-
-  # This stops the following edge cases from being accepted:
-  # * show_bug.cgi?id=1
-  # * /show_bug.cgi?id=1
-  # * http:///show_bug.cgi?id=1
-  if (!$uri->authority or $uri->path !~ m{/}) {
-    ThrowUserError('bug_url_invalid', {url => $value, reason => 'path_only'});
-  }
-
-  if (length($uri->path) > MAX_BUG_URL_LENGTH) {
-    ThrowUserError('bug_url_too_long', {url => $uri->path});
-  }
-
   return $uri;
+}
+
+sub local_uri {
+  my ($self, $bug_id) = @_;
+  $bug_id ||= '';
+  return Bugzilla->params->{'urlbase'} . "show_bug.cgi?id=$bug_id";
 }
 
 1;
@@ -211,6 +179,8 @@ sub _check_value {
 =head1 B<Methods in need of POD>
 
 =over
+
+=item local_uri
 
 =item should_handle
 

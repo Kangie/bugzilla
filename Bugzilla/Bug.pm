@@ -3249,7 +3249,7 @@ sub add_see_also {
     # If this is a link to a local bug then save the
     # ref bug id for sending changes email.
     my $ref_bug = delete $field_values->{ref_bug};
-    if (  $class->isa('Bugzilla::BugUrl::Bugzilla::Local')
+    if (  $class->isa('Bugzilla::BugUrl::Local')
       and !$skip_recursion
       and $ref_bug->check_can_change_field('see_also', '', $self->id, \$privs))
     {
@@ -3284,7 +3284,7 @@ sub remove_see_also {
   $removed_bug_url = $removed_bug_url->[0];
   if ( !$skip_recursion
     and $removed_bug_url
-    and $removed_bug_url->isa('Bugzilla::BugUrl::Bugzilla::Local')
+    and $removed_bug_url->isa('Bugzilla::BugUrl::Local')
     and $removed_bug_url->ref_bug_url)
   {
     my $ref_bug = Bugzilla::Bug->check($removed_bug_url->ref_bug_url->bug_id);
